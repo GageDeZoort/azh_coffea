@@ -10,10 +10,9 @@ from coffea.lumi_tools import LumiMask
 from coffea.nanoevents import NanoAODSchema
 
 from azh_analysis.processors.analysis_processor import AnalysisProcessor
-from azh_analysis.utils.btag import get_btag_tables
+from azh_analysis.utils.btag import get_btag_SFs, get_btag_tables
 from azh_analysis.utils.corrections import (
     dyjets_stitch_weights,
-    get_btag_SFs,
     get_electron_ID_weights,
     get_electron_trigger_SFs,
     get_fake_rates,
