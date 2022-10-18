@@ -18,11 +18,10 @@ from azh_analysis.utils.corrections import (
     get_fake_rates,
     get_muon_ID_weights,
     get_muon_trigger_SFs,
-    get_nevts_dict,
     get_tau_ID_weights,
 )
 from azh_analysis.utils.pileup import get_pileup_tables
-from azh_analysis.utils.sample import get_fileset, get_sample_info
+from azh_analysis.utils.sample import get_fileset, get_nevts_dict, get_sample_info
 
 
 def parse_args():
