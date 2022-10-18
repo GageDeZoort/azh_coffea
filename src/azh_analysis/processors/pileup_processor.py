@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sys
-
 import awkward as ak
 from coffea import hist, processor
 
@@ -30,7 +28,6 @@ class PileupProcessor(processor.ProcessorABC):
 
     def process(self, events):
         self.output = self.accumulator.identity()
-        filename = events.metadata["filename"]
         dataset = events.metadata["dataset"]
         print(dataset)
         pileup_mc = events.Pileup.nTrueInt
