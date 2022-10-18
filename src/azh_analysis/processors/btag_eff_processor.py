@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import sys
-
 import awkward as ak
 import numpy as np
-from coffea import hist, processor
+from coffea import processor
 from coffea.processor import column_accumulator as col_acc
 
 
