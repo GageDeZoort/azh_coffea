@@ -2,16 +2,10 @@ from __future__ import annotations
 
 import os
 import sys
-
-sys.path.append("../")
-from collections import Counter
 from os.path import join
 
-import awkward as ak
 import correctionlib
 import numpy as np
-import uproot
-import yaml
 from coffea import util
 
 
@@ -21,7 +15,7 @@ def zero_division(a, b):
 
 
 def open_btag_file(root, year, UL=True):
-    indir = join(root, f"UL_{year}") if UL else join(pileup_dir, f"Legacy_{year}")
+    indir = join(root, f"UL_{year}")
     file = f"MC_UL_{year}_btag_effs.coffea"
     return util.load(os.path.join(indir, file))
 
@@ -47,10 +41,10 @@ def get_btag_tables(root, year, UL=True):
                 denom = sum(nbjets[in_bin])
                 eff = num / denom if denom != 0 else 0
                 table[(i, j)] = eff
-        for j, eta_bin in enumerate(unique_eta_bins):
+        for i, _ in enumerate(unique_eta_bins):
             mpt = len(unique_pt_bins)
-            table[(mpt, j)] = table[(mpt - 1, j)]
-        for i, pt_bin in enumerate(unique_pt_bins):
+            table[(mpt, i)] = table[(mpt - 1, i)]
+        for i, _ in enumerate(unique_pt_bins):
             meta = len(unique_eta_bins)
             table[(meta, j)] = table[(meta - 1, j)]
         tables[sample] = table
