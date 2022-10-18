@@ -54,10 +54,9 @@ logging.info("Initializing")
 
 # relevant parameters
 year, source = args.year, args.source
-indir = "sample_lists/sample_yamls"
 
 # load up golden jsons
-golden_json_dir = "sample_lists/data_certification"
+golden_json_dir = "samples/data_certification"
 golden_jsons = {
     "2018": join(golden_json_dir, "data_cert_2018.json"),
     "2017": join(golden_json_dir, "data_cert_2017.json"),
@@ -117,8 +116,8 @@ btag_SFs = get_btag_SFs(btag_root, "2018", UL=True)
 
 # load up non-signal MC csv / yaml files
 fset_string = f"{source}_{year}"
-sample_info = get_sample_info(join("sample_lists", fset_string + ".csv"))
-fileset = get_fileset(join(indir, fset_string + ".yaml"))
+sample_info = get_sample_info(join("samples", fset_string + ".csv"))
+fileset = get_fileset(join("samples/filesets", fset_string + ".yaml"))
 pileup_tables = get_pileup_tables(
     fileset.keys(), year, UL=True, pileup_dir="corrections/pileup"
 )
