@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import sys
 from os.path import join
 
 import correctionlib
@@ -46,7 +45,7 @@ def get_btag_tables(root, year, UL=True):
             table[(mpt, i)] = table[(mpt - 1, i)]
         for i, _ in enumerate(unique_pt_bins):
             meta = len(unique_eta_bins)
-            table[(meta, j)] = table[(meta - 1, j)]
+            table[(meta, i)] = table[(meta - 1, i)]
         tables[sample] = table
     return tables, unique_pt_bins, unique_eta_bins
 
