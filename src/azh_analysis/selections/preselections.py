@@ -590,13 +590,13 @@ def is_prompt(lltt, cat):
 
 def is_prompt_base(lltt, cat, mode=-1):
     l1, l2 = lltt["ll"]["l1"], lltt["ll"]["l2"]
-    t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
+    # t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
     prompt_l1 = (l1.genPartFlav == 1) | (l1.genPartFlav == 15)
     prompt_l2 = (l2.genPartFlav == 1) | (l2.genPartFlav == 15)
     prompt_mask = prompt_l1 & prompt_l2
 
     if (mode == "e") or (mode == "m"):
-        prompt_t2 = (t2.genPartFlav > 0) & (t2.genPartFlav < 6)
+        # prompt_t2 = (t2.genPartFlav > 0) & (t2.genPartFlav < 6)
         prompt_mask = prompt_mask  # & prompt_t2
     elif mode == "lt":
         # prompt_t1 = (t1.genPartFlav == 1) | (t1.genPartFlav == 15)
