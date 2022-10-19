@@ -21,15 +21,13 @@ def open_btag_file(root, year, UL=True):
 
 def get_btag_tables(root, year, UL=True):
     out = open_btag_file(root, year, UL)
-    pt_bins = out[f"TTToSemiLeptonic_{year}"]["pt_bins"].value
-    unique_pt_bins = np.unique(pt_bins)
-    eta_bins = out[f"TTToSemiLeptonic_{year}"]["eta_bins"].value
-    unique_eta_bins = np.unique(eta_bins)
     tables = {}
     for sample in out.keys():
         data = out[sample]
         pt_bins = data["pt_bins"].value
+        unique_pt_bins = np.unique(pt_bins)
         eta_bins = data["eta_bins"].value
+        unique_eta_bins = np.unique(eta_bins)
         nbjets = data["nbjets"].value
         nbtags = data["nbtags"].value
         table = {}
@@ -40,12 +38,12 @@ def get_btag_tables(root, year, UL=True):
                 denom = sum(nbjets[in_bin])
                 eff = num / denom if denom != 0 else 0
                 table[(i, j)] = eff
+        mpt = len(unique_pt_bins)
         for i, _ in enumerate(unique_eta_bins):
-            mpt = len(unique_pt_bins)
             table[(mpt, i)] = table[(mpt - 1, i)]
+        meta = len(unique_eta_bins)
         for i, _ in enumerate(unique_pt_bins):
-            meta = len(unique_eta_bins)
-            table[(meta, i)] = table[(meta - 1, i)]
+            table[(i, meta)] = table[(i, meta - 1)]
         tables[sample] = table
     return tables, unique_pt_bins, unique_eta_bins
 
