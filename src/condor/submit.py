@@ -10,21 +10,23 @@ from string import Template
 
 import numpy as np
 
-from azh_analysis.utils.sample_utils import get_fileset
+sys.path.append("/uscms_data/d3/jdezoort/AZh_columnar/CMSSW_10_2_9/src/azh_coffea/src/")
+from azh_analysis.utils.sample import get_fileset  # noqa: E402
 
 sys.path.append(os.path.abspath(join(os.path.dirname(__file__), os.path.pardir)))
 
 
 def parse_args():
     """Parse command line arguments."""
+    # base_dir = "/uscms_data/d3/jdezoort/AZh_columnar/CMSSW_10_2_9/src/azh_coffea/src/"
     parser = argparse.ArgumentParser("")
     add_arg = parser.add_argument
     add_arg("-y", "--year", default="2018")
     add_arg("-s", "--source", default="MC_UL")
-    add_arg("--submit", default=False)
+    add_arg("--submit", action="store_true")
     add_arg("--label", default="test")
     add_arg("--test-mode", action="store_true")
-    add_arg("--script", default="../run_analysis.py")
+    add_arg("--script", default="run_analysis.py")
     add_arg("-v", "--verbose", action="store_true")
     add_arg("--show-config", action="store_true")
     add_arg("--files-per-job", default=10)
@@ -63,12 +65,11 @@ def main(args):
     logging.info(f"Using parameters source={source}, year={year}")
     name = f"{source}_{year}"
 
-    sample_base = join(indir, "sample_lists")
+    sample_base = join(indir, "samples")
     logging.info(f"Attempting to locate sample_info: {sample_base}")
-    fileset_base = join(indir, "sample_lists/sample_yamls")
+    fileset_base = join(indir, "samples/filesets")
     logging.info(f"Attempting to locate fileset: {fileset_base}")
     fileset = get_fileset(join(fileset_base, name + ".yaml"))
-    logging.info(f"{fileset}")
 
     for sample, files in fileset.items():
         good_files = []
@@ -100,7 +101,7 @@ def main(args):
                 "script": args.script,
                 "year": year,
                 "source": source,
-                "label": args.label,
+                # "label": args.label,
                 "sample": sample,
                 "start_idx": min(subsample),
                 "end_idx": max(subsample) + 1,
@@ -116,8 +117,10 @@ def main(args):
                 os.system(f"rm {local_condor}.log")
 
             if args.submit:
-                os.system(f"Condor_submit {local_condor}")
+                os.system(f"condor_submit {local_condor}")
             n_submit += 1
+        if args.test_mode:
+            break
 
 
 if __name__ == "__main__":

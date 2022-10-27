@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # make sure this is installed
@@ -10,7 +9,7 @@ mkdir outfiles
 
 # run code
 # pip install --user onnxruntime
-python $script --year $year --label $label --samples $sample --start_idx $start_idx --end_idx $end_idx
+python $script --year $year --source $source --sample $sample --start-idx $start_idx --end-idx $end_idx
 
 #move output to eos
 xrdcp -f outfiles/* $eosoutpkl
