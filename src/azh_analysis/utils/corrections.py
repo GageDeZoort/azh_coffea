@@ -235,6 +235,7 @@ def dyjets_stitch_weights(info, nevts_dict, year):
     xsec = np.sort(np.unique(dyjets["xsec"]))
 
     label = f"{year}"
+    print(nevts_dict.keys())
     if "2016" in year:
         label = f"{year.split('16')[-1]}_{year}"
     ninc, xinc = nevts_dict[f"DYJetsToLLM-50_{label}"], xsec[4]
