@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import logging
 import math
-import time
+import warnings
 
 import awkward as ak
 import numba as nb
 import numpy as np
 import vector as vec
 from coffea import analysis_tools, processor
-from coffea.processor import column_accumulator as col_acc
+
+# from coffea.processor import column_accumulator as col_acc
 from hist import Hist
 from hist.axis import IntCategory, Regular, StrCategory
 
@@ -46,6 +48,8 @@ from azh_analysis.utils.corrections import (
 )
 from azh_analysis.utils.pileup import get_pileup_weights
 
+warnings.filterwarnings("ignore")
+
 
 def flat(a, axis=None):
     return ak.flatten(a, axis=axis)
@@ -63,6 +67,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         collection_vars=None,
         global_vars=None,
         sample_info=None,
+        fileset=None,
         sample_dir="../sample_lists/sample_yamls",
         exc1_path="sync/princeton_all.csv",
         exc2_path="sync/desy_all.csv",
@@ -83,9 +88,11 @@ class AnalysisProcessor(processor.ProcessorABC):
         btag_eta_bins=None,
         run_fastmtt=False,
         fill_hists=True,
+        verbose=False,
     ):
 
         # initialize member variables
+        self.init_logging(verbose=verbose)
         self.sync = sync
         self.info = sample_info
         self.collection_vars = collection_vars
@@ -209,9 +216,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             growth=True,
         )
 
-        datasets = sample_info["name"]
         pt = {
-            dataset: Hist(
+            dataset.split("_")[0]: Hist(
                 category_axis,
                 leg_axis,
                 btags_axis,
@@ -224,10 +230,10 @@ class AnalysisProcessor(processor.ProcessorABC):
                 eleSmear_shift_axis,
                 Regular(name="pt", bins=30, start=0, stop=300),
             )
-            for dataset in datasets
+            for dataset in fileset.keys()
         }
         met = {
-            dataset: Hist(
+            dataset.split("_")[0]: Hist(
                 category_axis,
                 btags_axis,
                 unclMET_shift_axis,
@@ -239,10 +245,10 @@ class AnalysisProcessor(processor.ProcessorABC):
                 eleSmear_shift_axis,
                 Regular(name="met", bins=10, start=0, stop=200),
             )
-            for dataset in datasets
+            for dataset in fileset.keys()
         }
-        m4l = {
-            dataset: Hist(
+        mtt = {
+            dataset.split("_")[0]: Hist(
                 category_axis,
                 mass_type_axis,
                 btags_axis,
@@ -255,10 +261,26 @@ class AnalysisProcessor(processor.ProcessorABC):
                 eleSmear_shift_axis,
                 Regular(name="mass", bins=40, start=0, stop=400),
             )
-            for dataset in datasets
+            for dataset in fileset.keys()
+        }
+        m4l = {
+            dataset.split("_")[0]: Hist(
+                category_axis,
+                mass_type_axis,
+                btags_axis,
+                unclMET_shift_axis,
+                eleES_shift_axis,
+                muES_shift_axis,
+                tauES_shift_axis,
+                efake_shift_axis,
+                mfake_shift_axis,
+                eleSmear_shift_axis,
+                Regular(name="mass", bins=40, start=0, stop=400),
+            )
+            for dataset in fileset.keys()
         }
         mll = {
-            dataset: Hist(
+            dataset.split("_")[0]: Hist(
                 category_axis,
                 btags_axis,
                 unclMET_shift_axis,
@@ -270,52 +292,24 @@ class AnalysisProcessor(processor.ProcessorABC):
                 eleSmear_shift_axis,
                 Regular(name="mll", bins=10, start=60, stop=120),
             )
-            for dataset in datasets
+            for dataset in fileset.keys()
         }
 
-        outvars = [
-            "pt1",
-            "eta1",
-            "phi1",
-            "mass1",
-            "pt2",
-            "eta2",
-            "phi2",
-            "mass2",
-            "pt3",
-            "eta3",
-            "phi3",
-            "mass3",
-            "pt4",
-            "eta4",
-            "phi4",
-            "mass4",
-            "met_pt",
-            "met_phi",
-            "met_covxx",
-            "met_covxy",
-            "met_covyy",
-            "nbjets",
-            "tauES_shift",
-            "eleES_shift",
-            "muES_shift",
-            "efake_shift",
-            "mfake_shift",
-            "eleSmear_shift",
-            "unclMET_shift",
-            "btag_shift",
-            "weight",
-        ]
-        outvars = {var: col_acc(np.array([])) for var in outvars}
         self.output = processor.dict_accumulator(
             {
+                "mtt": processor.dict_accumulator(mtt),
                 "m4l": processor.dict_accumulator(m4l),
                 "mll": processor.dict_accumulator(mll),
                 "pt": processor.dict_accumulator(pt),
                 "met": processor.dict_accumulator(met),
-                **outvars,
             }
         )
+
+    def init_logging(self, verbose=False):
+        log_format = "%(asctime)s %(levelname)s %(message)s"
+        log_level = logging.DEBUG if verbose else logging.INFO
+        logging.basicConfig(level=log_level, format=log_format)
+        logging.info("Initializing processor logger.")
 
     def clear_caches(self):
         self._eleES_cache.clear()
@@ -323,9 +317,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         self._tauES_cache.clear()
 
     def process(self, events):
-        print(f"...processing {events.metadata['dataset']}\n")
+        logging.info(f"Processing {events.metadata['dataset']}")
         filename = events.metadata["filename"]
-        t0 = time.time()
 
         # organize dataset, year, luminosity
         dataset = events.metadata["dataset"]
@@ -340,7 +333,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         if self.nevts_dict is not None:
             nevts = self.nevts_dict[dataset]
         elif not is_data:
-            print("WARNING: may be using wrong sum_of_weights!")
+            logging.debug("WARNING: may be using wrong sum_of_weights!")
 
         # weight by the data-MC luminosity ratio
         sample_weight = self.lumi[year] * xsec / nevts
@@ -361,10 +354,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             njets = ak.to_numpy(events.LHE.Njets)
             weights.add("dyjets_sample_weights", self.dyjets_weights(njets))
         else:  # otherwise weight by luminosity ratio
-            print(name, sample_weight)
             weights.add("sample_weight", ones * sample_weight)
         if (self.pileup_tables is not None) and not is_data:
-            print(name, events.genWeight[0:5])
             weights.add("gen_weight", events.genWeight)
             pu_weights = get_pileup_weights(
                 events.Pileup.nTrueInt, self.pileup_tables[dataset], self.pileup_bins
@@ -374,7 +365,6 @@ class AnalysisProcessor(processor.ProcessorABC):
             lumi_mask = self.lumi_masks[year]
             lumi_mask = lumi_mask(events.run, events.luminosityBlock)
             weights.add("lumi_mask", lumi_mask)
-        print(f"time setting up weights: {time.time() - t0}")
 
         # grab baseline defined leptons
         baseline_e = get_baseline_electrons(events.Electron)
@@ -392,7 +382,6 @@ class AnalysisProcessor(processor.ProcessorABC):
 
         # number of b jets used to test bbA vs. ggA
         b_counts = ak.num(baseline_b)
-        print(f"time grabbing baseline objects: {time.time() - t0}")
 
         # build ll pairs
         ll_pairs = {}
@@ -420,7 +409,6 @@ class AnalysisProcessor(processor.ProcessorABC):
                 weights.add("l1_trig_weight", wt1)
                 weights.add("l2_trig_weight", wt2)
 
-        print(f"time building ll pairs: {time.time() - t0}")
         candidates, cat_tight_masks = {}, {}
         for cat in self.categories.values():
             if (cat[:2] == "ee") and ("_Electrons" not in filename):
@@ -458,8 +446,6 @@ class AnalysisProcessor(processor.ProcessorABC):
                 cands["cat_str"] = cat
                 cands["w_lepton_ID"] = self.apply_lepton_ID_SFs(cands, cat)
                 candidates[cat] = cands
-
-        print(f"time building lltt pairs: {time.time() - t0}")
 
         # combine the candidates into a single array
         # reject events with multiple candidates from one category
@@ -518,7 +504,6 @@ class AnalysisProcessor(processor.ProcessorABC):
             }
 
             for shift in shifts:
-                print("shifting", shift)
                 # figure out which variable needs to be shifted
                 up_or_down = shift.split("_")[-1]
                 tauES_shift = up_or_down if ("tauES" in shift) else "nom"
@@ -541,7 +526,6 @@ class AnalysisProcessor(processor.ProcessorABC):
                     cands["met"] = met
                     lltt[cat] = cands
 
-                print(f"applying ES shifts, {time.time()-t0}")
                 # apply lepton energy scale corrections
                 final_states = self.apply_ES_shifts(
                     lltt,
@@ -552,14 +536,12 @@ class AnalysisProcessor(processor.ProcessorABC):
                     mfake_shift,
                     eleSmear_shift,
                 )
-                print(f"finished applying ES shifts, {time.time()-t0}")
 
                 # optionally run fastmtt
                 if self.fastmtt:
                     fastmtt_out = self.run_fastmtt(final_states)
                 else:
                     fastmtt_out = {}
-                print(f"finished running fastmtt, {time.time()-t0}")
 
                 self.fill_histos(
                     final_states,
@@ -577,42 +559,8 @@ class AnalysisProcessor(processor.ProcessorABC):
                     btag_shift=btag_shift,
                     blind=(is_data and self.blind),
                 )
-                print(f"finished filling histos, {time.time()-t0}")
-
-                N = len(np_flat(final_states))
-                l1, l2 = final_states.ll.l1, final_states.ll.l2
-                t1, t2 = final_states.tt.t1, final_states.tt.t2
-                self.output["pt1"] += col_acc(np_flat(l1.pt))
-                self.output["eta1"] += col_acc(np_flat(l1.eta))
-                self.output["phi1"] += col_acc(np_flat(l1.phi))
-                self.output["mass1"] += col_acc(np_flat(l1.mass))
-                self.output["pt2"] += col_acc(np_flat(l2.pt))
-                self.output["eta2"] += col_acc(np_flat(l2.eta))
-                self.output["phi2"] += col_acc(np_flat(l2.phi))
-                self.output["mass2"] += col_acc(np_flat(l2.mass))
-                self.output["pt3"] += col_acc(np_flat(t1.pt))
-                self.output["eta3"] += col_acc(np_flat(t1.eta))
-                self.output["phi3"] += col_acc(np_flat(t1.phi))
-                self.output["mass3"] += col_acc(np_flat(t1.mass))
-                self.output["pt4"] += col_acc(np_flat(t2.pt))
-                self.output["eta4"] += col_acc(np_flat(t2.eta))
-                self.output["phi4"] += col_acc(np_flat(t2.phi))
-                self.output["mass4"] += col_acc(np_flat(t2.mass))
-                self.output["met_pt"] += col_acc(np_flat(met.pt))
-                self.output["met_phi"] += col_acc(np_flat(met.phi))
-                self.output["met_covxx"] += col_acc(np_flat(met.covXX))
-                self.output["met_covxy"] += col_acc(np_flat(met.covXY))
-                self.output["met_covyy"] += col_acc(np_flat(met.covYY))
-                self.output["nbjets"] += col_acc(np_flat(final_states.btags))
-                self.output["tauES_shift"] += col_acc(np_flat(N * [tauES_shift]))
-                self.output["eleES_shift"] += col_acc(np_flat(N * [eleES_shift]))
-                self.output["muES_shift"] += col_acc(np_flat(N * [muES_shift]))
-                self.output["efake_shift"] += col_acc(np_flat(N * [efake_shift]))
-                print(f"time filling for {shift}: {time.time() - t0}")
 
         self.clear_caches()
-
-        print(f"time building tt pairs: {time.time() - t0}")
 
         # if 'fake' in cat:
         #    tight_masks = cat_tight_masks[cat]
@@ -1021,38 +969,8 @@ class AnalysisProcessor(processor.ProcessorABC):
                 pt=np_flat(p4.pt),
                 weight=weight,
             )
-        #    self.output['eta'].fill(group=group, dataset=dataset,
-        #                            category=cats, leg=label, btags=btags,
-        #                            unclMET_shift=unclMET_shift,
-        #                            eleES_shift=eleES_shift,
-        #                            muES_shift=muES_shift,
-        #                            tauES_shift=tauES_shift,
-        #                            efake_shift=efake_shift,
-        #                            mfake_shift=mfake_shift,
-        #                            eleSmear_shift=eleSmear_shift,
-        #                            eta=np_flat(p4.eta), weight=weight)
-        #    self.output['phi'].fill(group=group, dataset=dataset,
-        #                            category=cats, leg=label, btags=btags,
-        #                            unclMET_shift=unclMET_shift,
-        #                            eleES_shift=eleES_shift,
-        #                            muES_shift=muES_shift,
-        #                            tauES_shift=tauES_shift,
-        #                            efake_shift=efake_shift,
-        #                            mfake_shift=mfake_shift,
-        #                            eleSmear_shift=eleSmear_shift,
-        #                            phi=np_flat(p4.phi), weight=weight)
-        #    self.output['mass'].fill(group=group, dataset=dataset,
-        #                             category=cats, leg=label, btags=btags,
-        #                             unclMET_shift=unclMET_shift,
-        #                             eleES_shift=eleES_shift,
-        #                             muES_shift=muES_shift,
-        #                             tauES_shift=tauES_shift,
-        #                             efake_shift=efake_shift,
-        #                             mfake_shift=mfake_shift,
-        #                             eleSmear_shift=eleSmear_shift,
-        #                             mass=np_flat(p4.mass), weight=weight)
 
-        # fill the Z->ll candidate mass spectrum
+        # fill the mass of the dilepton system w/ various systematic shifts
         mll = np_flat((lltt["ll"]["l1"] + lltt["ll"]["l2"]).mass)
         self.output["mll"][name].fill(
             category=cats,
@@ -1083,20 +1001,6 @@ class AnalysisProcessor(processor.ProcessorABC):
             weight=weight,
         )
 
-        # fill the h->tt candidate mass spectrum (raw, uncorrected)
-        # mtt = np_flat((lltt['tt']['t1']+lltt['tt']['t2']).mass)
-        # self.output['mtt'].fill(group=group, dataset=dataset,
-        #                        category=cats, mass_type='raw',
-        #                        btags=btags,
-        #                        unclMET_shift=unclMET_shift,
-        #                        eleES_shift=eleES_shift,
-        #                        muES_shift=muES_shift,
-        #                        tauES_shift=tauES_shift,
-        #                        efake_shift=efake_shift,
-        #                        mfake_shift=mfake_shift,
-        #                        eleSmear_shift=eleSmear_shift,
-        #                        mass=mtt, weight=weight)
-
         # fill the Zh->lltt candidate mass spectrum (raw, uncorrected)
         mtt = np_flat((lltt["tt"]["t1"] + lltt["tt"]["t2"]).mass)
         m4l = np_flat(
@@ -1107,6 +1011,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 + lltt["tt"]["t2"]
             ).mass
         )
+
         blind_mask = np.zeros(len(m4l), dtype=bool)
         if blind:
             blind_mask = (mtt > 40) & (mtt < 120)
@@ -1125,35 +1030,24 @@ class AnalysisProcessor(processor.ProcessorABC):
             weight=weight[~blind_mask],
         )
 
-        # self.output['m4l'].fill(group=group, dataset=dataset,
-        #                        category=cats, mass_type='raw',
-        #                        btags=btags,
-        #                        unclMET_shift=unclMET_shift,
-        #                        eleES_shift=eleES_shift,
-        #                        muES_shift=muES_shift,
-        #                        tauES_shift=tauES_shift,
-        #                        efake_shift=efake_shift,
-        #                        mfake_shift=mfake_shift,
-        #                        eleSmear_shift=eleSmear_shift,
-        #                        mass=m4l[~blind_mask],
-        #                        weight=weight[~blind_mask])
-
         # fill the Zh->lltt candidate mass spectrums (corrected, constrained)
-        # for mass_label, mass_data in fastmtt_out.items():
-        #    key = mass_label.split('_')[0] # mtt or m4l
-        #    mass_type = mass_label.split('_')[1] # corr or cons
-        #    self.output[key].fill(group=group, dataset=dataset,
-        #                          category=cats, mass_type=mass_type,
-        #                          btags=btags,
-        #                          unclMET_shift=unclMET_shift,
-        #                          eleES_shift=eleES_shift,
-        #                          muES_shift=muES_shift,
-        #                          tauES_shift=tauES_shift,
-        #                          efake_shift=efake_shift,
-        #                          mfake_shift=mfake_shift,
-        #                          eleSmear_shift=eleSmear_shift,
-        #                          mass=mass_data[~blind_mask],
-        #                          weight=weight[~blind_mask])
+        for mass_label, mass_data in fastmtt_out.items():
+            key = mass_label.split("_")[0]  # mtt or m4l
+            mass_type = mass_label.split("_")[1]  # corr or cons
+            self.output[key][name].fill(
+                category=cats,
+                mass_type=mass_type,
+                btags=btags,
+                unclMET_shift=unclMET_shift,
+                eleES_shift=eleES_shift,
+                muES_shift=muES_shift,
+                tauES_shift=tauES_shift,
+                efake_shift=efake_shift,
+                mfake_shift=mfake_shift,
+                eleSmear_shift=eleSmear_shift,
+                mass=mass_data[~blind_mask],
+                weight=weight[~blind_mask],
+            )
 
     def apply_lepton_ID_SFs(self, lltt_all, cat, is_data=False):
         lltt, num = ak.flatten(lltt_all), ak.num(lltt_all)

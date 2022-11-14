@@ -26,7 +26,7 @@ from azh_analysis.utils.sample import get_fileset, get_nevts_dict, get_sample_in
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser("prepare.py")
+    parser = argparse.ArgumentParser("run_analysis.py")
     add_arg = parser.add_argument
     add_arg("-y", "--year", default="2018")
     add_arg("-s", "--source", default=None)
@@ -124,7 +124,7 @@ pileup_tables = get_pileup_tables(
 
 # load up signal MC csv / yaml files
 if args.test_mode:
-    fileset = {k: v[:1] for k, v in fileset.items()}
+    fileset = {k: v[:1] for k, v in fileset.items() if k == args.sample}
 else:
     fileset = {k: v for k, v in fileset.items() if k == args.sample}
 
@@ -141,7 +141,9 @@ logging.info(f"running on\n {fileset.keys()}")
 nevts_dict, dyjets_weights = None, None
 if "MC" in source:
     nevts_dict = get_nevts_dict(fileset, year)
-    dyjets_weights = dyjets_stitch_weights(sample_info, nevts_dict, year)
+    print("fileset keys", fileset.keys())
+    if f"DYJetsToLLM-50_{year}" in fileset.keys():
+        dyjets_weights = dyjets_stitch_weights(sample_info, nevts_dict, year)
 
 logging.info(f"Successfully built sum_of_weights dict:\n {nevts_dict}")
 logging.info(f"Successfully built dyjets stitch weights:\n {dyjets_weights}")
@@ -152,6 +154,7 @@ tic = time.time()
 # instantiate processor module
 proc_instance = AnalysisProcessor(
     sample_info=sample_info,
+    fileset=fileset,
     pileup_tables=pileup_tables,
     lumi_masks=lumi_masks,
     nevts_dict=nevts_dict,
