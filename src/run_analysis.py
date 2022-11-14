@@ -34,6 +34,7 @@ def parse_args():
     add_arg("--start-idx", default=-1)
     add_arg("--end-idx", default=-1)
     add_arg("--outdir", default=".")
+    add_arg("--outfile", default="")
     add_arg("--test-mode", action="store_true")
     add_arg("-v", "--verbose", default=False)
     add_arg("--show-config", action="store_true")
@@ -125,7 +126,7 @@ pileup_tables = get_pileup_tables(
 # load up signal MC csv / yaml files
 if args.test_mode:
     fileset = {k: v[:1] for k, v in fileset.items() if k == args.sample}
-else:
+elif len(args.sample) > 0:
     fileset = {k: v for k, v in fileset.items() if k == args.sample}
 
 # only run over root files
@@ -192,4 +193,6 @@ logging.info(f"Finished in {elapsed:.1f}s")
 # dump output
 outfile = time.strftime("%m-%d") + ".coffea"
 namestring = f"{source}_{year}"
+if len(args.outfile) > 0:
+    namestring = args.outfile
 util.save(out, join(args.outdir, f"{namestring}_{outfile}"))
