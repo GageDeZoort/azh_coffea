@@ -30,6 +30,7 @@ def parse_args():
     add_arg("-v", "--verbose", action="store_true")
     add_arg("--show-config", action="store_true")
     add_arg("--files-per-job", default=10)
+    add_arg("--mass", default="all")
     return parser.parse_args()
 
 
@@ -77,13 +78,19 @@ def main(args):
             if f.split(".")[-1] == "root":
                 good_files.append(f)
                 fileset[sample] = good_files
-    logging.info(f"{fileset.keys()}")
 
     jdl_templ = join(indir, "condor/submit.templ.jdl")
     sh_templ = join(indir, "condor/submit.templ.sh")
 
     n_submit = 0
     for sample, files in fileset.items():
+
+        # skip if not the right mass point
+        if ("signal" in args.source) and (args.mass not in sample):
+            continue
+
+        logging.info(f"Processing {sample}")
+
         n_jobs = ceil(len(files) / args.files_per_job)
         subsamples = np.array_split(np.arange(len(files)), n_jobs)
         for j, subsample in enumerate(subsamples):
@@ -101,10 +108,11 @@ def main(args):
                 "script": args.script,
                 "year": year,
                 "source": source,
-                # "label": args.label,
+                "outfile": f"{sample}_{j}.coffea",
                 "sample": sample,
                 "start_idx": min(subsample),
                 "end_idx": max(subsample) + 1,
+                "eosoutcoffea": f"{eosoutput_dir}/coffea/{sample}_{j}.coffea",
                 "eosoutpkl": f"{eosoutput_dir}/pickles/out_{j}.pkl",
                 "eosoutparquet": f"{eosoutput_dir}/parquet/out_{j}.parquet",
                 "eosoutroot": f"{eosoutput_dir}/root/nano_skim_{j}.root",
