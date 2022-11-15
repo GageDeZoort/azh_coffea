@@ -41,6 +41,7 @@ def parse_args():
     add_arg("--interactive", action="store_true")
     add_arg("--min-workers", type=int, default=50)
     add_arg("--max-workers", type=int, default=300)
+    add_arg("--mass", type=str, default="")
     return parser.parse_args()
 
 
@@ -128,6 +129,8 @@ if args.test_mode:
     fileset = {k: v[:1] for k, v in fileset.items() if k == args.sample}
 elif len(args.sample) > 0:
     fileset = {k: v for k, v in fileset.items() if k == args.sample}
+if "signal" in args.source:
+    fileset = {k: v for k, v in fileset.items() if args.mass in k}
 
 # only run over root files
 for sample, files in fileset.items():
