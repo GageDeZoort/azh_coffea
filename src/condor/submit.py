@@ -29,7 +29,7 @@ def parse_args():
     add_arg("--script", default="run_analysis.py")
     add_arg("-v", "--verbose", action="store_true")
     add_arg("--show-config", action="store_true")
-    add_arg("--files-per-job", default=10)
+    add_arg("--files-per-job", default=1)
     add_arg("--mass", default="all")
     return parser.parse_args()
 
