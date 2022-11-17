@@ -173,7 +173,7 @@ proc_instance = AnalysisProcessor(
     btag_SFs=btag_SFs,
     btag_pt_bins=btag_tables[1],
     btag_eta_bins=btag_tables[2],
-    run_fastmtt=False,
+    run_fastmtt=True,
 )
 
 futures_run = processor.Runner(
