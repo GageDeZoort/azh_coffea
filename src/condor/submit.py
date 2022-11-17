@@ -24,6 +24,7 @@ def parse_args():
     add_arg("-y", "--year", default="2018")
     add_arg("-s", "--source", default="MC_UL")
     add_arg("--submit", action="store_true")
+    add_arg("--process", default="")
     add_arg("--label", default="test")
     add_arg("--test-mode", action="store_true")
     add_arg("--script", default="run_analysis.py")
@@ -87,6 +88,9 @@ def main(args):
 
         # skip if not the right mass point
         if ("signal" in args.source) and (args.mass not in sample):
+            continue
+        # skip if the process isn't represented in the sample string
+        if args.process not in sample:
             continue
 
         logging.info(f"Processing {sample}")
