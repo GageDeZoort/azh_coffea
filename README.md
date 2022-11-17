@@ -18,7 +18,7 @@ To start the notebook, run `jupyter notebook`, specifying the same port you used
 
 
 ## Quickstart
-Most of the repo's useful contents are organizzed in the `azh_coffea/src` directory. Here's a rundown of this directory's contents:
+Most of the repo's useful contents are organized in the `azh_coffea/src` directory. Here's a rundown of this directory's contents:
 - `azh_analysis` contains the analysis code itself lives, including Coffea processors, event selection functions, and relevant utilities. It is not yet installable as a package, though it may one day be. 
 - `corrections` contains the scale factors, fake rates, and efficiency measurements that are plugged into the analysis. 
 - `condor` contains all the necessary scripts to submit analysis jobs to the LPC Condor cluster.
