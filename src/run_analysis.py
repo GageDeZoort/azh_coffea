@@ -30,7 +30,7 @@ def parse_args():
     add_arg = parser.add_argument
     add_arg("-y", "--year", default="2018")
     add_arg("-s", "--source", default=None)
-    add_arg("--sample", default="")
+    add_arg("--process", default="")
     add_arg("--start-idx", default=-1)
     add_arg("--end-idx", default=-1)
     add_arg("--outdir", default=".")
@@ -126,10 +126,10 @@ pileup_tables = get_pileup_tables(
 
 # load up signal MC csv / yaml files
 if args.test_mode:
-    fileset = {k: v[:1] for k, v in fileset.items() if k == args.sample}
-elif len(args.sample) > 0:
-    fileset = {k: v for k, v in fileset.items() if k == args.sample}
-if "signal" in args.source:
+    fileset = {k: v[:1] for k, v in fileset.items()}
+if len(args.process) > 0:
+    fileset = {k: v for k, v in fileset.items() if k == args.process}
+elif "signal" in args.source:
     fileset = {k: v for k, v in fileset.items() if args.mass in k}
 
 # only run over root files
