@@ -15,3 +15,23 @@ Several plotting Jupyter notebooks are availble. To open a Jupyter notebook on c
 To start the notebook, run `jupyter notebook`, specifying the same port you used in your ssh command:
 
 ```jupyter notebook --no-browser --port=8888 --ip 127.0.0.1```
+
+
+## Quickstart
+Most of the repo's useful contents are organizzed in the `azh_coffea/src` directory. Here's a rundown of this directory's contents:
+- `azh_analysis` contains the analysis code itself lives, including Coffea processors, event selection functions, and relevant utilities. It is not yet installable as a package, though it may one day be. 
+- `corrections` contains the scale factors, fake rates, and efficiency measurements that are plugged into the analysis. 
+- `condor` contains all the necessary scripts to submit analysis jobs to the LPC Condor cluster.
+- `notebooks` contains Jupyter notebooks designed to collate intermediate files, test the analysis processors, and produce plots.
+- `samples` contains sample lists and scripts to produce their absolte paths. 
+
+Additionally, several scripts designed to run coffea processors are available, the main one being `run_analysis.py`. You can test this script by running:
+
+```python run_analysis.py -s signal_UL -y 2018 --mass 225 --test-mode```
+
+The `source`, or `-s` flag, is defined to be `<data type>_<legacy status>`, e.g. `signal_UL` for ultra-legacy signal code. The `year`, or `-y` flag, denotes the data-taking era, either `2018`, `2017`, `2016postVFP`, or `2016preVFP`. The remaining flags indicate that we're running over 1 AZh signal sample with an A mass of 225 GeV. 
+
+We can scale up and run over the full M = 225GeV AZh signal sample by navigating to the `condor` directory. There, we'd run the following command:
+
+```python submit.py -y 2018 -s signal_UL --mass 400 --submit``` 
+
