@@ -31,7 +31,7 @@ Additionally, several scripts designed to run coffea processors are available, t
 
 The `source`, or `-s` flag, is defined to be `<data type>_<legacy status>`, e.g. `signal_UL` for ultra-legacy signal code. The `year`, or `-y` flag, denotes the data-taking era, either `2018`, `2017`, `2016postVFP`, or `2016preVFP`. The remaining flags indicate that we're running over 1 AZh signal sample with an A mass of 225 GeV. 
 
-We can scale up and run over the full M = 225GeV AZh signal sample by navigating to the `condor` directory. There, we'd run the following command:
+We can scale up and run over the full 225 GeV AZh signal sample by navigating to the `condor` directory. There, we'd run the following command:
 
-```python submit.py -y 2018 -s signal_UL --mass 400 --submit``` 
+```python submit.py -y 2018 -s signal_UL --mass 225 --submit``` 
 
