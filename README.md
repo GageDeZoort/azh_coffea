@@ -8,7 +8,7 @@
 
 
 ## Useful Commands:
-Several plotting Jupyter notebooks are availble. To open a Jupyter notebook on cmslpc, you must first ssh with a -L option specifying the local host: 
+Several plotting Jupyter notebooks are available. To open a Jupyter notebook on cmslpc, you must first ssh with a -L option specifying the local host: 
 
 ```ssh -L localhost:8888:localhost:8888 <USERNAME>@cmslpc-sl7.fnal.gov```
 
