@@ -89,6 +89,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         run_fastmtt=False,
         fill_hists=True,
         verbose=False,
+        A_mass=-1,
     ):
 
         # initialize member variables
@@ -153,6 +154,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.dyjets_weights = dyjets_weights
         self.fastmtt = run_fastmtt
         self.fill_hists = fill_hists
+        self.A_mass = A_mass
 
         # cache for the energy scales
         self._eleES_cache = {}
@@ -263,6 +265,14 @@ class AnalysisProcessor(processor.ProcessorABC):
             )
             for dataset in fileset.keys()
         }
+
+        # if signal sample, adjust based on A mass
+        bins = 40
+        lower_bound, upper_bound = 0, 400
+        if A_mass > 0:
+            lower_bound, upper_bound = A_mass * 0.5, A_mass * 1.5
+            bins = int(upper_bound - lower_bound) / 10
+
         m4l = {
             dataset.split("_")[0]: Hist(
                 category_axis,
@@ -275,7 +285,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 efake_shift_axis,
                 mfake_shift_axis,
                 eleSmear_shift_axis,
-                Regular(name="mass", bins=40, start=0, stop=400),
+                Regular(name="mass", bins=bins, start=upper_bound, stop=lower_bound),
             )
             for dataset in fileset.keys()
         }
