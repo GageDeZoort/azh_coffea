@@ -28,6 +28,7 @@ def parse_args():
     add_arg("--label", default="test")
     add_arg("--test-mode", action="store_true")
     add_arg("--script", default="run_analysis.py")
+    add_arg("--n-jobs", default=10**6)
     add_arg("-v", "--verbose", action="store_true")
     add_arg("--show-config", action="store_true")
     add_arg("--files-per-job", default=1)
@@ -131,6 +132,11 @@ def main(args):
             if args.submit:
                 os.system(f"condor_submit {local_condor}")
             n_submit += 1
+            if n_submit > int(args.n_jobs):
+                break
+
+        if n_submit > int(args.n_jobs):
+            break
         if args.test_mode:
             break
 
