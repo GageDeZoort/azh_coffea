@@ -9,7 +9,7 @@ mkdir outfiles
 
 # run code
 # pip install --user onnxruntime
-python $script --year $year --source $source --sample $sample --start-idx $start_idx --end-idx $end_idx --outfile $outfile
+python $script --year $year --source $source --sample $sample --start-idx $start_idx --end-idx $end_idx --outfile $outfile --mass $mass
 
 #move output to eos
 xrdcp -f *.coffea $eosoutcoffea

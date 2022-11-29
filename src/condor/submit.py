@@ -32,7 +32,7 @@ def parse_args():
     add_arg("-v", "--verbose", action="store_true")
     add_arg("--show-config", action="store_true")
     add_arg("--files-per-job", default=1)
-    add_arg("--mass", default="all")
+    add_arg("--mass", default="")
     return parser.parse_args()
 
 
@@ -88,8 +88,9 @@ def main(args):
     for sample, files in fileset.items():
 
         # skip if not the right mass point
-        if ("signal" in args.source) and (args.mass not in sample):
+        if args.mass not in sample:
             continue
+
         # skip if the process isn't represented in the sample string
         if args.process not in sample:
             continue
@@ -115,6 +116,7 @@ def main(args):
                 "source": source,
                 "outfile": f"{sample}_{j}.coffea",
                 "sample": sample,
+                "mass": args.mass,
                 "start_idx": min(subsample),
                 "end_idx": max(subsample) + 1,
                 "eosoutcoffea": f"{eosoutput_dir}/coffea/{sample}_{j}.coffea",

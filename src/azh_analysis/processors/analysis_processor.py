@@ -182,38 +182,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             categories=[],
             growth=True,
         )
-        unclMET_shift_axis = StrCategory(
-            name="unclMET_shift",
-            categories=[],
-            growth=True,
-        )
-        eleES_shift_axis = StrCategory(
-            name="eleES_shift",
-            categories=[],
-            growth=True,
-        )
-        muES_shift_axis = StrCategory(
-            name="muES_shift",
-            categories=[],
-            growth=True,
-        )
-        tauES_shift_axis = StrCategory(
-            name="tauES_shift",
-            categories=[],
-            growth=True,
-        )
-        efake_shift_axis = StrCategory(
-            name="efake_shift",
-            categories=[],
-            growth=True,
-        )
-        mfake_shift_axis = StrCategory(
-            name="mfake_shift",
-            categories=[],
-            growth=True,
-        )
-        eleSmear_shift_axis = StrCategory(
-            name="eleSmear_shift",
+        syst_shift_axis = StrCategory(
+            name="syst_shift",
             categories=[],
             growth=True,
         )
@@ -223,13 +193,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 category_axis,
                 leg_axis,
                 btags_axis,
-                unclMET_shift_axis,
-                eleES_shift_axis,
-                muES_shift_axis,
-                tauES_shift_axis,
-                efake_shift_axis,
-                mfake_shift_axis,
-                eleSmear_shift_axis,
+                syst_shift_axis,
                 Regular(name="pt", bins=30, start=0, stop=300),
             )
             for dataset in fileset.keys()
@@ -238,13 +202,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             dataset.split("_")[0]: Hist(
                 category_axis,
                 btags_axis,
-                unclMET_shift_axis,
-                eleES_shift_axis,
-                muES_shift_axis,
-                tauES_shift_axis,
-                efake_shift_axis,
-                mfake_shift_axis,
-                eleSmear_shift_axis,
+                syst_shift_axis,
                 Regular(name="met", bins=10, start=0, stop=200),
             )
             for dataset in fileset.keys()
@@ -254,13 +212,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 category_axis,
                 mass_type_axis,
                 btags_axis,
-                unclMET_shift_axis,
-                eleES_shift_axis,
-                muES_shift_axis,
-                tauES_shift_axis,
-                efake_shift_axis,
-                mfake_shift_axis,
-                eleSmear_shift_axis,
+                syst_shift_axis,
                 Regular(name="mass", bins=40, start=0, stop=400),
             )
             for dataset in fileset.keys()
@@ -270,22 +222,16 @@ class AnalysisProcessor(processor.ProcessorABC):
         bins = 40
         lower_bound, upper_bound = 0, 400
         if A_mass > 0:
-            lower_bound, upper_bound = A_mass * 0.5, A_mass * 1.5
-            bins = int(upper_bound - lower_bound) / 10
+            lower_bound, upper_bound = int(A_mass * 0.25), int(A_mass * 1.75)
+            bins = int((upper_bound - lower_bound) / 10)
 
         m4l = {
             dataset.split("_")[0]: Hist(
                 category_axis,
                 mass_type_axis,
                 btags_axis,
-                unclMET_shift_axis,
-                eleES_shift_axis,
-                muES_shift_axis,
-                tauES_shift_axis,
-                efake_shift_axis,
-                mfake_shift_axis,
-                eleSmear_shift_axis,
-                Regular(name="mass", bins=bins, start=upper_bound, stop=lower_bound),
+                syst_shift_axis,
+                Regular(name="mass", bins=bins, start=lower_bound, stop=upper_bound),
             )
             for dataset in fileset.keys()
         }
@@ -293,13 +239,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             dataset.split("_")[0]: Hist(
                 category_axis,
                 btags_axis,
-                unclMET_shift_axis,
-                eleES_shift_axis,
-                muES_shift_axis,
-                tauES_shift_axis,
-                efake_shift_axis,
-                mfake_shift_axis,
-                eleSmear_shift_axis,
+                syst_shift_axis,
                 Regular(name="mll", bins=10, start=60, stop=120),
             )
             for dataset in fileset.keys()
@@ -567,6 +507,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                     eleSmear_shift=eleSmear_shift,
                     unclMET_shift=unclMET_shift,
                     btag_shift=btag_shift,
+                    syst_shift=shift,
                     blind=(is_data and self.blind),
                 )
 
@@ -948,6 +889,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         unclMET_shift,
         btag_shift,
         blind=False,
+        syst_shift=None,
     ):
 
         # fill the four-vectors
@@ -969,13 +911,14 @@ class AnalysisProcessor(processor.ProcessorABC):
                 category=cats,
                 leg=label,
                 btags=btags,
-                unclMET_shift=unclMET_shift,
-                eleES_shift=eleES_shift,
-                muES_shift=muES_shift,
-                tauES_shift=tauES_shift,
-                efake_shift=efake_shift,
-                mfake_shift=mfake_shift,
-                eleSmear_shift=eleSmear_shift,
+                syst_shift=syst_shift,
+                # unclMET_shift=unclMET_shift,
+                # eleES_shift=eleES_shift,
+                # muES_shift=muES_shift,
+                # tauES_shift=tauES_shift,
+                # efake_shift=efake_shift,
+                # mfake_shift=mfake_shift,
+                # eleSmear_shift=eleSmear_shift,
                 pt=np_flat(p4.pt),
                 weight=weight,
             )
@@ -985,13 +928,14 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.output["mll"][name].fill(
             category=cats,
             btags=btags,
-            unclMET_shift=unclMET_shift,
-            eleES_shift=eleES_shift,
-            muES_shift=muES_shift,
-            tauES_shift=tauES_shift,
-            efake_shift=efake_shift,
-            mfake_shift=mfake_shift,
-            eleSmear_shift=eleSmear_shift,
+            syst_shift=syst_shift,
+            # unclMET_shift=unclMET_shift,
+            # eleES_shift=eleES_shift,
+            # muES_shift=muES_shift,
+            # tauES_shift=tauES_shift,
+            # efake_shift=efake_shift,
+            # mfake_shift=mfake_shift,
+            # eleSmear_shift=eleSmear_shift,
             mll=mll,
             weight=weight,
         )
@@ -1000,13 +944,14 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.output["met"][name].fill(
             category=cats,
             btags=btags,
-            unclMET_shift=unclMET_shift,
-            eleES_shift=eleES_shift,
-            muES_shift=muES_shift,
-            tauES_shift=tauES_shift,
-            efake_shift=efake_shift,
-            mfake_shift=mfake_shift,
-            eleSmear_shift=eleSmear_shift,
+            syst_shift=syst_shift,
+            # unclMET_shift=unclMET_shift,
+            # eleES_shift=eleES_shift,
+            # muES_shift=muES_shift,
+            # tauES_shift=tauES_shift,
+            # efake_shift=efake_shift,
+            # mfake_shift=mfake_shift,
+            # eleSmear_shift=eleSmear_shift,
             met=met,
             weight=weight,
         )
@@ -1029,13 +974,14 @@ class AnalysisProcessor(processor.ProcessorABC):
             category=cats,
             mass_type="raw",
             btags=btags,
-            unclMET_shift=unclMET_shift,
-            eleES_shift=eleES_shift,
-            muES_shift=muES_shift,
-            tauES_shift=tauES_shift,
-            efake_shift=efake_shift,
-            mfake_shift=mfake_shift,
-            eleSmear_shift=eleSmear_shift,
+            syst_shift=syst_shift,
+            # unclMET_shift=unclMET_shift,
+            # eleES_shift=eleES_shift,
+            # muES_shift=muES_shift,
+            # tauES_shift=tauES_shift,
+            # efake_shift=efake_shift,
+            # mfake_shift=mfake_shift,
+            # eleSmear_shift=eleSmear_shift,
             mass=m4l[~blind_mask],
             weight=weight[~blind_mask],
         )
@@ -1048,13 +994,14 @@ class AnalysisProcessor(processor.ProcessorABC):
                 category=cats,
                 mass_type=mass_type,
                 btags=btags,
-                unclMET_shift=unclMET_shift,
-                eleES_shift=eleES_shift,
-                muES_shift=muES_shift,
-                tauES_shift=tauES_shift,
-                efake_shift=efake_shift,
-                mfake_shift=mfake_shift,
-                eleSmear_shift=eleSmear_shift,
+                syst_shift=syst_shift,
+                # unclMET_shift=unclMET_shift,
+                # eleES_shift=eleES_shift,
+                # muES_shift=muES_shift,
+                # tauES_shift=tauES_shift,
+                # efake_shift=efake_shift,
+                # mfake_shift=mfake_shift,
+                # eleSmear_shift=eleSmear_shift,
                 mass=mass_data[~blind_mask],
                 weight=weight[~blind_mask],
             )
