@@ -46,5 +46,5 @@ To set up job submission via `lpcjobqueue`, you'll need to grab a copy of `boots
 ``` 
 bash bootstrap.sh
 ./shell
-python <run analysis>
+python run_distributed_analysis.py -y 2018 -s MC_UL --test-mode
 ```
