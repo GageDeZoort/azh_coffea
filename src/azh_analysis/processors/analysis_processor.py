@@ -62,6 +62,8 @@ def np_flat(a, axis=None):
 class AnalysisProcessor(processor.ProcessorABC):
     def __init__(
         self,
+        source="",
+        year="",
         sync=False,
         categories="all",
         collection_vars=None,
@@ -89,7 +91,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         run_fastmtt=False,
         fill_hists=True,
         verbose=False,
-        A_mass=-1,
+        A_mass="",
     ):
 
         # initialize member variables
@@ -189,7 +191,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         )
 
         pt = {
-            dataset.split("_")[0]: Hist(
+            dataset.split(f"_{year}")[0]: Hist(
                 category_axis,
                 leg_axis,
                 btags_axis,
@@ -198,8 +200,9 @@ class AnalysisProcessor(processor.ProcessorABC):
             )
             for dataset in fileset.keys()
         }
+
         met = {
-            dataset.split("_")[0]: Hist(
+            dataset.split(f"_{year}")[0]: Hist(
                 category_axis,
                 btags_axis,
                 syst_shift_axis,
@@ -208,7 +211,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             for dataset in fileset.keys()
         }
         mtt = {
-            dataset.split("_")[0]: Hist(
+            dataset.split(f"_{year}")[0]: Hist(
                 category_axis,
                 mass_type_axis,
                 btags_axis,
@@ -221,12 +224,13 @@ class AnalysisProcessor(processor.ProcessorABC):
         # if signal sample, adjust based on A mass
         bins = 40
         lower_bound, upper_bound = 0, 400
-        if A_mass > 0:
-            lower_bound, upper_bound = int(A_mass * 0.25), int(A_mass * 1.75)
+        if len(A_mass) > 0:
+            m = float(A_mass)
+            lower_bound, upper_bound = int(m * 0.25), int(m * 1.75)
             bins = int((upper_bound - lower_bound) / 10)
 
         m4l = {
-            dataset.split("_")[0]: Hist(
+            dataset.split(f"_{year}")[0]: Hist(
                 category_axis,
                 mass_type_axis,
                 btags_axis,
@@ -236,7 +240,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             for dataset in fileset.keys()
         }
         mll = {
-            dataset.split("_")[0]: Hist(
+            dataset.split(f"_{year}")[0]: Hist(
                 category_axis,
                 btags_axis,
                 syst_shift_axis,
