@@ -2,6 +2,7 @@
 
 ## Useful Links:
 - AZh Run 2 TWiki: [https://twiki.cern.ch/twiki/bin/viewauth/CMS/AZh-Htautau-Run2](https://twiki.cern.ch/twiki/bin/viewauth/CMS/AZh-Htautau-Run2)
+- AZh Run 2 Pre-Approval Talk: [https://indico.cern.ch/event/1200004/contributions/5061637/attachments/2514048/4332974/AZh_Hig-22-004_preapproval_v3.pdf](https://indico.cern.ch/event/1200004/contributions/5061637/attachments/2514048/4332974/AZh_Hig-22-004_preapproval_v3.pdf)
 - HIG-22-004 Paper (Draft): [https://gitlab.cern.ch/cms-hcg/cadi/hig-22-004](https://gitlab.cern.ch/cms-hcg/cadi/hig-22-004)
 - AN-21-186 Analysis Note (Draft): [https://gitlab.cern.ch/tdr/notes/AN-21-186/-/tree/master](https://gitlab.cern.ch/tdr/notes/AN-21-186/-/tree/master)
 - Previous AZh Analysis Note (2016): [AN-2017/276](https://cms.cern.ch/iCMS/jsp/db_notes/noteInfo.jsp?cmsnoteid=CMS%20AN-2021/186)
