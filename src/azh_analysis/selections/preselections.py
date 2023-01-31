@@ -123,7 +123,7 @@ def tight_hadronic_taus(taus, cat):
 
 
 # in use
-def get_tight_masks(lltt, cat):
+def append_tight_masks(lltt, cat):
     l1, l2 = lltt["ll"]["l1"], lltt["ll"]["l2"]
     t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
     l1_mask, l2_mask, t1_mask, t2_mask = 0, 0, 0, 0
@@ -146,7 +146,11 @@ def get_tight_masks(lltt, cat):
         t1_mask = tight_hadronic_taus(t1, cat)
         t2_mask = tight_hadronic_taus(t2, cat)
 
-    return (l1_mask, l2_mask, t1_mask, t2_mask)
+    lltt["l1_tight"] = l1_mask
+    lltt["l2_tight"] = l2_mask
+    lltt["t1_tight"] = t1_mask
+    lltt["t2_tight"] = t2_mask
+    return lltt
 
 
 def tight_events(lltt, cat):
