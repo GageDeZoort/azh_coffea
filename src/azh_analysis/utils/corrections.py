@@ -68,6 +68,9 @@ def get_fake_rates(base, year):
     return fake_rates
 
 
+# def get_coffea_fake_rates(base, year):
+
+
 class CustomWeights:
     def __init__(self, bins, weights):
         self.bins = bins
@@ -193,7 +196,7 @@ def tau_ID_weight(taus, SF_tool, cat, is_data=False, syst="nom", tight=True):
     return tau_h_weight * tau_ele_weight * tau_mu_weight
 
 
-def lepton_trig_weight(w, pt, eta, SF_tool, lep=-1):
+def lepton_trig_weight(pt, eta, SF_tool, lep=-1):
     pt, eta = ak.to_numpy(pt), ak.to_numpy(eta)
     eta_map = {
         "e": {
@@ -211,7 +214,7 @@ def lepton_trig_weight(w, pt, eta, SF_tool, lep=-1):
         },
     }
     eta_map = eta_map[lep]
-    weight = np.zeros(len(w), dtype=float)
+    weight = np.zeros(len(pt), dtype=float)
     for key, eta_range in eta_map.items():
         mask = (abs(eta) > eta_range[0]) & (abs(eta) <= eta_range[1])
         if len(mask) == 0:
@@ -354,7 +357,11 @@ def apply_tauES(taus, SF_tool, tauES_shift="nom", efake_shift="nom", mfake_shift
         tau_y_diff = tau_y_diff + (1 - TES) * tau_p4.pt * np.sin(tau_p4.phi)
         tau_p4 = TES * tau_p4
 
-    return tau_p4, {"x": tau_x_diff, "y": tau_y_diff}
+    taus["pt"] = tau_p4.pt
+    taus["eta"] = tau_p4.eta
+    taus["phi"] = tau_p4.phi
+    taus["mass"] = tau_p4.mass
+    return taus, {"x": tau_x_diff, "y": tau_y_diff}
 
 
 def apply_unclMET_shifts(met, shift="nom"):
