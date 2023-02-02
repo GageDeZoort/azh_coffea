@@ -29,7 +29,6 @@ from azh_analysis.selections.preselections import (
     get_baseline_electrons,
     get_baseline_muons,
     get_baseline_taus,
-    get_tt,
     tight_electrons,
     tight_muons,
     trigger_filter,
