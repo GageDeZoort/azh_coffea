@@ -11,9 +11,9 @@ from coffea import processor, util
 from coffea.nanoevents import NanoAODSchema
 from distributed import Client
 from lpcjobqueue import LPCCondorCluster
-from pileup_processor import PileupProcessor
 
-from azh_analysis.utils.sample_utils import get_fileset, load_sample_info
+from azh_analysis.processors.pileup_processor import PileupProcessor
+from azh_analysis.utils.sample import get_fileset, get_sample_info
 
 # from azh_analysis.utils.pileup_utils import
 
@@ -44,18 +44,16 @@ logging.info("Initializing")
 
 # relevant parameters
 year = args.year
-csv_indir = "../sample_lists"
-yaml_indir = "../sample_lists/sample_yamls"
+csv_indir = "samples"
+yaml_indir = "samples/filesets"
 source, year = args.source, args.year
-is_UL = "UL" in source
-fileset = get_fileset(os.path.join(yaml_indir, f"{source}_{year}.yaml"))
-sample_info = load_sample_info(f"../sample_lists/{source}_{year}.csv")
+fileset = get_fileset(join(yaml_indir, f"{source}_{year}.yaml"))
+sample_info = get_sample_info(join(csv_indir, f"{source}_{year}.csv"))
 if args.add_signal:
-    signal_string = "signal_UL" if is_UL else "signal"
-    signal_yaml = f"{signal_string}_{year[:4]}.yaml"
+    signal_yaml = f"signal_UL_{year[:4]}.yaml"
     fileset.update(get_fileset(os.path.join(yaml_indir, signal_yaml)))
-    signal_csv = join(csv_indir, f"{signal_string}_{year[:4]}.csv")
-    sample_info = np.append(sample_info, load_sample_info(signal_csv))
+    signal_csv = join(csv_indir, f"signal_UL_{year[:4]}.csv")
+    sample_info = np.append(sample_info, get_sample_info(signal_csv))
 
 fileset = {k: v for k, v in fileset.items()}
 for f, l in fileset.items():
