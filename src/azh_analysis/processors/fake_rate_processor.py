@@ -293,7 +293,6 @@ class FakeRateProcessor(processor.ProcessorABC):
 
             trig_SFs = self.e_trig_SFs if z_pair == "ee" else self.m_trig_SFs
             if not is_data:
-                weight = np.ones(len(events), dtype=float)
                 wt1 = lepton_trig_weight(tpt1, teta1, trig_SFs, lep=z_pair[0])
                 wt2 = lepton_trig_weight(tpt2, teta2, trig_SFs, lep=z_pair[0])
                 weights.add("l1_trig_weight", wt1)
