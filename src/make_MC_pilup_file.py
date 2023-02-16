@@ -60,17 +60,10 @@ if args.add_signal:
 fileset = {k: v for k, v in fileset.items()}
 if args.test_mode:
     fileset = {k: v[:1] for k, v in fileset.items()}
-for f, l in fileset.items():
-    print(f, len(l), "\n")
 
 # start timer, initiate cluster, ship over files
 tic = time.time()
-infiles = [
-    "../utils/sample_utils.py",
-    "pileup_processor.py",
-    f"../sample_lists/{source}_{year}.csv",
-    "pileup_utils.py",
-]
+infiles = ["azh_analysis"]
 
 # configure dask
 dask.config.set(
