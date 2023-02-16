@@ -45,6 +45,7 @@ def parse_args():
     add_arg("--min-workers", type=int, default=50)
     add_arg("--max-workers", type=int, default=300)
     add_arg("--mass", type=str, default="")
+    add_arg("--use-coffea-frs", action="store_true")
     return parser.parse_args()
 
 
@@ -72,7 +73,7 @@ lumi_masks = {year: LumiMask(golden_json) for year, golden_json in golden_jsons.
 
 # load up fake rates
 fr_base = f"corrections/fake_rates/UL_{year}"
-fake_rates = get_fake_rates(fr_base, year)
+fake_rates = get_fake_rates(fr_base, year, origin="_coffea")
 logging.info(f"Using fake rates\n{fr_base}")
 
 # load up electron / muon / tau IDs
@@ -123,9 +124,11 @@ btag_SFs = get_btag_SFs(btag_root, "2018", UL=True)
 fset_string = f"{source}_{year}"
 sample_info = get_sample_info(join("samples", fset_string + ".csv"))
 fileset = get_fileset(join("samples/filesets", fset_string + ".yaml"))
-pileup_tables = get_pileup_tables(
-    fileset.keys(), year, UL=True, pileup_dir="corrections/pileup"
-)
+pileup_tables = None
+if "MC" in args.source or "signal" in args.source:
+    pileup_tables = get_pileup_tables(
+        fileset.keys(), year, UL=True, pileup_dir="corrections/pileup"
+    )
 
 # load up signal MC csv / yaml files
 if args.test_mode:
@@ -165,11 +168,12 @@ dask.config.set(
     {
         "distributed.worker.memory.target": 0.8,
         "distributed.worker.memory.spill": 0.9,
-        "distributed.worker.memory.pause": 0.92,
+        "distributed.worker.memory.pause": False,
         "distributed.worker.memory.terminate": 0,
         "distributed.worker.profile.interval": "1d",
         "distributed.worker.profile.cycle": "2d",
         "distributed.worker.profile.low-level": False,
+        "distributed.nanny.environ.MALLOC_TRIM_THRESHOLD_": "65536",
     }
 )
 
@@ -225,7 +229,7 @@ hists, metrics = processor.run_uproot_job(
     processor_instance=proc_instance,
     executor=processor.dask_executor,
     executor_args=exe_args,
-    chunksize=50000,
+    chunksize=25000,
 )
 
 logging.info(f"Output: {hists}\n{metrics}")
