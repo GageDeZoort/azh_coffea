@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
+import time
 import warnings
 
 import awkward as ak
@@ -9,12 +10,11 @@ import numba as nb
 import numpy as np
 import vector as vec
 from coffea import analysis_tools, processor
-
-# from coffea.processor import column_accumulator as col_acc
 from hist import Hist
 from hist.axis import IntCategory, Regular, StrCategory
 
 from azh_analysis.selections.preselections import (
+    append_tight_masks,
     build_Z_cand,
     check_trigger_path,
     closest_to_Z_mass,
@@ -27,13 +27,10 @@ from azh_analysis.selections.preselections import (
     get_baseline_jets,
     get_baseline_muons,
     get_baseline_taus,
-    get_tight_masks,
     get_tt,
     highest_LT,
     is_prompt,
     lepton_count_veto,
-    tight_electrons,
-    tight_muons,
     trigger_filter,
 )
 from azh_analysis.utils.btag import get_btag_effs
@@ -92,6 +89,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         fill_hists=True,
         verbose=False,
         A_mass="",
+        run_systematics=False,
     ):
 
         # initialize member variables
@@ -101,32 +99,21 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.collection_vars = collection_vars
         self.global_vars = global_vars
         self.blind = blind
-        if categories == "all":
-            self.categories = {
-                1: "eeet",
-                2: "eemt",
-                3: "eett",
-                4: "eeem",
-                5: "mmet",
-                6: "mmmt",
-                7: "mmtt",
-                8: "mmem",
-            }
-            self.num_to_cat = {
-                **self.categories,
-                9: "eeet_fake",
-                10: "eemt_fake",
-                11: "eett_fake",
-                12: "eeem_fake",
-                13: "mmet_fake",
-                14: "mmmt_fake",
-                15: "mmtt_fake",
-                16: "mmem_fake",
-            }
-            self.cat_to_num = {v: k for k, v in self.num_to_cat.items()}
-        else:
-            self.categories = {i: cat for i, cat in enumerate(categories)}
 
+        # define maps between integer labels and categories
+        self.categories = {
+            1: "eeet",
+            2: "eemt",
+            3: "eett",
+            4: "eeem",
+            5: "mmet",
+            6: "mmmt",
+            7: "mmtt",
+            8: "mmem",
+        }
+        self.cat_to_num = {v: k for k, v in self.categories.items()}
+
+        # LHC-specific maps
         self.eras = {
             "2016preVFP": "Summer16",
             "2016postVFP": "Summer16",
@@ -139,6 +126,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             "2017": 41.5 * 1000,
             "2018": 59.7 * 1000,
         }
+
+        # store inputs to the processor
         self.pileup_tables = pileup_tables
         self.pileup_bins = np.arange(0, 100, 1)
         self.lumi_masks = lumi_masks
@@ -157,6 +146,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.fastmtt = run_fastmtt
         self.fill_hists = fill_hists
         self.A_mass = A_mass
+        self.run_systematics = run_systematics
 
         # cache for the energy scales
         self._eleES_cache = {}
@@ -164,6 +154,11 @@ class AnalysisProcessor(processor.ProcessorABC):
         self._tauES_cache = {}
 
         # bin variables along axes
+        group_axis = StrCategory(
+            name="group",
+            categories=[],
+            growth=True,
+        )
         category_axis = StrCategory(
             name="category",
             categories=[],
@@ -190,8 +185,10 @@ class AnalysisProcessor(processor.ProcessorABC):
             growth=True,
         )
 
+        split_str = f"_{year}"
         pt = {
-            dataset.split(f"_{year}")[0]: Hist(
+            dataset.split(split_str)[0]: Hist(
+                group_axis,
                 category_axis,
                 leg_axis,
                 btags_axis,
@@ -202,7 +199,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         }
 
         met = {
-            dataset.split(f"_{year}")[0]: Hist(
+            dataset.split(split_str)[0]: Hist(
+                group_axis,
                 category_axis,
                 btags_axis,
                 syst_shift_axis,
@@ -211,7 +209,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             for dataset in fileset.keys()
         }
         mtt = {
-            dataset.split(f"_{year}")[0]: Hist(
+            dataset.split(split_str)[0]: Hist(
+                group_axis,
                 category_axis,
                 mass_type_axis,
                 btags_axis,
@@ -222,15 +221,13 @@ class AnalysisProcessor(processor.ProcessorABC):
         }
 
         # if signal sample, adjust based on A mass
-        bins = 40
+        bins = 20
         lower_bound, upper_bound = 0, 400
-        if len(A_mass) > 0:
-            m = float(A_mass)
-            lower_bound, upper_bound = int(m * 0.25), int(m * 1.75)
-            bins = int((upper_bound - lower_bound) / 10)
-
+        if "signal" in source:
+            bins, lower_bound, upper_bound = 70, 0, 1400
         m4l = {
-            dataset.split(f"_{year}")[0]: Hist(
+            dataset.split(split_str)[0]: Hist(
+                group_axis,
                 category_axis,
                 mass_type_axis,
                 btags_axis,
@@ -240,7 +237,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             for dataset in fileset.keys()
         }
         mll = {
-            dataset.split(f"_{year}")[0]: Hist(
+            dataset.split(split_str)[0]: Hist(
+                group_axis,
                 category_axis,
                 btags_axis,
                 syst_shift_axis,
@@ -331,106 +329,129 @@ class AnalysisProcessor(processor.ProcessorABC):
         MET["phi"] = MET.T1_phi
 
         # seeds the lepton count veto
-        e_counts = ak.num(baseline_e[tight_electrons(baseline_e)])
-        m_counts = ak.num(baseline_m[tight_muons(baseline_m)])
+        e_counts = ak.num(baseline_e)  # [tight_electrons(baseline_e)])
+        m_counts = ak.num(baseline_m)  # [tight_muons(baseline_m)])
 
         # number of b jets used to test bbA vs. ggA
         b_counts = ak.num(baseline_b)
 
         # build ll pairs
-        ll_pairs = {}
-        for cat in ["ee", "mm"]:
-            if (cat[:2] == "ee") and ("_Electrons" not in filename):
+        candidates = {}
+        for ll_pair in ["ee", "mm"]:
+            if (ll_pair[:2] == "ee") and ("_Electrons" not in filename):
                 continue
-            if (cat[:2] == "mm") and ("_Muons" not in filename):
+            if (ll_pair[:2] == "mm") and ("_Muons" not in filename):
                 continue
 
-            l = baseline_e if (cat == "ee") else baseline_m
+            l = baseline_e if (ll_pair == "ee") else baseline_m
             ll = ak.combinations(l, 2, axis=1, fields=["l1", "l2"])
             ll = dR_ll(ll)
             ll = build_Z_cand(ll)
             ll = closest_to_Z_mass(ll)
-            mask, tpt1, teta1, tpt2, teta2 = trigger_filter(ll, events.TrigObj, cat)
-            mask = mask & check_trigger_path(events.HLT, year, cat)
+
+            # apply trigger filter mask
+            mask, tpt1, teta1, tpt2, teta2 = trigger_filter(ll, events.TrigObj, ll_pair)
+            mask = mask & check_trigger_path(events.HLT, year, ll_pair)
             ll = ak.fill_none(ll.mask[mask], [], axis=0)
-            ll_pairs[cat] = ll
 
-            trig_SFs = self.e_trig_SFs if cat == "ee" else self.m_trig_SFs
-            if not is_data:
-                weight = np.ones(len(events), dtype=float)
-                wt1 = lepton_trig_weight(weight, tpt1, teta1, trig_SFs, lep=cat[0])
-                wt2 = lepton_trig_weight(weight, tpt2, teta2, trig_SFs, lep=cat[0])
-                weights.add("l1_trig_weight", wt1)
-                weights.add("l2_trig_weight", wt2)
+            for cat in self.categories.values():
+                if cat[:2] != ll_pair:
+                    continue
+                mask = lepton_count_veto(e_counts, m_counts, cat)
 
-        candidates, cat_tight_masks = {}, {}
-        for cat in self.categories.values():
-            if (cat[:2] == "ee") and ("_Electrons" not in filename):
-                continue
-            if (cat[:2] == "mm") and ("_Muons" not in filename):
-                continue
-            mask = lepton_count_veto(e_counts, m_counts, cat)
+                # build 4l final state
+                tt = get_tt(baseline_e, baseline_m, baseline_t, cat)
+                lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
+                lltt = dR_lltt(lltt, cat)
+                lltt = highest_LT(lltt)
+                lltt = ak.fill_none(lltt.mask[mask], [], axis=0)
+                if len(ak.flatten(lltt)) == 0:
+                    continue
 
-            # build 4l final state
-            tt = get_tt(baseline_e, baseline_m, baseline_t, cat)
-            lltt = ak.cartesian({"ll": ll_pairs[cat[:2]], "tt": tt}, axis=1)
-            lltt = dR_lltt(lltt, cat)
-            # lltt = build_ditau_cand(lltt, cat, self.cutflow, OS=True)
-            lltt = highest_LT(lltt)
-            lltt = ak.fill_none(lltt.mask[mask], [], axis=0)
+                # determine which legs passed tight selections
+                lltt = append_tight_masks(lltt, cat)
+                lltt["cat"] = self.cat_to_num[cat]
+                lltt["MET"] = MET
 
-            # determine which legs passed tight selections
-            tight_masks = get_tight_masks(lltt, cat)
-            l1_tight_mask, l2_tight_mask = tight_masks[0], tight_masks[1]
-            t1_tight_mask, t2_tight_mask = tight_masks[2], tight_masks[3]
-            tight_mask = l1_tight_mask & l2_tight_mask & t1_tight_mask & t2_tight_mask
+                # determine weights
+                lltt["weight"] = weights.weight()
+                if not is_data:
+                    # apply trigger scale factors
+                    trig_SFs = self.e_trig_SFs if ll_pair == "ee" else self.m_trig_SFs
+                    wt1 = lepton_trig_weight(tpt1, teta1, trig_SFs, lep=ll_pair[0])
+                    wt2 = lepton_trig_weight(tpt2, teta2, trig_SFs, lep=ll_pair[0])
+                    lltt["weight"] = lltt.weight * wt1 * wt2
+                    # mask non-prompt and non-tight MC events
+                    lltt = lltt[
+                        is_prompt(lltt, cat)
+                        & (
+                            lltt.l1_tight
+                            & lltt.l2_tight
+                            & lltt.t1_tight
+                            & lltt.t2_tight
+                        )
+                    ]
+                    if len(ak.flatten(lltt)) == 0:
+                        continue
+                    lltt["weight"] = lltt.weight * self.apply_lepton_ID_SFs(lltt, cat)
 
-            # apply fake weights to estimate reducible background
-            if is_data:
-                cat_tight_masks[cat + "_fakes"] = tight_masks
-                fakes, cands = lltt[~tight_mask], lltt[tight_mask]
-                fakes["category"] = self.cat_to_num[cat + "_fakes"]
-                cands["category"] = self.cat_to_num[cat]
-                candidates[cat + "_fakes"] = fakes
-                candidates[cat] = cands
-            else:
-                prompt_mask = is_prompt(lltt, cat)
-                cands = lltt[prompt_mask & tight_mask]
-                cands["category"] = self.cat_to_num[cat]
-                cands["cat_str"] = cat
-                cands["w_lepton_ID"] = self.apply_lepton_ID_SFs(cands, cat)
-                candidates[cat] = cands
+                    # apply lepton energy scale corrections
+                    lltt = self.apply_ES_shifts(
+                        lltt,
+                        cat,
+                        eleES_shift="nom",
+                        muES_shift="nom",
+                        tauES_shift="nom",
+                        efake_shift="nom",
+                        mfake_shift="nom",
+                        eleSmear_shift="nom",
+                    )
+
+                else:  # if data, apply fake weights
+                    lltt["weight"] = lltt["weight"] * self.get_fake_weights(lltt, cat)
+
+                # append the candidates
+                candidates[cat] = lltt
 
         # combine the candidates into a single array
+        # append relevant variables
         # reject events with multiple candidates from one category
+        if len(candidates) == 0:
+            return self.output
         cands = ak.concatenate(list(candidates.values()), axis=1)
-        counts_mask = ak.num(cands) == 1
-        sign_mask = ak.flatten(
-            (cands[counts_mask].tt.t1.charge * cands[counts_mask].tt.t2.charge) < 0
-        )
-        lltt = {}
-        btags = (b_counts)[counts_mask][sign_mask]
-        lltt = {cat: cands[counts_mask][sign_mask] for cat, cands in candidates.items()}
-        met = MET[counts_mask][sign_mask]
-        jets = baseline_j[counts_mask][sign_mask]
-        weight = weights.weight()[counts_mask][sign_mask]
+        cands["btags"] = b_counts
+        mask = (ak.num(cands) == 1) & ((cands.tt.t1.charge * cands.tt.t2.charge) < 0)
+        cands, jets = cands[mask], baseline_j[mask]
+        if len(ak.flatten(cands)) == 0:
+            return self.output
 
-        if not is_data and len(np_flat(met)) > 0:
-            # if MC, need to apply the systematic shifts
+        if is_data:
+            cands = ak.flatten(cands)
+            is_tight = cands.l1_tight & cands.l2_tight & cands.t1_tight & cands.t2_tight
+            for group_label, mask in [(group, is_tight), ("reducible", ~is_tight)]:
+                cands_group = cands[mask]
+                if len(cands_group) == 0:
+                    continue
+                t0 = time.time()
+                fastmtt_out = self.run_fastmtt(cands_group) if self.fastmtt else {}
+                print(f"ran fastmtt in {time.time()-t0}s")
+                t0 = time.time()
+                self.fill_histos(
+                    cands_group,
+                    fastmtt_out,
+                    group=group_label,
+                    dataset=dataset,
+                    name=name,
+                    syst_shift="none",
+                    blind=(is_data and self.blind),
+                )
+                print(f"filled histograms in {time.time()-t0}s")
+            return self.output
+
+        # apply systematic shifts to MC
+        if not is_data:
             shifts = [
                 "nom",
-                "tauES_down",
-                "tauES_up",
-                "efake_down",
-                "efake_up",
-                "mfake_down",
-                "mfake_up",
-                "eleES_down",
-                "eleES_up",
-                "muES_down",
-                "muES_up",
-                "eleSmear_up",
-                "eleSmear_down",
                 "unclMET_up",
                 "unclMET_down",
                 "btag_up_correlated",
@@ -452,44 +473,37 @@ class AnalysisProcessor(processor.ProcessorABC):
                 for bshift in bshift_labels
             }
             met_shifts = {
-                "nom": apply_unclMET_shifts(met, "nom"),
-                "up": apply_unclMET_shifts(met, "up"),
-                "down": apply_unclMET_shifts(met, "down"),
+                "nom": apply_unclMET_shifts(cands["MET"], "nom"),
+                "up": apply_unclMET_shifts(cands["MET"], "up"),
+                "down": apply_unclMET_shifts(cands["MET"], "down"),
             }
 
             for shift in shifts:
+                if not self.run_systematics and shift != "nom":
+                    continue
+
                 # figure out which variable needs to be shifted
                 up_or_down = shift.split("_")[-1]
-                tauES_shift = up_or_down if ("tauES" in shift) else "nom"
-                efake_shift = up_or_down if ("efake" in shift) else "nom"
-                mfake_shift = up_or_down if ("mfake" in shift) else "nom"
-                eleES_shift = up_or_down if ("eleES" in shift) else "nom"
-                muES_shift = up_or_down if ("muES" in shift) else "nom"
-                eleSmear_shift = up_or_down if ("eleSmear" in shift) else "nom"
+                # tauES_shift = up_or_down if ("tauES" in shift) else "nom"
+                # efake_shift = up_or_down if ("efake" in shift) else "nom"
+                # mfake_shift = up_or_down if ("mfake" in shift) else "nom"
+                # eleES_shift = up_or_down if ("eleES" in shift) else "nom"
+                # muES_shift = up_or_down if ("muES" in shift) else "nom"
+                # eleSmear_shift = up_or_down if ("eleSmear" in shift) else "nom"
                 unclMET_shift = up_or_down if ("unclMET" in shift) else "nom"
                 btag_shift = "central"
                 if "btag" in shift:
                     btag_shift = shift[5:]
 
                 # apply bjet weights and unclustered energy corrections
-                w = weight * btag_shifts[btag_shift]
+                w = cands["weight"] * btag_shifts[btag_shift]
                 met = met_shifts[unclMET_shift]
-                for cat, cands in lltt.items():
-                    cands["w"] = w * cands["w_lepton_ID"]
-                    cands["btags"] = btags
-                    cands["met"] = met
-                    lltt[cat] = cands
-
-                # apply lepton energy scale corrections
-                final_states = self.apply_ES_shifts(
-                    lltt,
-                    eleES_shift,
-                    muES_shift,
-                    tauES_shift,
-                    efake_shift,
-                    mfake_shift,
-                    eleSmear_shift,
-                )
+                final_states = cands
+                final_states["weight"] = w
+                final_states["MET"] = met
+                final_states = ak.flatten(final_states)
+                if len(final_states) == 0:
+                    continue
 
                 # optionally run fastmtt
                 if self.fastmtt:
@@ -503,47 +517,11 @@ class AnalysisProcessor(processor.ProcessorABC):
                     group=group,
                     dataset=dataset,
                     name=name,
-                    tauES_shift=tauES_shift,
-                    efake_shift=efake_shift,
-                    mfake_shift=mfake_shift,
-                    muES_shift=muES_shift,
-                    eleES_shift=eleES_shift,
-                    eleSmear_shift=eleSmear_shift,
-                    unclMET_shift=unclMET_shift,
-                    btag_shift=btag_shift,
                     syst_shift=shift,
                     blind=(is_data and self.blind),
                 )
 
         self.clear_caches()
-
-        # if 'fake' in cat:
-        #    tight_masks = cat_tight_masks[cat]
-        #    m0 = tight_masks[0][final_mask][smask]
-        #    m1 = tight_masks[1][final_mask][smask]
-        #    m2 = tight_masks[2][final_mask][smask]
-        #    m3 = tight_masks[3][final_mask][smask]
-        #    weight = self.get_fake_weights(lltt, cat.split('_')[0],
-        # [m0, m1, m2, m3])
-
-        # if data, do a simple histogram fill
-        # if is_data:
-        # l1, l2 = ak.flatten(lltt['ll']['l1']), ak.flatten(lltt['ll']['l2'])
-        # t1, t2 = ak.flatten(lltt['tt']['t1']), ak.flatten(lltt['tt']['t2'])
-        # if run_fastmtt:
-        # fastmtt_out = self.run_fastmtt(cat, l1, l2, t1, t2, met)
-        #                else: fastmtt_out = {}
-        #               group_label = 'reducible' if ('fake' in cat) else group
-        #               if self.fill_hists:
-        #                   self.fill_histos(lltt, fastmtt_out, met,
-        #                                    group=group_label, dataset=dataset,
-        #                                    category=cat, bjets=bjet_label, sign=sign,
-        #                                    weight=weight, tauES_shift='none',
-        #                                    efake_shift='none', mfake_shift='none',
-        #                                    muES_shift='none', eleES_shift='none',
-        #                                    eleSmear_shift='none', unclMET_shift='none',
-        #                                    blind=self.blind)
-        #               continue
 
         return self.output
 
@@ -611,7 +589,8 @@ class AnalysisProcessor(processor.ProcessorABC):
 
     def apply_ES_shifts(
         self,
-        lltt,
+        cands,
+        cat,
         eleES_shift=-1,
         muES_shift=-1,
         tauES_shift=-1,
@@ -619,91 +598,95 @@ class AnalysisProcessor(processor.ProcessorABC):
         mfake_shift=-1,
         eleSmear_shift=-1,
     ):
+        # grab the individual leptons
+        lltt, num = ak.flatten(cands), ak.num(cands)
+        l1, l2 = lltt["ll"]["l1"], lltt["ll"]["l2"]
+        t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
+        met = lltt["MET"]
 
-        lltt_out = {}
-        for cat, lltt_cat in lltt.items():
-            lltt_cat, num = ak.flatten(lltt_cat), ak.num(lltt_cat)
-            l1, l2 = lltt_cat["ll"]["l1"], lltt_cat["ll"]["l2"]
-            t1, t2 = lltt_cat["tt"]["t1"], lltt_cat["tt"]["t2"]
-            met = lltt_cat["met"]
-            if len(lltt_cat) == 0:
-                continue
-            diffs_list = []
-            if cat[:2] == "ee":
-                l1, diffs = self.query_eleES_shifts(
-                    l1, "1", cat, eleES_shift, eleSmear_shift
-                )
-                diffs_list.append(diffs)
-                l2, diffs = self.query_eleES_shifts(
-                    l2, "2", cat, eleES_shift, eleSmear_shift
-                )
-                diffs_list.append(diffs)
-            if cat[:2] == "mm":
-                l1, diffs = self.query_muES_shifts(l1, "1", cat, muES_shift)
-                diffs_list.append(diffs)
-                l2, diffs = self.query_muES_shifts(l2, "2", cat, muES_shift)
-                diffs_list.append(diffs)
-            if cat[2] == "e":
-                t1, diffs = self.query_eleES_shifts(
-                    t1, "3", cat, eleES_shift, eleSmear_shift
-                )
-                diffs_list.append(diffs)
-            if cat[2] == "m":
-                t1, diffs = self.query_muES_shifts(t1, "3", cat, muES_shift)
-                diffs_list.append(diffs)
-            if cat[2] == "t":
-                t1, diffs = self.query_tauES_shifts(
-                    t1,
-                    "3",
-                    cat,
-                    tauES_shift=tauES_shift,
-                    efake_shift=efake_shift,
-                    mfake_shift=mfake_shift,
-                )
-                diffs_list.append(diffs)
-            if cat[3] == "m":
-                t2, diffs = self.query_muES_shifts(t2, "4", cat, muES_shift)
-                diffs_list.append(diffs)
-            if cat[3] == "t":
-                t2, diffs = self.query_tauES_shifts(
-                    t2,
-                    "4",
-                    cat,
-                    tauES_shift=tauES_shift,
-                    efake_shift=efake_shift,
-                    mfake_shift=mfake_shift,
-                )
-                diffs_list.append(diffs)
-
-            # adjust the met
-            met_x = met.pt * np.cos(met.phi)
-            met_y = met.pt * np.sin(met.phi)
-            for diffs in diffs_list:
-                met_x = met_x + diffs["x"]
-                met_y = met_y + diffs["y"]
-            met_p4 = ak.zip(
-                {"x": met_x, "y": met_y, "z": 0, "t": 0}, with_name="LorentzVector"
+        diffs_list = []
+        if cat[:2] == "ee":
+            l1, diffs = self.query_eleES_shifts(
+                l1, "1", cat, eleES_shift, eleSmear_shift
             )
-            met["pt"] = met_p4.pt
-            met["phi"] = met_p4.phi
+            diffs_list.append(diffs)
+            l2, diffs = self.query_eleES_shifts(
+                l2, "2", cat, eleES_shift, eleSmear_shift
+            )
+            diffs_list.append(diffs)
 
-            lltt_cat["ll"]["l1"] = l1
-            lltt_cat["ll"]["l2"] = l2
-            lltt_cat["tt"]["t1"] = t1
-            lltt_cat["tt"]["t2"] = t2
-            lltt_cat["met"] = met
-            lltt_cat = ak.unflatten(lltt_cat, num)
-            lltt_out[cat] = lltt_cat
+        if cat[:2] == "mm":
+            l1, diffs = self.query_muES_shifts(l1, "1", cat, muES_shift)
+            diffs_list.append(diffs)
+            l2, diffs = self.query_muES_shifts(l2, "2", cat, muES_shift)
+            diffs_list.append(diffs)
 
-        return ak.concatenate(list(lltt_out.values()), axis=1)
+        if cat[2] == "e":
+            t1, diffs = self.query_eleES_shifts(
+                t1, "3", cat, eleES_shift, eleSmear_shift
+            )
+            diffs_list.append(diffs)
 
-    def get_fake_weights(self, lltt, cat, tight_masks):
-        l1_tight_mask, l2_tight_mask = tight_masks[0], tight_masks[1]
-        t1_tight_mask, t2_tight_mask = tight_masks[2], tight_masks[3]
-        l1_tight_mask = ak.flatten(l1_tight_mask)
+        if cat[2] == "m":
+            t1, diffs = self.query_muES_shifts(t1, "3", cat, muES_shift)
+            diffs_list.append(diffs)
+
+        if cat[2] == "t":
+            t1, diffs = self.query_tauES_shifts(
+                t1,
+                "3",
+                cat,
+                tauES_shift=tauES_shift,
+                efake_shift=efake_shift,
+                mfake_shift=mfake_shift,
+            )
+            diffs_list.append(diffs)
+
+        if cat[3] == "m":
+            t2, diffs = self.query_muES_shifts(t2, "4", cat, muES_shift)
+            diffs_list.append(diffs)
+
+        if cat[3] == "t":
+            t2, diffs = self.query_tauES_shifts(
+                t2,
+                "4",
+                cat,
+                tauES_shift=tauES_shift,
+                efake_shift=efake_shift,
+                mfake_shift=mfake_shift,
+            )
+            diffs_list.append(diffs)
+
+        # adjust the met
+        met_x = met.pt * np.cos(met.phi)
+        met_y = met.pt * np.sin(met.phi)
+        for diffs in diffs_list:
+            met_x = met_x + diffs["x"]
+            met_y = met_y + diffs["y"]
+        met_p4 = ak.zip(
+            {"x": met_x, "y": met_y, "z": 0, "t": 0}, with_name="LorentzVector"
+        )
+        met["pt"] = met_p4.pt
+        met["phi"] = met_p4.phi
+
+        lltt["ll"]["l1"] = l1
+        lltt["ll"]["l2"] = l2
+        lltt["tt"]["t1"] = t1
+        lltt["tt"]["t2"] = t2
+        lltt["met"] = met
+        return ak.unflatten(lltt, num)
+
+    def get_fake_weights(self, lltt, cat):
+        l1_tight_mask, l2_tight_mask = lltt.l1_tight, lltt.l2_tight
+        t1_tight_mask, t2_tight_mask = lltt.t1_tight, lltt.t2_tight
+
+        l1_tight_mask, num = ak.flatten(l1_tight_mask), ak.num(l1_tight_mask)
         l2_tight_mask = ak.flatten(l2_tight_mask)
         t1_tight_mask = ak.flatten(t1_tight_mask)
         t2_tight_mask = ak.flatten(t2_tight_mask)
+        if len(l1_tight_mask) == 0:
+            return np.ones(len(lltt), dtype=float)
+
         l1_barrel = ak.flatten(abs(lltt["ll"]["l1"].eta) < 1.479)
         l2_barrel = ak.flatten(abs(lltt["ll"]["l2"].eta) < 1.479)
         t1_barrel = ak.flatten(abs(lltt["tt"]["t1"].eta) < 1.479)
@@ -875,7 +858,11 @@ class AnalysisProcessor(processor.ProcessorABC):
             * fw3
             * fw4
         )
-        return apply_w1 - apply_w2 + apply_w3 - apply_w4
+
+        out = apply_w1 - apply_w2 + apply_w3 - apply_w4
+        # make sure data gets a weight of 1
+        out = out + (l1_tight_mask & l2_tight_mask & t1_tight_mask & t2_tight_mask)
+        return ak.unflatten(out, num)
 
     def fill_histos(
         self,
@@ -884,14 +871,6 @@ class AnalysisProcessor(processor.ProcessorABC):
         dataset,
         name,
         group,
-        tauES_shift,
-        efake_shift,
-        mfake_shift,
-        muES_shift,
-        eleES_shift,
-        eleSmear_shift,
-        unclMET_shift,
-        btag_shift,
         blind=False,
         syst_shift=None,
     ):
@@ -903,26 +882,20 @@ class AnalysisProcessor(processor.ProcessorABC):
             ("tt", "t1"): "3",
             ("tt", "t2"): "4",
         }
-        btags = np_flat(lltt.btags)
-        cats = np_flat(lltt.category)
-        cats = np.array([self.num_to_cat[c] for c in cats])
-        weight = np_flat(lltt.w)
+        btags = np_flat(lltt.btags == 0)
+        cats = np_flat(lltt.cat)
+        cats = np.array([self.categories[c] for c in cats])
+        weight = np_flat(lltt.weight)
 
         # fill the lltt leg four-vectors
         for leg, label in label_dict.items():
             p4 = lltt[leg[0]][leg[1]]
             self.output["pt"][name].fill(
+                group=group,
                 category=cats,
                 leg=label,
                 btags=btags,
                 syst_shift=syst_shift,
-                # unclMET_shift=unclMET_shift,
-                # eleES_shift=eleES_shift,
-                # muES_shift=muES_shift,
-                # tauES_shift=tauES_shift,
-                # efake_shift=efake_shift,
-                # mfake_shift=mfake_shift,
-                # eleSmear_shift=eleSmear_shift,
                 pt=np_flat(p4.pt),
                 weight=weight,
             )
@@ -930,32 +903,20 @@ class AnalysisProcessor(processor.ProcessorABC):
         # fill the mass of the dilepton system w/ various systematic shifts
         mll = np_flat((lltt["ll"]["l1"] + lltt["ll"]["l2"]).mass)
         self.output["mll"][name].fill(
+            group=group,
             category=cats,
             btags=btags,
             syst_shift=syst_shift,
-            # unclMET_shift=unclMET_shift,
-            # eleES_shift=eleES_shift,
-            # muES_shift=muES_shift,
-            # tauES_shift=tauES_shift,
-            # efake_shift=efake_shift,
-            # mfake_shift=mfake_shift,
-            # eleSmear_shift=eleSmear_shift,
             mll=mll,
             weight=weight,
         )
         # fill the met with various systematics considered
-        met = np_flat(lltt.met.pt)
+        met = np_flat(lltt.MET.pt)
         self.output["met"][name].fill(
+            group=group,
             category=cats,
             btags=btags,
             syst_shift=syst_shift,
-            # unclMET_shift=unclMET_shift,
-            # eleES_shift=eleES_shift,
-            # muES_shift=muES_shift,
-            # tauES_shift=tauES_shift,
-            # efake_shift=efake_shift,
-            # mfake_shift=mfake_shift,
-            # eleSmear_shift=eleSmear_shift,
             met=met,
             weight=weight,
         )
@@ -971,44 +932,34 @@ class AnalysisProcessor(processor.ProcessorABC):
             ).mass
         )
 
-        blind_mask = np.zeros(len(m4l), dtype=bool)
+        blind_mask = np.ones(len(m4l), dtype=bool)
         if blind:
-            blind_mask = (mtt > 40) & (mtt < 120)
-        self.output["m4l"][name].fill(
-            category=cats,
-            mass_type="raw",
-            btags=btags,
-            syst_shift=syst_shift,
-            # unclMET_shift=unclMET_shift,
-            # eleES_shift=eleES_shift,
-            # muES_shift=muES_shift,
-            # tauES_shift=tauES_shift,
-            # efake_shift=efake_shift,
-            # mfake_shift=mfake_shift,
-            # eleSmear_shift=eleSmear_shift,
-            mass=m4l[~blind_mask],
-            weight=weight[~blind_mask],
-        )
+            blind_mask[((mtt > 40) & (mtt < 120))] = 0
 
-        # fill the Zh->lltt candidate mass spectrums (corrected, constrained)
-        for mass_label, mass_data in fastmtt_out.items():
-            key = mass_label.split("_")[0]  # mtt or m4l
-            mass_type = mass_label.split("_")[1]  # corr or cons
-            self.output[key][name].fill(
-                category=cats,
-                mass_type=mass_type,
-                btags=btags,
+        if sum(blind_mask) > 0:
+            self.output["m4l"][name].fill(
+                group=group,
+                category=cats[blind_mask],
+                mass_type="raw",
+                btags=btags[blind_mask],
                 syst_shift=syst_shift,
-                # unclMET_shift=unclMET_shift,
-                # eleES_shift=eleES_shift,
-                # muES_shift=muES_shift,
-                # tauES_shift=tauES_shift,
-                # efake_shift=efake_shift,
-                # mfake_shift=mfake_shift,
-                # eleSmear_shift=eleSmear_shift,
-                mass=mass_data[~blind_mask],
-                weight=weight[~blind_mask],
+                mass=m4l[blind_mask],
+                weight=weight[blind_mask],
             )
+
+            # fill the Zh->lltt candidate mass spectrums (corrected, constrained)
+            for mass_label, mass_data in fastmtt_out.items():
+                key = mass_label.split("_")[0]  # mtt or m4l
+                mass_type = mass_label.split("_")[1]  # corr or cons
+                self.output[key][name].fill(
+                    group=group,
+                    category=cats[blind_mask],
+                    mass_type=mass_type,
+                    btags=btags[blind_mask],
+                    syst_shift=syst_shift,
+                    mass=mass_data[blind_mask],
+                    weight=weight[blind_mask],
+                )
 
     def apply_lepton_ID_SFs(self, lltt_all, cat, is_data=False):
         lltt, num = ak.flatten(lltt_all), ak.num(lltt_all)
@@ -1046,12 +997,11 @@ class AnalysisProcessor(processor.ProcessorABC):
     def run_fastmtt(self, final_states):
         l1, l2 = final_states.ll.l1, final_states.ll.l2
         t1, t2 = final_states.tt.t1, final_states.tt.t2
-        met = ak.flatten(final_states.met)
-        cats = ak.flatten(final_states.category)
+        met = final_states.MET
+        cats = final_states.cat
         map_it = {"e": 0, "m": 1, "t": 2}
-        t1_cats = np.array([map_it[self.num_to_cat[cat][2]] for cat in cats])
-        t2_cats = np.array([map_it[self.num_to_cat[cat][3]] for cat in cats])
-
+        t1_cats = np.array([map_it[self.categories[cat][2]] for cat in cats])
+        t2_cats = np.array([map_it[self.categories[cat][3]] for cat in cats])
         return fastmtt(
             np_flat(l1.pt),
             np_flat(l1.eta),
