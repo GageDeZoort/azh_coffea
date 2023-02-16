@@ -6,6 +6,7 @@ import os
 import time
 from os.path import join
 
+import dask
 import numpy as np
 from coffea import processor, util
 from coffea.nanoevents import NanoAODSchema
@@ -30,6 +31,7 @@ def parse_args():
     add_arg("--interactive", action="store_true")
     add_arg("--min-workers", default=80)
     add_arg("--max-workers", default=160)
+    add_arg("--test-mode", action="store_true")
     return parser.parse_args()
 
 
@@ -56,6 +58,8 @@ if args.add_signal:
     sample_info = np.append(sample_info, get_sample_info(signal_csv))
 
 fileset = {k: v for k, v in fileset.items()}
+if args.test_mode:
+    fileset = {k: v[:1] for k, v in fileset.items()}
 for f, l in fileset.items():
     print(f, len(l), "\n")
 
@@ -68,6 +72,20 @@ infiles = [
     "pileup_utils.py",
 ]
 
+# configure dask
+dask.config.set(
+    {
+        "distributed.worker.memory.target": 0.8,
+        "distributed.worker.memory.spill": 0.9,
+        "distributed.worker.memory.pause": False,
+        "distributed.worker.memory.terminate": 0,
+        "distributed.worker.profile.interval": "1d",
+        "distributed.worker.profile.cycle": "2d",
+        "distributed.worker.profile.low-level": False,
+        "distributed.nanny.environ.MALLOC_TRIM_THRESHOLD_": "65536",
+    }
+)
+
 cluster = LPCCondorCluster(
     ship_env=False,
     transfer_input_files=infiles,
@@ -76,7 +94,12 @@ cluster = LPCCondorCluster(
 )
 
 # scale the number of workers
-cluster.adapt(minimum=args.min_workers, maximum=args.max_workers)
+if args.test_mode:
+    cluster.scale(2)
+cluster.adapt(
+    minimum=1 if args.test_mode else args.min_workers,
+    maximum=args.max_workers,
+)
 
 # initiate client, wait for workers
 client = Client(cluster)
