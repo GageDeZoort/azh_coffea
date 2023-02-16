@@ -27,13 +27,13 @@ def make_evaluator(file):
     return ext.make_evaluator()
 
 
-def get_fake_rates(base, year):
+def get_fake_rates(base, year, origin="_coffea"):
     fake_rates = {}
-    ee_fr_file = f"JetEleFakeRate_Fall17MVAv2WP90_noIso_Iso0p15_UL{year}.root"
-    mm_fr_file = f"JetMuFakeRate_Medium_Iso0p15_UL{year}.root"
-    mt_fr_file = f"JetTauFakeRate_Medium_VLoose_Tight_UL{year}.root"
-    et_fr_file = f"JetTauFakeRate_Medium_Tight_VLoose_UL{year}.root"
-    tt_fr_file = f"JetTauFakeRate_Medium_VLoose_VLoose_UL{year}.root"
+    ee_fr_file = f"JetEleFakeRate_Fall17MVAv2WP90_noIso_Iso0p15_UL{year}{origin}.root"
+    mm_fr_file = f"JetMuFakeRate_Medium_Iso0p15_UL{year}{origin}.root"
+    mt_fr_file = f"JetTauFakeRate_Medium_VLoose_Tight_UL{year}{origin}.root"
+    et_fr_file = f"JetTauFakeRate_Medium_Tight_VLoose_UL{year}{origin}.root"
+    tt_fr_file = f"JetTauFakeRate_Medium_VLoose_VLoose_UL{year}{origin}.root"
 
     fake_rate_files = {
         "ee": join(base, ee_fr_file),
@@ -44,6 +44,7 @@ def get_fake_rates(base, year):
     }
 
     for lep, fr_file in fake_rate_files.items():
+        print(uproot.open(fr_file).keys())
         evaluator = make_evaluator(fr_file)
         if (lep == "ee") or (lep == "mm"):
             fake_rates[lep] = {
