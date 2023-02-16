@@ -103,6 +103,11 @@ class FakeRateProcessor(processor.ProcessorABC):
         self.dyjets_weights = dyjets_weights
 
         # bin variables along axes
+        group_axis = StrCategory(
+            name="group",
+            categories=[],
+            growth=True,
+        )
         category_axis = StrCategory(
             name="category",
             categories=[],
@@ -135,6 +140,7 @@ class FakeRateProcessor(processor.ProcessorABC):
 
         pt = {
             dataset.split(f"_{year}")[0]: Hist(
+                group_axis,
                 category_axis,
                 prompt_axis,
                 numerator_axis,
@@ -145,8 +151,11 @@ class FakeRateProcessor(processor.ProcessorABC):
             )
             for dataset in fileset.keys()
         }
+        print("YEAR", year)
+        print(pt.keys())
         met = {
             dataset.split(f"_{year}")[0]: Hist(
+                group_axis,
                 category_axis,
                 prompt_axis,
                 numerator_axis,
@@ -160,6 +169,7 @@ class FakeRateProcessor(processor.ProcessorABC):
 
         mll = {
             dataset.split(f"_{year}")[0]: Hist(
+                group_axis,
                 category_axis,
                 prompt_axis,
                 numerator_axis,
@@ -173,6 +183,7 @@ class FakeRateProcessor(processor.ProcessorABC):
 
         mT = {
             dataset.split(f"_{year}")[0]: Hist(
+                group_axis,
                 category_axis,
                 prompt_axis,
                 numerator_axis,
@@ -283,8 +294,8 @@ class FakeRateProcessor(processor.ProcessorABC):
             trig_SFs = self.e_trig_SFs if z_pair == "ee" else self.m_trig_SFs
             if not is_data:
                 weight = np.ones(len(events), dtype=float)
-                wt1 = lepton_trig_weight(weight, tpt1, teta1, trig_SFs, lep=z_pair[0])
-                wt2 = lepton_trig_weight(weight, tpt2, teta2, trig_SFs, lep=z_pair[0])
+                wt1 = lepton_trig_weight(tpt1, teta1, trig_SFs, lep=z_pair[0])
+                wt2 = lepton_trig_weight(tpt2, teta2, trig_SFs, lep=z_pair[0])
                 weights.add("l1_trig_weight", wt1)
                 weights.add("l2_trig_weight", wt2)
 
@@ -446,7 +457,6 @@ class FakeRateProcessor(processor.ProcessorABC):
         weight = np_flat(lll.weight)
         met = lll.met
         l1, l2, l = lll.ll.l1, lll.ll.l2, lll.l
-        print(l1.mass, l2.mass)
         pt, eta = np_flat(l.pt), np_flat(l.eta)
         decay_mode = -1 * np.ones_like(weight)
         met = np_flat(lll.met.pt)
@@ -472,6 +482,7 @@ class FakeRateProcessor(processor.ProcessorABC):
 
                 # fill pt
                 self.output["pt"][name].fill(
+                    group=group,
                     category=category,
                     prompt=prompt,
                     numerator=numerator,
@@ -483,6 +494,7 @@ class FakeRateProcessor(processor.ProcessorABC):
                 )
                 # fill the mass of the dilepton system w/ various systematic shifts
                 self.output["mll"][name].fill(
+                    group=group,
                     category=category,
                     prompt=prompt,
                     numerator=numerator,
@@ -494,6 +506,7 @@ class FakeRateProcessor(processor.ProcessorABC):
                 )
                 # fill the met with various systematics considered
                 self.output["met"][name].fill(
+                    group=group,
                     category=category,
                     prompt=prompt,
                     numerator=numerator,
@@ -505,6 +518,7 @@ class FakeRateProcessor(processor.ProcessorABC):
                 )
                 # fill the transverse mass
                 self.output["mT"][name].fill(
+                    group=group,
                     category=category,
                     prompt=prompt,
                     numerator=numerator,
