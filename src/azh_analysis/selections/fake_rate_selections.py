@@ -42,10 +42,10 @@ def lepton_count_veto_3l(e_counts, m_counts, t_counts, cat):
         "mmt": 2,
     }
     correct_t_counts = {
-        "eee": 0,
-        "eem": 0,
-        "mme": 0,
-        "mmm": 0,
+        "eee": 100,
+        "eem": 100,
+        "mme": 100,
+        "mmm": 100,
         "eet": 1,
         "mmt": 1,
     }

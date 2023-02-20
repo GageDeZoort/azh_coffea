@@ -40,7 +40,7 @@ from azh_analysis.utils.corrections import (
     apply_unclMET_shifts,
     lepton_ID_weight,
     lepton_trig_weight,
-    tau_ID_weight,
+    tau_ID_weight_3l,
 )
 from azh_analysis.utils.pileup import get_pileup_weights
 
@@ -151,8 +151,6 @@ class FakeRateProcessor(processor.ProcessorABC):
             )
             for dataset in fileset.keys()
         }
-        print("YEAR", year)
-        print(pt.keys())
         met = {
             dataset.split(f"_{year}")[0]: Hist(
                 group_axis,
@@ -265,10 +263,14 @@ class FakeRateProcessor(processor.ProcessorABC):
         baseline_m = get_baseline_muons(events.Muon)
         baseline_t = get_baseline_taus(events.Tau, loose=True)
         baseline_l = {"e": baseline_e, "m": baseline_m, "t": baseline_t}
+
+        # grab tight electrons and muons, count them
         tight_e = baseline_e[tight_electrons(baseline_e)]
         tight_m = baseline_m[tight_muons(baseline_m)]
         e_counts = ak.num(tight_e)
         m_counts = ak.num(tight_m)
+
+        # grab met,
         MET = events.MET
         MET["pt"] = MET.T1_pt
         MET["phi"] = MET.T1_phi
@@ -281,16 +283,17 @@ class FakeRateProcessor(processor.ProcessorABC):
             if (z_pair == "mm") and ("_Muons" not in filename):
                 continue
 
+            # grab ll pair most consistent with the Z mass
             l = tight_e if (z_pair == "ee") else tight_m
             ll = ak.combinations(l, 2, axis=1, fields=["l1", "l2"])
             ll = dR_ll(ll)
             ll = build_Z_cand(ll)
             ll = closest_to_Z_mass(ll)
+
+            # check that one of the leptons matches a trigger object
             mask, tpt1, teta1, tpt2, teta2 = trigger_filter(ll, events.TrigObj, z_pair)
             mask = mask & check_trigger_path(events.HLT, year, z_pair)
-            # ll = suppress_FSR(ll) # fake rate
             ll = ak.fill_none(ll.mask[mask], [], axis=0)
-
             trig_SFs = self.e_trig_SFs if z_pair == "ee" else self.m_trig_SFs
             if not is_data:
                 wt1 = lepton_trig_weight(tpt1, teta1, trig_SFs, lep=z_pair[0])
@@ -298,6 +301,7 @@ class FakeRateProcessor(processor.ProcessorABC):
                 weights.add("l1_trig_weight", wt1)
                 weights.add("l2_trig_weight", wt2)
 
+            # with Z candidates built, consider the jet faking lepton modes
             for mode in ["e", "m", "et", "mt", "tt"]:
 
                 # build all viable (Z->ll)+l pairs
@@ -308,9 +312,11 @@ class FakeRateProcessor(processor.ProcessorABC):
                 lll["cat"] = cat
                 lll = dr_3l(lll, cat)
 
-                # count tight taus, create lepton count veto mask
+                # get tight taus (irrelevant for j->e,m measurements)
                 tight_t = tight_hadronic_taus(baseline_t, mode=mode)
                 t_counts = ak.num(tight_t)
+
+                # apply lepton count veto
                 lll_mask = lepton_count_veto_3l(
                     e_counts,
                     m_counts,
@@ -320,6 +326,7 @@ class FakeRateProcessor(processor.ProcessorABC):
 
                 # create denominator and numerator regions
                 lll_denom = ak.fill_none(lll.mask[lll_mask], [], axis=0)
+                lll_denom = additional_cuts(lll_denom, mode)
                 if mode == "e":
                     lll_num = lll_denom[tight_electrons(lll_denom["l"])]
                 elif mode == "m":
@@ -327,7 +334,6 @@ class FakeRateProcessor(processor.ProcessorABC):
                 else:
                     lll_num = lll_denom[tight_hadronic_taus(lll_denom["l"], mode=mode)]
                 lll_num = lll_num[~ak.is_none(lll_num, axis=1)]
-                lll_denom = additional_cuts(lll_denom, mode)
 
                 # if data, separate denominator and numerator
                 if is_data:
@@ -337,23 +343,16 @@ class FakeRateProcessor(processor.ProcessorABC):
                     }
                 # if MC, additionally separate prompt and fake
                 else:
-                    prompt_mask = is_prompt_lepton(lll_denom, mode)
-                    lll_denom_fake = lll_denom[~prompt_mask]
-                    lll_denom_prompt = lll_denom[prompt_mask]
-
-                    prompt_mask = is_prompt_lepton(lll_num, mode)
-                    lll_num_fake = lll_num[~prompt_mask]
-                    lll_num_prompt = lll_num[prompt_mask]
-
-                    # add in lepton ID scale factors
+                    d_prompt_mask = is_prompt_lepton(lll_denom, mode)
+                    n_prompt_mask = is_prompt_lepton(lll_num, mode)
                     lll_dict = {
-                        ("Denominator", "Fake"): lll_denom_fake,
-                        ("Denominator", "Prompt"): lll_denom_prompt,
-                        ("Numerator", "Fake"): lll_num_fake,
-                        ("Numerator", "Prompt"): lll_num_prompt,
+                        ("Denominator", "Fake"): lll_denom[~d_prompt_mask],
+                        ("Denominator", "Prompt"): lll_denom[d_prompt_mask],
+                        ("Numerator", "Fake"): lll_num[~n_prompt_mask],
+                        ("Numerator", "Prompt"): lll_num[n_prompt_mask],
                     }
 
-                # fill hists in each case
+                # fill hists for each combination of fake/prompt and denom/num
                 for label, lll in lll_dict.items():
                     lll = lll[ak.num(lll) == 1]
                     if len(lll) == 0:
@@ -362,7 +361,11 @@ class FakeRateProcessor(processor.ProcessorABC):
                     # apply relevant scale factors
                     if not is_data:
                         lll["weight"] = lll["weight"] * self.apply_lepton_ID_SFs(
-                            lll, z_pair, mode, is_data=False
+                            lll,
+                            z_pair,
+                            mode,
+                            is_data=False,
+                            numerator=(label[0] == "Numerator"),
                         )
                         lll = self.apply_ES_shifts(lll, z_pair, mode)
 
@@ -528,7 +531,7 @@ class FakeRateProcessor(processor.ProcessorABC):
                     weight=weight[m],
                 )
 
-    def apply_lepton_ID_SFs(self, lll, z_pair, mode, is_data=False):
+    def apply_lepton_ID_SFs(self, lll, z_pair, mode, is_data=False, numerator=False):
         if len(lll) == 0:
             return lll
         lll, num = ak.flatten(lll), ak.num(lll)
@@ -541,18 +544,17 @@ class FakeRateProcessor(processor.ProcessorABC):
         elif z_pair == "mm":
             l1_w = lepton_ID_weight(l1, "m", self.muID_SFs, is_data)
             l2_w = lepton_ID_weight(l2, "m", self.muID_SFs, is_data)
+        w = l1_w * l2_w
 
-        # also consider hadronic taus
-        if mode == "e":
-            l_w = lepton_ID_weight(l, "e", self.eleID_SFs, is_data)
-        elif mode == "m":
-            l_w = lepton_ID_weight(l, "m", self.muID_SFs, is_data)
-        else:
-            # print("apply_lepton", z_pair, mode)
-            l_w = tau_ID_weight(l, self.tauID_SFs, z_pair + mode)
+        if numerator:  # weight the fake lepton
+            if mode == "e":
+                l_w = lepton_ID_weight(l, "e", self.eleID_SFs, is_data)
+            elif mode == "m":
+                l_w = lepton_ID_weight(l, "m", self.muID_SFs, is_data)
+            else:  # the taus have different working points
+                l_w = tau_ID_weight_3l(l, self.tauID_SFs, mode)
+            w = w * l_w
 
-        # apply ID scale factors
-        w = l1_w * l2_w * l_w
         return ak.unflatten(w, num)
 
     def postprocess(self, accumulator):

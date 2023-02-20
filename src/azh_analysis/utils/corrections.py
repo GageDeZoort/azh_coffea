@@ -44,7 +44,6 @@ def get_fake_rates(base, year, origin="_coffea"):
     }
 
     for lep, fr_file in fake_rate_files.items():
-        print(uproot.open(fr_file).keys())
         evaluator = make_evaluator(fr_file)
         if (lep == "ee") or (lep == "mm"):
             fake_rates[lep] = {
@@ -197,6 +196,24 @@ def tau_ID_weight(taus, SF_tool, cat, is_data=False, syst="nom", tight=True):
     return tau_h_weight * tau_ele_weight * tau_mu_weight
 
 
+def tau_ID_weight_3l(taus, SF_tool, mode, syst="nom"):
+    corr_VSe = SF_tool["DeepTau2017v2p1VSe"]
+    corr_VSmu = SF_tool["DeepTau2017v2p1VSmu"]
+    corr_VSjet = SF_tool["DeepTau2017v2p1VSjet"]
+    pt = ak.to_numpy(taus.pt)
+    eta = ak.to_numpy(taus.eta)
+    gen = ak.to_numpy(taus.genPartFlav)
+    dm = ak.to_numpy(taus.decayMode)
+    wp_vsJet = "Medium"
+    wp_vsEle = "Tight" if mode == "et" else "VLoose"
+    wp_vsMu = "Tight" if mode == "mt" else "VLoose"
+    tau_h_weight = corr_VSjet.evaluate(pt, dm, gen, wp_vsJet, syst, "pt")
+    tau_ele_weight = corr_VSe.evaluate(eta, gen, wp_vsEle, syst)
+    tau_mu_weight = corr_VSmu.evaluate(eta, gen, wp_vsMu, syst)
+    tau_mu_weight = np.ones(len(pt), dtype=float)
+    return tau_h_weight * tau_ele_weight * tau_mu_weight
+
+
 def lepton_trig_weight(pt, eta, SF_tool, lep=-1):
     pt, eta = ak.to_numpy(pt), ak.to_numpy(eta)
     eta_map = {
@@ -239,7 +256,6 @@ def dyjets_stitch_weights(info, nevts_dict, year):
     xsec = np.sort(np.unique(dyjets["xsec"]))
 
     label = f"{year}"
-    print(nevts_dict.keys())
     if "2016" in year:
         label = f"{year.split('16')[-1]}_{year}"
     ninc, xinc = nevts_dict[f"DYJetsToLLM-50_{label}"], xsec[4]
