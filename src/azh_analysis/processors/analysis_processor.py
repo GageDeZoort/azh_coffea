@@ -43,7 +43,6 @@ from azh_analysis.utils.corrections import (
     lepton_trig_weight,
     tau_ID_weight,
 )
-from azh_analysis.utils.pileup import get_pileup_weights
 
 warnings.filterwarnings("ignore")
 
@@ -70,7 +69,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         sample_dir="../sample_lists/sample_yamls",
         exc1_path="sync/princeton_all.csv",
         exc2_path="sync/desy_all.csv",
-        pileup_tables=None,
+        pileup_weights=None,
         lumi_masks=None,
         blind=True,
         nevts_dict=None,
@@ -128,8 +127,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         }
 
         # store inputs to the processor
-        self.pileup_tables = pileup_tables
-        self.pileup_bins = np.arange(0, 100, 1)
+        self.pileup_weights = pileup_weights
         self.lumi_masks = lumi_masks
         self.nevts_dict = nevts_dict
         self.fake_rates = fake_rates
@@ -307,11 +305,9 @@ class AnalysisProcessor(processor.ProcessorABC):
             weights.add("dyjets_sample_weights", self.dyjets_weights(njets))
         else:  # otherwise weight by luminosity ratio
             weights.add("sample_weight", ones * sample_weight)
-        if (self.pileup_tables is not None) and not is_data:
+        if (self.pileup_weights is not None) and not is_data:
             weights.add("gen_weight", events.genWeight)
-            pu_weights = get_pileup_weights(
-                events.Pileup.nTrueInt, self.pileup_tables[dataset], self.pileup_bins
-            )
+            pu_weights = self.pileup_weights(events.Pileup.nTrueInt)
             weights.add("pileup_weight", pu_weights)
         if is_data:  # golden json weighleting
             lumi_mask = self.lumi_masks[year]
