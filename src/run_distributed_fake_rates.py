@@ -19,9 +19,9 @@ from azh_analysis.utils.corrections import (
     get_electron_trigger_SFs,
     get_muon_ID_weights,
     get_muon_trigger_SFs,
+    get_pileup_weights,
     get_tau_ID_weights,
 )
-from azh_analysis.utils.pileup import get_pileup_tables
 from azh_analysis.utils.sample import get_fileset, get_nevts_dict, get_sample_info
 
 
@@ -111,12 +111,9 @@ fset_string = f"{source}_{year}"
 sample_info = get_sample_info(join("samples", fset_string + ".csv"))
 fileset = get_fileset(join("samples/filesets", fset_string + ".yaml"))
 
+pileup_weights = None
 if "data" not in args.source:
-    pileup_tables = get_pileup_tables(
-        fileset.keys(), year, UL=True, pileup_dir="corrections/pileup"
-    )
-else:
-    pileup_tables = None
+    pileup_weights = get_pileup_weights("corrections/pileup", year=year)
 
 # load up signal MC csv / yaml files
 if args.test_mode:
@@ -191,7 +188,7 @@ proc_instance = FakeRateProcessor(
     year=args.year,
     sample_info=sample_info,
     fileset=fileset,
-    pileup_tables=pileup_tables,
+    pileup_weights=pileup_weights,
     lumi_masks=lumi_masks,
     nevts_dict=nevts_dict,
     eleID_SFs=eIDs,
