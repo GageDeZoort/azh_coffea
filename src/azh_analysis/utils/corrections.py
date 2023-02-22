@@ -27,6 +27,14 @@ def make_evaluator(file):
     return ext.make_evaluator()
 
 
+def get_pileup_weights(base, year):
+    ext = extractor()
+    f = join(base, f"UL_{year}/puweight{year}.histo.root")
+    ext.add_weight_sets([f"weight weight {f}"])
+    ext.finalize()
+    return ext.make_evaluator()["weight"]
+
+
 def get_fake_rates(base, year, origin="_coffea"):
     fake_rates = {}
     ee_fr_file = f"JetEleFakeRate_Fall17MVAv2WP90_noIso_Iso0p15_UL{year}{origin}.root"
