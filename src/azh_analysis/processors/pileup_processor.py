@@ -29,7 +29,6 @@ class PileupProcessor(processor.ProcessorABC):
     def process(self, events):
         self.output = self.accumulator.identity()
         dataset = events.metadata["dataset"]
-        print(dataset)
         pileup_mc = events.Pileup.nTrueInt
         # gen_weight = events.genWeight
         self.output["pileup_mc"].fill(pileup=pileup_mc, dataset=dataset)
