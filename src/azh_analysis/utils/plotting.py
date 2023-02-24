@@ -117,7 +117,7 @@ def get_ratios(denom, num, combine_bins=True):
 
 def fit_polynomial(ax, centers, ratios, yerr):
     mask = ratios > 0
-    std = yerr[1][mask]
+    # std = yerr[1][mask]
     c, cov = np.polyfit(
         centers[mask],
         ratios[mask],
@@ -133,7 +133,12 @@ def fit_polynomial(ax, centers, ratios, yerr):
 
 
 def plot_fake_rate_measurements(
-    denom, num, label, combine_bins=True, xlim=[0, 100], ylim=[0, 1]
+    denom,
+    num,
+    label,
+    xlim,
+    ylim,
+    combine_bins=True,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), dpi=200)
@@ -163,7 +168,12 @@ def plot_fake_rate_measurements(
 
 
 def plot_fake_rates_data(
-    denom, num, label, combine_bins=True, xlim=[0, 100], ylim=[0, 1]
+    denom,
+    num,
+    label,
+    xlim,
+    ylim,
+    combine_bins=True,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = ["#94d2bd", "#0a9396"]
