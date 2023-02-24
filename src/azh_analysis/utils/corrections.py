@@ -286,6 +286,7 @@ def dyjets_stitch_weights(info, nevts_dict, year):
 
 def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom"):
     # decide ES weights by region of the detector
+    ele, num = ak.flatten(ele), ak.num(ele)
     in_barrel = abs(ele.eta) < 1.479
     in_crossover = (abs(ele.eta) > 1.479) & (abs(ele.eta) < 1.653)
     in_endcap = abs(ele.eta) > 1.653
@@ -315,7 +316,17 @@ def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom"):
     ele_p4_shift = weights * ele_p4
     ele_x_diff = (1 - weights) * ele.pt * np.cos(ele.phi)
     ele_y_diff = (1 - weights) * ele.pt * np.sin(ele.phi)
-    return ele_p4_shift, {"x": ele_x_diff, "y": ele_y_diff}
+    ele["pt"] = ele_p4_shift["pt"]
+    ele["eta"] = ele_p4_shift["eta"]
+    ele["phi"] = ele_p4_shift["phi"]
+    ele["mass"] = ele_p4_shift["mass"]
+    return (
+        ak.unflatten(ele, num),
+        {
+            "x": ak.sum(ak.unflatten(ele_x_diff, num), axis=1),
+            "y": ak.sum(ak.unflatten(ele_y_diff, num), axis=1),
+        },
+    )
 
 
 def apply_muES(mu, syst="nom"):
@@ -323,6 +334,7 @@ def apply_muES(mu, syst="nom"):
     if syst == "nom":
         shifts = np.zeros(len(mu))
         return mu, {"x": shifts, "y": shifts}
+    mu, num = ak.flatten(mu), ak.num(mu)
     shifts = {"up": 1.01, "down": 0.99}
     weights = shifts[syst]
     mu_p4 = ak.zip(
@@ -334,11 +346,22 @@ def apply_muES(mu, syst="nom"):
     mu_p4_shift = weights * mu_p4
     mu_x_diff = (1 - weights) * mu.pt * np.cos(mu.phi)
     mu_y_diff = (1 - weights) * mu.pt * np.sin(mu.phi)
-    return mu_p4_shift, {"x": mu_x_diff, "y": mu_y_diff}
+    mu["pt"] = mu_p4_shift["pt"]
+    mu["eta"] = mu_p4_shift["eta"]
+    mu["phi"] = mu_p4_shift["phi"]
+    mu["mass"] = mu_p4_shift["mass"]
+    return (
+        ak.unflatten(mu, num),
+        {
+            "x": ak.sum(ak.unflatten(mu_x_diff, num), axis=1),
+            "y": ak.sum(ak.unflatten(mu_y_diff, num), axis=1),
+        },
+    )
 
 
 def apply_tauES(taus, SF_tool, tauES_shift="nom", efake_shift="nom", mfake_shift="nom"):
     # set up masks for use in the correctionlib tool
+    taus, num = ak.flatten(taus), ak.num(taus)
     corr = SF_tool["tau_energy_scale"]
     mask = (
         (taus.decayMode == 0)
@@ -386,7 +409,26 @@ def apply_tauES(taus, SF_tool, tauES_shift="nom", efake_shift="nom", mfake_shift
     taus["eta"] = tau_p4.eta
     taus["phi"] = tau_p4.phi
     taus["mass"] = tau_p4.mass
-    return taus, {"x": tau_x_diff, "y": tau_y_diff}
+    return (
+        ak.unflatten(taus, num),
+        {
+            "x": ak.sum(ak.unflatten(tau_x_diff, num), axis=1),
+            "y": ak.sum(ak.unflatten(tau_y_diff, num), axis=1),
+        },
+    )
+
+
+def shift_MET(met, diffs_list):
+    # met, num = ak.flatten(met), ak.num(met)
+    met_x = met.pt * np.cos(met.phi)
+    met_y = met.pt * np.sin(met.phi)
+    for diffs in diffs_list:
+        met_x = met_x + diffs["x"]
+        met_y = met_y + diffs["y"]
+    met_p4 = ak.zip({"x": met_x, "y": met_y, "z": 0, "t": 0}, with_name="LorentzVector")
+    met["pt"] = met_p4.pt
+    met["phi"] = met_p4.phi
+    return met  # ak.unflatten(met, num)
 
 
 def apply_unclMET_shifts(met, shift="nom"):

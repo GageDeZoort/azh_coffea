@@ -41,6 +41,7 @@ from azh_analysis.utils.corrections import (
     apply_unclMET_shifts,
     lepton_ID_weight,
     lepton_trig_weight,
+    shift_MET,
     tau_ID_weight,
 )
 
@@ -314,21 +315,34 @@ class AnalysisProcessor(processor.ProcessorABC):
             lumi_mask = lumi_mask(events.run, events.luminosityBlock)
             weights.add("lumi_mask", lumi_mask)
 
-        # grab baseline defined leptons
-        baseline_e = get_baseline_electrons(events.Electron)
-        baseline_m = get_baseline_muons(events.Muon)
-        baseline_t = get_baseline_taus(events.Tau)
-        baseline_j = get_baseline_jets(events.Jet)
-        baseline_b = get_baseline_bjets(baseline_j)
+        # grab baseline leptons, apply energy scale shifts
+        baseline_e, e_shifts = apply_eleES(
+            get_baseline_electrons(events.Electron),
+            "nom",
+            "nom",
+        )
+        baseline_m, m_shifts = apply_muES(get_baseline_muons(events.Muon), "nom")
+        baseline_t, t_shifts = apply_tauES(
+            get_baseline_taus(events.Tau),
+            self.tauID_SFs,
+            "nom",
+            "nom",
+            "nom",
+        )
+
+        # grab the MET, shift it according to the energy scale shifts
         MET = events.MET
         MET["pt"] = MET.T1_pt
         MET["phi"] = MET.T1_phi
+        MET = shift_MET(MET, [e_shifts, m_shifts, t_shifts])
 
         # seeds the lepton count veto
-        e_counts = ak.num(baseline_e)  # [tight_electrons(baseline_e)])
-        m_counts = ak.num(baseline_m)  # [tight_muons(baseline_m)])
+        e_counts = ak.num(baseline_e)
+        m_counts = ak.num(baseline_m)
 
-        # number of b jets used to test bbA vs. ggA
+        # grab the jets, count the number of b jets
+        baseline_j = get_baseline_jets(events.Jet)
+        baseline_b = get_baseline_bjets(baseline_j)
         b_counts = ak.num(baseline_b)
 
         # build ll pairs
@@ -390,18 +404,6 @@ class AnalysisProcessor(processor.ProcessorABC):
                     if len(ak.flatten(lltt)) == 0:
                         continue
                     lltt["weight"] = lltt.weight * self.apply_lepton_ID_SFs(lltt, cat)
-
-                    # apply lepton energy scale corrections
-                    lltt = self.apply_ES_shifts(
-                        lltt,
-                        cat,
-                        eleES_shift="nom",
-                        muES_shift="nom",
-                        tauES_shift="nom",
-                        efake_shift="nom",
-                        mfake_shift="nom",
-                        eleSmear_shift="nom",
-                    )
 
                 else:  # if data, apply fake weights
                     lltt["weight"] = lltt["weight"] * self.get_fake_weights(lltt, cat)
@@ -553,124 +555,6 @@ class AnalysisProcessor(processor.ProcessorABC):
         w_is_not_tagged = (1 - btag_effs * SFs) * ~is_tagged
         w = (w_is_tagged + w_is_not_tagged) / w_MC
         return ak.prod(ak.unflatten(w, num_j), axis=1)
-
-    def query_eleES_shifts(self, leg, l, cat, eleES_shift, eleSmear_shift):
-        key = (l, cat, eleES_shift, eleSmear_shift)
-        val = self._eleES_cache.get(key, None)
-        if val is None:
-            leg, diffs = apply_eleES(leg, eleES_shift, eleSmear_shift)
-            self._eleES_cache[key] = (leg, diffs)
-            return leg, diffs
-        return val[0], val[1]
-
-    def query_muES_shifts(self, leg, l, cat, muES_shift):
-        key = (l, cat, muES_shift)
-        val = self._muES_cache.get(key, None)
-        if val is None:
-            leg, diffs = apply_muES(leg, muES_shift)
-            self._muES_cache[key] = (leg, diffs)
-            return leg, diffs
-        return val[0], val[1]
-
-    def query_tauES_shifts(self, leg, l, cat, tauES_shift, efake_shift, mfake_shift):
-        key = (l, cat, tauES_shift, efake_shift, mfake_shift)
-        val = self._tauES_cache.get(key, None)
-        if val is None:
-            leg, diffs = apply_tauES(
-                leg, self.tauID_SFs, tauES_shift, efake_shift, mfake_shift
-            )
-            self._tauES_cache[key] = (leg, diffs)
-            return leg, diffs
-        return val[0], val[1]
-
-    def apply_ES_shifts(
-        self,
-        cands,
-        cat,
-        eleES_shift=-1,
-        muES_shift=-1,
-        tauES_shift=-1,
-        efake_shift=-1,
-        mfake_shift=-1,
-        eleSmear_shift=-1,
-    ):
-        # grab the individual leptons
-        lltt, num = ak.flatten(cands), ak.num(cands)
-        l1, l2 = lltt["ll"]["l1"], lltt["ll"]["l2"]
-        t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
-        met = lltt["MET"]
-
-        diffs_list = []
-        if cat[:2] == "ee":
-            l1, diffs = self.query_eleES_shifts(
-                l1, "1", cat, eleES_shift, eleSmear_shift
-            )
-            diffs_list.append(diffs)
-            l2, diffs = self.query_eleES_shifts(
-                l2, "2", cat, eleES_shift, eleSmear_shift
-            )
-            diffs_list.append(diffs)
-
-        if cat[:2] == "mm":
-            l1, diffs = self.query_muES_shifts(l1, "1", cat, muES_shift)
-            diffs_list.append(diffs)
-            l2, diffs = self.query_muES_shifts(l2, "2", cat, muES_shift)
-            diffs_list.append(diffs)
-
-        if cat[2] == "e":
-            t1, diffs = self.query_eleES_shifts(
-                t1, "3", cat, eleES_shift, eleSmear_shift
-            )
-            diffs_list.append(diffs)
-
-        if cat[2] == "m":
-            t1, diffs = self.query_muES_shifts(t1, "3", cat, muES_shift)
-            diffs_list.append(diffs)
-
-        if cat[2] == "t":
-            t1, diffs = self.query_tauES_shifts(
-                t1,
-                "3",
-                cat,
-                tauES_shift=tauES_shift,
-                efake_shift=efake_shift,
-                mfake_shift=mfake_shift,
-            )
-            diffs_list.append(diffs)
-
-        if cat[3] == "m":
-            t2, diffs = self.query_muES_shifts(t2, "4", cat, muES_shift)
-            diffs_list.append(diffs)
-
-        if cat[3] == "t":
-            t2, diffs = self.query_tauES_shifts(
-                t2,
-                "4",
-                cat,
-                tauES_shift=tauES_shift,
-                efake_shift=efake_shift,
-                mfake_shift=mfake_shift,
-            )
-            diffs_list.append(diffs)
-
-        # adjust the met
-        met_x = met.pt * np.cos(met.phi)
-        met_y = met.pt * np.sin(met.phi)
-        for diffs in diffs_list:
-            met_x = met_x + diffs["x"]
-            met_y = met_y + diffs["y"]
-        met_p4 = ak.zip(
-            {"x": met_x, "y": met_y, "z": 0, "t": 0}, with_name="LorentzVector"
-        )
-        met["pt"] = met_p4.pt
-        met["phi"] = met_p4.phi
-
-        lltt["ll"]["l1"] = l1
-        lltt["ll"]["l2"] = l2
-        lltt["tt"]["t1"] = t1
-        lltt["tt"]["t2"] = t2
-        lltt["met"] = met
-        return ak.unflatten(lltt, num)
 
     def get_fake_weights(self, lltt, cat):
         l1_tight_mask, l2_tight_mask = lltt.l1_tight, lltt.l2_tight
