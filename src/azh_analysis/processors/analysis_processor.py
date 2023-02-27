@@ -196,7 +196,6 @@ class AnalysisProcessor(processor.ProcessorABC):
             )
             for dataset in fileset.keys()
         }
-
         met = {
             dataset.split(split_str)[0]: Hist(
                 group_axis,
@@ -309,6 +308,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         if (self.pileup_weights is not None) and not is_data:
             weights.add("gen_weight", events.genWeight)
             pu_weights = self.pileup_weights(events.Pileup.nTrueInt)
+            print("pileup", np.sum(np.isnan(np_flat(pu_weights))), pu_weights)
             weights.add("pileup_weight", pu_weights)
         if is_data:  # golden json weighleting
             lumi_mask = self.lumi_masks[year]
@@ -320,21 +320,25 @@ class AnalysisProcessor(processor.ProcessorABC):
             get_baseline_electrons(events.Electron),
             "nom",
             "nom",
+            is_data=is_data,
         )
-        baseline_m, m_shifts = apply_muES(get_baseline_muons(events.Muon), "nom")
+        baseline_m, m_shifts = apply_muES(
+            get_baseline_muons(events.Muon), "nom", is_data=is_data
+        )
         baseline_t, t_shifts = apply_tauES(
             get_baseline_taus(events.Tau),
             self.tauID_SFs,
             "nom",
             "nom",
             "nom",
+            is_data=is_data,
         )
 
         # grab the MET, shift it according to the energy scale shifts
         MET = events.MET
         MET["pt"] = MET.T1_pt
         MET["phi"] = MET.T1_phi
-        MET = shift_MET(MET, [e_shifts, m_shifts, t_shifts])
+        MET = shift_MET(MET, [e_shifts, m_shifts, t_shifts], is_data=is_data)
 
         # seeds the lepton count veto
         e_counts = ak.num(baseline_e)
@@ -770,6 +774,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         # fill the lltt leg four-vectors
         for leg, label in label_dict.items():
             p4 = lltt[leg[0]][leg[1]]
+            print(np.sum(np.isnan(p4.pt)))
+            print(np.sum(np.isnan(weight)))
             self.output["pt"][name].fill(
                 group=group,
                 category=cats,
