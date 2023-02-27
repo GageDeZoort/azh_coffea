@@ -227,16 +227,16 @@ def lepton_trig_weight(pt, eta, SF_tool, lep=-1):
     eta_map = {
         "e": {
             "Lt1p0": [0, 1],
-            "1p0to1p48": [1, 1.48],
-            "1p48to1p65": [1.48, 1.65],
-            "1p65to2p1": [1.65, 2.1],
-            "Gt2p1": [2.1, 100],
+            "1p0to1p48": [1.0001, 1.48],
+            "1p48to1p65": [1.4801, 1.65],
+            "1p65to2p1": [1.6501, 2.1],
+            "Gt2p1": [2.101, 100],
         },
         "m": {
             "Lt0p9": [0, 0.9],
-            "0p9to1p2": [0.9, 1.2],
-            "1p2to2p1": [1.2, 2.1],
-            "Gt2p1": [2.1, 100],
+            "0p9to1p2": [0.9001, 1.2],
+            "1p2to2p1": [1.2001, 2.1],
+            "Gt2p1": [2.1001, 100],
         },
     }
     eta_map = eta_map[lep]
@@ -284,7 +284,9 @@ def dyjets_stitch_weights(info, nevts_dict, year):
     return CustomWeights(bins, weights)
 
 
-def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom"):
+def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom", is_data=False):
+    if is_data:
+        return ele, {"x": 0, "y": 0}
     # decide ES weights by region of the detector
     ele, num = ak.flatten(ele), ak.num(ele)
     in_barrel = abs(ele.eta) < 1.479
@@ -329,7 +331,9 @@ def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom"):
     )
 
 
-def apply_muES(mu, syst="nom"):
+def apply_muES(mu, syst="nom", is_data=False):
+    if is_data:
+        return mu, {"x": 0, "y": 0}
     # grab weights corresponding to systematic shifts
     if syst == "nom":
         shifts = np.zeros(len(mu))
@@ -359,7 +363,16 @@ def apply_muES(mu, syst="nom"):
     )
 
 
-def apply_tauES(taus, SF_tool, tauES_shift="nom", efake_shift="nom", mfake_shift="nom"):
+def apply_tauES(
+    taus,
+    SF_tool,
+    tauES_shift="nom",
+    efake_shift="nom",
+    mfake_shift="nom",
+    is_data=False,
+):
+    if is_data:
+        return taus, {"x": 0, "y": 0}
     # set up masks for use in the correctionlib tool
     taus, num = ak.flatten(taus), ak.num(taus)
     corr = SF_tool["tau_energy_scale"]
@@ -418,7 +431,9 @@ def apply_tauES(taus, SF_tool, tauES_shift="nom", efake_shift="nom", mfake_shift
     )
 
 
-def shift_MET(met, diffs_list):
+def shift_MET(met, diffs_list, is_data=False):
+    if is_data:
+        return met
     # met, num = ak.flatten(met), ak.num(met)
     met_x = met.pt * np.cos(met.phi)
     met_y = met.pt * np.sin(met.phi)
