@@ -82,6 +82,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         eleID_SFs=None,
         muID_SFs=None,
         tauID_SFs=None,
+        muES_SFs=None,
         dyjets_weights=None,
         e_trig_SFs=None,
         m_trig_SFs=None,
@@ -139,6 +140,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.eleID_SFs = eleID_SFs
         self.muID_SFs = muID_SFs
         self.tauID_SFs = tauID_SFs
+        self.muES_SFs = muES_SFs
         self.e_trig_SFs = e_trig_SFs
         self.m_trig_SFs = m_trig_SFs
         self.btag_SFs = btag_SFs
@@ -328,7 +330,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             is_data=is_data,
         )
         baseline_m, m_shifts = apply_muES(
-            get_baseline_muons(events.Muon), "nom", is_data=is_data
+            get_baseline_muons(events.Muon), self.muES_SFs, "nom", is_data=is_data
         )
         baseline_t, t_shifts = apply_tauES(
             get_baseline_taus(events.Tau),

@@ -6,7 +6,7 @@ import awkward as ak
 import correctionlib
 import numpy as np
 import uproot
-from coffea.lookup_tools import extractor
+from coffea.lookup_tools import extractor, rochester_lookup, txt_converters
 from coffea.nanoevents.methods import vector
 
 ak.behavior.update(vector.behavior)
@@ -153,6 +153,20 @@ def get_muon_trigger_SFs(infile):
 
 def get_tau_ID_weights(infile):
     return correctionlib.CorrectionSet.from_file(infile)
+
+
+def get_muon_ES_weights(base, year):
+    filename = {
+        "2018": "UL_2018/RoccoR2018UL.txt",
+        "2017": "UL_2017/RoccoR2017UL.txt",
+        "2016postVFP": "UL_2016postVFP/RoccoR2016bUL.txt",
+        "2016preVFP": "UL_2016preVFP/RoccoR2016aUL.txt",
+    }
+    fname = filename[year]
+    rochester_data = txt_converters.convert_rochester_file(
+        join(base, fname), loaduncs=True
+    )
+    return rochester_lookup.rochester_lookup(rochester_data)
 
 
 def lepton_ID_weight(l, lep, SF_tool, is_data=False):
@@ -332,22 +346,39 @@ def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom", is_data=False):
     )
 
 
-def apply_muES(mu, syst="nom", is_data=False):
+def apply_muES(mu, rochester, syst="nom", is_data=False):
     if is_data:
-        return mu, {"x": 0, "y": 0}
-    # grab weights corresponding to systematic shifts
-    if syst == "nom":
-        shifts = np.zeros(len(mu))
-        return mu, {"x": shifts, "y": shifts}
+        weights = rochester.kScaleDT(mu.charge, mu.pt, mu.eta, mu.phi)
+    else:
+        hasgen = ~np.isnan(ak.fill_none(mu.matched_gen.pt, np.nan))
+        mc_rand = np.random.rand(*ak.to_numpy(ak.flatten(mu.pt)).shape)
+        mc_rand = ak.unflatten(mc_rand, ak.num(mu.pt, axis=1))
+        weights = np.array(ak.flatten(ak.ones_like(mu.pt)))
+
+        mc_kspread = rochester.kSpreadMC(
+            mu.charge[hasgen],
+            mu.pt[hasgen],
+            mu.eta[hasgen],
+            mu.phi[hasgen],
+            mu.matched_gen.pt[hasgen],
+        )
+        mc_ksmear = rochester.kSmearMC(
+            mu.charge[~hasgen],
+            mu.pt[~hasgen],
+            mu.eta[~hasgen],
+            mu.phi[~hasgen],
+            mu.nTrackerLayers[~hasgen],
+            mc_rand[~hasgen],
+        )
+        hasgen_flat = np.array(ak.flatten(hasgen))
+        weights[hasgen_flat] = np.array(ak.flatten(mc_kspread))
+        weights[~hasgen_flat] = np.array(ak.flatten(mc_ksmear))
+
     mu, num = ak.flatten(mu), ak.num(mu)
-    shifts = {"up": 1.01, "down": 0.99}
-    weights = shifts[syst]
     mu_p4 = ak.zip(
         {"pt": mu.pt, "eta": mu.eta, "phi": mu.phi, "mass": mu.mass},
         with_name="PtEtaPhiMLorentzVector",
     )
-
-    # apply weights
     mu_p4_shift = weights * mu_p4
     mu_x_diff = (1 - weights) * mu.pt * np.cos(mu.phi)
     mu_y_diff = (1 - weights) * mu.pt * np.sin(mu.phi)
