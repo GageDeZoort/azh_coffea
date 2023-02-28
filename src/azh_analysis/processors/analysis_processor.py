@@ -56,6 +56,10 @@ def np_flat(a, axis=None):
     return ak.to_numpy(ak.flatten(a, axis=axis))
 
 
+def is_inf(a):
+    return np.sum(np.isnan(np_flat(a)) | np.isinf(np_flat(a)))
+
+
 class AnalysisProcessor(processor.ProcessorABC):
     def __init__(
         self,
@@ -308,12 +312,13 @@ class AnalysisProcessor(processor.ProcessorABC):
         if (self.pileup_weights is not None) and not is_data:
             weights.add("gen_weight", events.genWeight)
             pu_weights = self.pileup_weights(events.Pileup.nTrueInt)
-            print("pileup", np.sum(np.isnan(np_flat(pu_weights))), pu_weights)
             weights.add("pileup_weight", pu_weights)
         if is_data:  # golden json weighleting
             lumi_mask = self.lumi_masks[year]
             lumi_mask = lumi_mask(events.run, events.luminosityBlock)
             weights.add("lumi_mask", lumi_mask)
+        if not is_data:
+            weights.add("l1_prefiring", events.L1PreFiringWeight.Nom)
 
         # grab baseline leptons, apply energy scale shifts
         baseline_e, e_shifts = apply_eleES(
@@ -389,6 +394,8 @@ class AnalysisProcessor(processor.ProcessorABC):
 
                 # determine weights
                 lltt["weight"] = weights.weight()
+                for w in weights.weightStatistics.keys():
+                    print(w, weights.weightStatistics[w])
                 if not is_data:
                     # apply trigger scale factors
                     trig_SFs = self.e_trig_SFs if ll_pair == "ee" else self.m_trig_SFs
@@ -407,8 +414,14 @@ class AnalysisProcessor(processor.ProcessorABC):
                     ]
                     if len(ak.flatten(lltt)) == 0:
                         continue
-                    lltt["weight"] = lltt.weight * self.apply_lepton_ID_SFs(lltt, cat)
+                    lepton_IDs = self.apply_lepton_ID_SFs(lltt, cat)
+                    print(
+                        "lepton ID",
+                        ak.flatten(self.apply_lepton_ID_SFs(lltt, cat))[-10:],
+                    )
+                    print(np.sum(np.isnan(np_flat(lepton_IDs))))
 
+                    lltt["weight"] = lltt.weight * lepton_IDs
                 else:  # if data, apply fake weights
                     lltt["weight"] = lltt["weight"] * self.get_fake_weights(lltt, cat)
 
@@ -499,6 +512,7 @@ class AnalysisProcessor(processor.ProcessorABC):
 
                 # apply bjet weights and unclustered energy corrections
                 w = cands["weight"] * btag_shifts[btag_shift]
+
                 met = met_shifts[unclMET_shift]
                 final_states = cands
                 final_states["weight"] = w
@@ -770,12 +784,11 @@ class AnalysisProcessor(processor.ProcessorABC):
         cats = np_flat(lltt.cat)
         cats = np.array([self.categories[c] for c in cats])
         weight = np_flat(lltt.weight)
+        weight = np.nan_to_num(weight, nan=0, posinf=0, neginf=0)
 
         # fill the lltt leg four-vectors
         for leg, label in label_dict.items():
             p4 = lltt[leg[0]][leg[1]]
-            print(np.sum(np.isnan(p4.pt)))
-            print(np.sum(np.isnan(weight)))
             self.output["pt"][name].fill(
                 group=group,
                 category=cats,
