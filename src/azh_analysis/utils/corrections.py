@@ -289,8 +289,8 @@ def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom", is_data=False):
         return ele, {"x": 0, "y": 0}
     # decide ES weights by region of the detector
     ele, num = ak.flatten(ele), ak.num(ele)
-    in_barrel = abs(ele.eta) < 1.479
-    in_crossover = (abs(ele.eta) > 1.479) & (abs(ele.eta) < 1.653)
+    in_barrel = abs(ele.eta) <= 1.479
+    in_crossover = (abs(ele.eta) > 1.479) & (abs(ele.eta) <= 1.653)
     in_endcap = abs(ele.eta) > 1.653
     barrel_shifts = {"up": 1.03, "nom": 1.0, "down": 0.97}
     crossover_shifts = {"up": 1.04, "nom": 1.0, "down": 0.96}
@@ -322,6 +322,7 @@ def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom", is_data=False):
     ele["eta"] = ele_p4_shift["eta"]
     ele["phi"] = ele_p4_shift["phi"]
     ele["mass"] = ele_p4_shift["mass"]
+
     return (
         ak.unflatten(ele, num),
         {
