@@ -33,11 +33,11 @@ def parse_args():
     add_arg = parser.add_argument
     add_arg("-y", "--year", default="2018")
     add_arg("-s", "--source", default=None)
-    add_arg("--sample", default="")
     add_arg("--start-idx", default=-1)
     add_arg("--end-idx", default=-1)
     add_arg("--outdir", default=".")
     add_arg("--outfile", default="")
+    add_arg("--sample", default="")
     add_arg("--test-mode", action="store_true")
     add_arg("-v", "--verbose", default=False)
     add_arg("--show-config", action="store_true")
@@ -135,6 +135,8 @@ if len(args.sample) > 0:
     fileset = {k: v for k, v in fileset.items() if args.sample in k}
 elif "signal" in args.source:
     fileset = {k: v for k, v in fileset.items() if args.mass in k}
+if len(args.sample) > 0:
+    fileset = {k: v for k, v in fileset.items() if (args.sample in k)}
 
 # only run over root files
 for sample, files in fileset.items():
@@ -243,6 +245,8 @@ logging.info(f"Events/s: {metrics['entries'] / elapsed:.0f}")
 outdir = "/srv"
 outfile = time.strftime("%m-%d") + ".coffea"
 namestring = f"{source}_{year}"
+if len(args.sample) > 0:
+    namestring = namestring + f"_{args.sample}"
 if len(args.outfile) > 0:
     namestring = args.outfile
 util.save(hists, join(outdir, f"{namestring}_{outfile}"))
