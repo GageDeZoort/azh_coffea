@@ -522,15 +522,6 @@ def trigger_filter(ll, trig_obj, cat):
     return trig_match, l1_match_pt, l1_match_eta, l2_match_pt, l2_match_eta
 
 
-def build_ditau_cand(lltt, cat, OS=True):
-    t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
-    if OS:
-        lltt = lltt[t1.charge * t2.charge < 0]
-    else:
-        lltt = lltt[t1.charge * t2.charge > 0]
-    return lltt[~ak.is_none(lltt, axis=1)]
-
-
 def tighten_ditau_legs(lltt, cat):
     t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
     mask = 0

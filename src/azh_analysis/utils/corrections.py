@@ -9,6 +9,8 @@ import uproot
 from coffea.lookup_tools import extractor, rochester_lookup, txt_converters
 from coffea.nanoevents.methods import vector
 
+from azh_analysis.utils.btag import get_btag_effs
+
 ak.behavior.update(vector.behavior)
 
 
@@ -346,9 +348,10 @@ def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom", is_data=False):
     )
 
 
-def apply_muES(mu, rochester, syst="nom", is_data=False):
+def apply_muES(mu, rochester, shift="nom", is_data=False):
     if is_data:
         weights = rochester.kScaleDT(mu.charge, mu.pt, mu.eta, mu.phi)
+        weights = ak.flatten(weights)
     else:
         hasgen = ~np.isnan(ak.fill_none(mu.matched_gen.pt, np.nan))
         mc_rand = np.random.rand(*ak.to_numpy(ak.flatten(mu.pt)).shape)
@@ -490,3 +493,37 @@ def apply_unclMET_shifts(met, shift="nom"):
     met["pt"] = met_p4.pt
     met["phi"] = met_p4.phi
     return met
+
+
+def apply_btag_corrections(
+    jets, btag_SFs, btag_eff_tables, btag_pt_bins, btag_eta_bins, dataset, shift
+):
+    jets = jets[abs(jets.partonFlavour) == 5]
+    flat_j, num_j = ak.flatten(jets), ak.num(jets)
+    pt, eta = flat_j.pt, flat_j.eta
+    delta = {
+        "2016preVFP": 0.2598,
+        "2016postVFP": 0.2598,
+        "2017": 0.3040,
+        "2018": 0.2783,
+    }
+    year = dataset.split("_")[-1]
+    is_tagged = flat_j.btagDeepFlavB > delta[year]
+    SFs = btag_SFs.evaluate(shift, "M", 5, abs(ak.to_numpy(eta)), ak.to_numpy(pt))
+    btag_effs = np.array(
+        get_btag_effs(
+            btag_eff_tables,
+            btag_pt_bins,
+            btag_eta_bins,
+            dataset,
+            pt,
+            abs(eta),
+        )
+    )
+    w_is_tagged = is_tagged * btag_effs
+    w_not_tagged = (1 - btag_effs) * ~is_tagged
+    w_MC = w_is_tagged + w_not_tagged
+    w_is_tagged = btag_effs * is_tagged * SFs
+    w_is_not_tagged = (1 - btag_effs * SFs) * ~is_tagged
+    w = (w_is_tagged + w_is_not_tagged) / w_MC
+    return ak.prod(ak.unflatten(w, num_j), axis=1)
