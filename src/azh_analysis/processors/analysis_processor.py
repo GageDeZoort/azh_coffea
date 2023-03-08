@@ -153,11 +153,6 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.A_mass = A_mass
         self.run_systematics = run_systematics
 
-        # cache for the energy scales
-        self._eleES_cache = {}
-        self._muES_cache = {}
-        self._tauES_cache = {}
-
         # bin variables along axes
         group_axis = StrCategory(
             name="group",
@@ -267,11 +262,6 @@ class AnalysisProcessor(processor.ProcessorABC):
         logging.basicConfig(level=log_level, format=log_format)
         logging.info("Initializing processor logger.")
 
-    def clear_caches(self):
-        self._eleES_cache.clear()
-        self._muES_cache.clear()
-        self._tauES_cache.clear()
-
     def process(self, events):
         logging.info(f"Processing {events.metadata['dataset']}")
         filename = events.metadata["filename"]
@@ -320,7 +310,10 @@ class AnalysisProcessor(processor.ProcessorABC):
             lumi_mask = lumi_mask(events.run, events.luminosityBlock)
             weights.add("lumi_mask", lumi_mask)
         if not is_data:
-            weights.add("l1_prefiring", events.L1PreFiringWeight.Nom)
+            try:
+                weights.add("l1_prefiring", events.L1PreFiringWeight.Nom)
+            except Exception:
+                print("no prefiring weights in", dataset)
 
         # grab baseline leptons, apply energy scale shifts
         baseline_e, e_shifts = apply_eleES(
@@ -345,6 +338,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         MET = events.MET
         MET["pt"] = MET.T1_pt
         MET["phi"] = MET.T1_phi
+        MET = apply_unclMET_shifts(MET, "nom")
         MET = shift_MET(MET, [e_shifts, m_shifts, t_shifts], is_data=is_data)
 
         # seeds the lepton count veto
@@ -469,8 +463,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         if not is_data:
             shifts = [
                 "nom",
-                "unclMET_up",
-                "unclMET_down",
+                # "unclMET_up",
+                # "unclMET_down",
                 "btag_up_correlated",
                 "btag_down_correlated",
                 "btag_up_uncorrelated",
@@ -489,25 +483,25 @@ class AnalysisProcessor(processor.ProcessorABC):
                 bshift: self.apply_btag_corrections(jets, dataset, bshift)
                 for bshift in bshift_labels
             }
-            met_shifts = {
-                "nom": apply_unclMET_shifts(cands["MET"], "nom"),
-                "up": apply_unclMET_shifts(cands["MET"], "up"),
-                "down": apply_unclMET_shifts(cands["MET"], "down"),
-            }
+            # met_shifts = {
+            #    "nom": apply_unclMET_shifts(cands["MET"], "nom"),
+            #    "up": apply_unclMET_shifts(cands["MET"], "up"),
+            #    "down": apply_unclMET_shifts(cands["MET"], "down"),
+            # }
 
             for shift in shifts:
                 if not self.run_systematics and shift != "nom":
                     continue
 
                 # figure out which variable needs to be shifted
-                up_or_down = shift.split("_")[-1]
+                # up_or_down = shift.split("_")[-1]
                 # tauES_shift = up_or_down if ("tauES" in shift) else "nom"
                 # efake_shift = up_or_down if ("efake" in shift) else "nom"
                 # mfake_shift = up_or_down if ("mfake" in shift) else "nom"
                 # eleES_shift = up_or_down if ("eleES" in shift) else "nom"
                 # muES_shift = up_or_down if ("muES" in shift) else "nom"
                 # eleSmear_shift = up_or_down if ("eleSmear" in shift) else "nom"
-                unclMET_shift = up_or_down if ("unclMET" in shift) else "nom"
+                # unclMET_shift = up_or_down if ("unclMET" in shift) else "nom"
                 btag_shift = "central"
                 if "btag" in shift:
                     btag_shift = shift[5:]
@@ -515,10 +509,10 @@ class AnalysisProcessor(processor.ProcessorABC):
                 # apply bjet weights and unclustered energy corrections
                 w = cands["weight"] * btag_shifts[btag_shift]
 
-                met = met_shifts[unclMET_shift]
+                # met = met_shifts[unclMET_shift]
                 final_states = cands
                 final_states["weight"] = w
-                final_states["MET"] = met
+                final_states["MET"] = cands["MET"]
                 final_states = ak.flatten(final_states)
                 if len(final_states) == 0:
                     continue
@@ -538,8 +532,6 @@ class AnalysisProcessor(processor.ProcessorABC):
                     syst_shift=shift,
                     blind=(is_data and self.blind),
                 )
-
-        self.clear_caches()
 
         return self.output
 
