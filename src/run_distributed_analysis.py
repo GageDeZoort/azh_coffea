@@ -19,6 +19,7 @@ from azh_analysis.utils.corrections import (
     get_electron_ID_weights,
     get_electron_trigger_SFs,
     get_fake_rates,
+    get_muon_ES_weights,
     get_muon_ID_weights,
     get_muon_trigger_SFs,
     get_pileup_weights,
@@ -46,6 +47,7 @@ def parse_args():
     add_arg("--max-workers", type=int, default=300)
     add_arg("--mass", type=str, default="")
     add_arg("--use-coffea-frs", action="store_true")
+    add_arg("--systematic", default="nom")
     return parser.parse_args()
 
 
@@ -88,6 +90,8 @@ mID_base = f"corrections/muon_ID/UL_{year}"
 mID_file = join(mID_base, f"Muon_RunUL{year}_IdIso_AZh_IsoLt0p15_IdLoose.root")
 mIDs = get_muon_ID_weights(mID_file)
 logging.info(f"Using mID_SFs:\n{mID_file}")
+
+mES_SFs = get_muon_ES_weights("corrections/muon_ES/", year)
 
 tID_base = f"corrections/tau_ID/UL_{year}"
 tID_file = join(tID_base, "tau.corr.json")
@@ -134,7 +138,7 @@ if args.test_mode:
 if len(args.sample) > 0:
     fileset = {k: v for k, v in fileset.items() if args.sample in k}
 elif "signal" in args.source:
-    fileset = {k: v for k, v in fileset.items() if args.mass in k}
+    fileset = {k: v for k, v in fileset.items() if f"M{args.mass}" in k}
 if len(args.sample) > 0:
     fileset = {k: v for k, v in fileset.items() if (args.sample in k)}
 
@@ -211,6 +215,7 @@ proc_instance = AnalysisProcessor(
     nevts_dict=nevts_dict,
     eleID_SFs=eIDs,
     muID_SFs=mIDs,
+    muES_SFs=mES_SFs,
     tauID_SFs=tIDs,
     e_trig_SFs=e_trig_SFs,
     m_trig_SFs=m_trig_SFs,
@@ -221,6 +226,7 @@ proc_instance = AnalysisProcessor(
     btag_pt_bins=btag_tables[1],
     btag_eta_bins=btag_tables[2],
     run_fastmtt=True,
+    systematic=args.systematic,
 )
 
 hists, metrics = processor.run_uproot_job(
@@ -249,4 +255,9 @@ if len(args.sample) > 0:
     namestring = namestring + f"_{args.sample}"
 if len(args.outfile) > 0:
     namestring = args.outfile
+if ("signal" in source) and (len(args.mass) > 0):
+    namestring = namestring + f"_M{args.mass}GeV"
+if "data" not in source:
+    namestring = namestring + f"_{args.systematic}"
+
 util.save(hists, join(outdir, f"{namestring}_{outfile}"))
