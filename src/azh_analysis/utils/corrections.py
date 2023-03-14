@@ -30,11 +30,14 @@ def make_evaluator(file):
 
 
 def get_pileup_weights(base, year):
-    ext = extractor()
-    f = join(base, f"UL_{year}/puweight{year}.histo.root")
-    ext.add_weight_sets([f"weight weight {f}"])
-    ext.finalize()
-    return ext.make_evaluator()["weight"]
+    pu_weights_dict = {}
+    for shift in ["down", "nom", "up"]:
+        ext = extractor()
+        f = join(base, f"UL_{year}/puweight{year}_{shift}.histo.root")
+        ext.add_weight_sets([f"weight weight {f}"])
+        ext.finalize()
+        pu_weights_dict[shift] = ext.make_evaluator()["weight"]
+    return pu_weights_dict
 
 
 def get_fake_rates(base, year, origin="_coffea"):
