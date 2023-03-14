@@ -134,7 +134,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         }
 
         # store inputs to the processor
-        self.pileup_weights = pileup_weights
+        self.pu_weights = pileup_weights
         self.lumi_masks = lumi_masks
         self.nevts_dict = nevts_dict
         self.fake_rates = fake_rates
@@ -153,7 +153,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.fill_hists = fill_hists
         self.A_mass = A_mass
 
-        # keep track of shifts for each systematic
+        # systematics that affect event kinematics
         self.k_shifts = {
             "tauES": ["down", "up"],
             "efake": ["down", "up"],
@@ -163,19 +163,9 @@ class AnalysisProcessor(processor.ProcessorABC):
             "muES": ["down", "up"],
             "unclMET": ["down", "up"],
         }
-        self.e_shifts = {
-            "l1prefire": ["down", "up"],
-            "pileup": ["down", "up"],
-            "btag": [
-                "down_uncorrelated",
-                "down_correlated",
-                "up_correlated",
-                "up_uncorrelated",
-            ],
-        }
 
         # systematics separated by kinematics vs. event weight
-        self.systematic = "nom" if systematic is None else systematic
+        self.systematic = systematic
         self.kin_syst_shifts = ["nom"]
         self.event_syst_shifts = ["nom"]
         if systematic is not None:
@@ -183,12 +173,20 @@ class AnalysisProcessor(processor.ProcessorABC):
                 self.kin_syst_shifts = [
                     f"{systematic}_{i}" for i in self.k_shifts[systematic]
                 ]
-            elif systematic in list(self.e_shifts.keys()):
-                self.event_syst_shifts = [
-                    f"{systematic}_{i}" for i in self.e_shifts[systematic]
-                ]
             else:
                 raise Exception(f"Systematic {systematic} unaccounted for.")
+        else:
+            self.event_syst_shifts = [
+                "nom",
+                "l1prefire_up",
+                "l1prefire_down",
+                "pileup_up",
+                "pileup_down",
+                "btag_down_uncorrelated",
+                "btag_down_correlated",
+                "btag_up_uncorrelated",
+                "btag_up_correlated",
+            ]
 
         logging.info(f"Kinematic systematic shifts: {self.kin_syst_shifts}")
         logging.info(f"Event-level systematic shifts: {self.event_syst_shifts}")
@@ -343,28 +341,44 @@ class AnalysisProcessor(processor.ProcessorABC):
         global_mask = global_selections.all(*global_selections.names)
         events = events[global_mask]
 
-        # global weights: sample weight, gen weight, pileup weight
-        weights = analysis_tools.Weights(len(events), storeIndividual=True)
+        # initial weights
+        global_weights = analysis_tools.Weights(len(events), storeIndividual=True)
         ones = np.ones(len(events), dtype=float)
+
+        # sample weights OR dyjets stitching weights
         if group == "DY":
             njets = ak.to_numpy(events.LHE.Njets)
-            weights.add("dyjets_sample_weights", self.dyjets_weights(njets))
+            global_weights.add("dyjets_sample_weights", self.dyjets_weights(njets))
         else:  # otherwise weight by luminosity ratio
-            weights.add("sample_weight", ones * sample_weight)
-        if (self.pileup_weights is not None) and not is_data:
-            weights.add("gen_weight", events.genWeight)
-            pu_weights = self.pileup_weights(events.Pileup.nTrueInt)
-            weights.add("pileup_weight", pu_weights)
+            global_weights.add("sample_weight", ones * sample_weight)
+
+        # pileup weights or luminosity weights
+        if (self.pu_weights is not None) and not is_data:
+            global_weights.add("gen_weight", events.genWeight)
+            global_weights.add(
+                "pileup",
+                weight=self.pu_weights["nom"](events.Pileup.nTrueInt),
+                weightUp=self.pu_weights["up"](events.Pileup.nTrueInt),
+                weightDown=self.pu_weights["down"](events.Pileup.nTrueInt),
+            )
         if is_data:  # golden json weighleting
             lumi_mask = self.lumi_masks[year]
             lumi_mask = lumi_mask(events.run, events.luminosityBlock)
-            weights.add("lumi_mask", lumi_mask)
+            global_weights.add("lumi_mask", lumi_mask)
 
+        # L1 prefiring weights if available
         if not is_data:
             try:
-                weights.add("l1_prefiring", events.L1PreFiringWeight.Nom)
+                global_weights.add(
+                    "l1prefire",
+                    weight=events.L1PreFiringWeight.Nom,
+                    weightUp=events.L1PreFiringWeight.Up,
+                    weightDown=events.L1PreFiringWeight.Dn,
+                )
+                self.has_L1PreFiringWeight = True
             except Exception:
                 logging.info(f"No prefiring weights in {dataset}.")
+                self.has_L1PreFiringWeight = False
 
         # run the analysis over various systematic shifts
         for k_shift in self.kin_syst_shifts:
@@ -457,7 +471,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                     lltt["MET"] = MET
 
                     # determine weights
-                    lltt["weight"] = weights.weight()
+                    lltt["weight"] = np.ones(len(lltt))
 
                     # if it's MC, apply trigger weights and lepton ID
                     if not is_data:
@@ -502,11 +516,13 @@ class AnalysisProcessor(processor.ProcessorABC):
                 ak.num(cands) == 1
             )  # & ((cands.tt.t1.charge * cands.tt.t2.charge) < 0)
             cands, jets = cands[mask], baseline_j[mask]
+            global_weight = global_weights.weight()[mask]
             if len(ak.flatten(cands)) == 0:
                 return self.output
 
             # for data, fill in categories of reducible/fake and tight/loose
             if is_data:
+                cands["weight"] = cands.weight * global_weight
                 cands = ak.flatten(cands)
                 is_tight = (
                     cands.l1_tight & cands.l2_tight & cands.t1_tight & cands.t2_tight
@@ -528,58 +544,75 @@ class AnalysisProcessor(processor.ProcessorABC):
                 return self.output
 
             # if MC
+            cands = ak.flatten(cands)
             if not is_data:
+
+                # calculate the nominal btag event weights
+                bshift_weight = apply_btag_corrections(
+                    jets,
+                    self.btag_SFs,
+                    self.btag_eff_tables,
+                    self.btag_pt_bins,
+                    self.btag_eta_bins,
+                    dataset,
+                    shift="central",
+                )
+
+                # run fastmtt
+                fastmtt_out = {}
+                if self.fastmtt:
+                    fastmtt_out = self.run_fastmtt(cands)
+
+                # loop over systematic shifts for the event weights
                 for e_shift in self.event_syst_shifts:
                     up_or_down = e_shift.split("_")[-1]
-                    # l1prefire_shift = up_or_down if ("l1prefire" in e_shift) else "nom"
-                    # pileup_shift = up_or_down if ("pileup" in e_shift) else "nom"
-                    btag_shift = "central"
-                    if "btag" in e_shift:
-                        btag_shift = e_shift[5:]
 
-                    # apply bjet weights
-                    bshift_weights = apply_btag_corrections(
-                        jets,
-                        self.btag_SFs,
-                        self.btag_eff_tables,
-                        self.btag_pt_bins,
-                        self.btag_eta_bins,
-                        dataset,
-                        shift=btag_shift,
-                    )
-
-                    # if it ends up being necessary to shift pileup / l1prefiring weights
-                    # if (self.pileup_weights is not None) and not is_data:
-                    #    weights.add("gen_weight", events.genWeight)
-                    #    pu_weights = self.pileup_weights(events.Pileup.nTrueInt)
-                    #    weights.add("pileup_weight", pu_weights)
-                    #    try:
-                    #        weights.add("l1_prefiring", events.L1PreFiringWeight.Nom)
-                    #    except Exception:
-                    #        logging.info(f"No prefiring weights in {dataset}.")
-
-                    w = cands["weight"] * bshift_weights
-                    final_states = cands
-                    final_states["weight"] = w
-                    final_states["MET"] = cands["MET"]
-                    final_states = ak.flatten(final_states)
-                    if len(final_states) == 0:
+                    # shift l1prefire or pileup weights
+                    l1prefire_shift = up_or_down if ("l1prefire" in e_shift) else None
+                    if "l1prefire" in e_shift and not self.has_L1PreFiringWeight:
                         continue
+                    pileup_shift = up_or_down if ("pileup" in e_shift) else None
+                    btag_shift = e_shift[5:] if ("btag" in e_shift) else None
 
-                    # optionally run fastmtt
-                    if self.fastmtt:
-                        fastmtt_out = self.run_fastmtt(final_states)
+                    # apply shifts
+                    w = ak.copy(cands["weight"])
+                    if l1prefire_shift is not None:
+                        gw = global_weights.weight(
+                            modifier=f"l1prefire{l1prefire_shift.capitalize()}",
+                        )[mask]
+                        w = w * bshift_weight * gw
+                    elif pileup_shift is not None:
+                        gw = global_weights.weight(
+                            modifier=f"pileup{pileup_shift.capitalize()}",
+                        )[mask]
+                        w = w * bshift_weight * gw
+                    elif btag_shift is not None:
+                        bw = apply_btag_corrections(
+                            jets,
+                            self.btag_SFs,
+                            self.btag_eff_tables,
+                            self.btag_pt_bins,
+                            self.btag_eta_bins,
+                            dataset,
+                            shift=btag_shift,
+                        )
+                        w = w * bw * global_weight
                     else:
-                        fastmtt_out = {}
+                        w = w * bshift_weight * global_weight
 
+                    print(cands["weight"])
+                    print(f"{e_shift}", w)
+
+                    # label the systematics
                     syst_shift = "nom"
                     if e_shift != "nom":
                         syst_shift = e_shift
                     if k_shift != "nom":
                         syst_shift = k_shift
-                    print(syst_shift)
+
                     self.fill_histos(
-                        final_states,
+                        cands,
+                        w,
                         fastmtt_out,
                         group=group,
                         dataset=dataset,
@@ -781,6 +814,7 @@ class AnalysisProcessor(processor.ProcessorABC):
     def fill_histos(
         self,
         lltt,
+        weight,
         fastmtt_out,
         dataset,
         name,
@@ -800,7 +834,6 @@ class AnalysisProcessor(processor.ProcessorABC):
         btags = np_flat(lltt.btags == 0)
         cats = np_flat(lltt.cat)
         cats = np.array([self.categories[c] for c in cats])
-        weight = np_flat(lltt.weight)
         weight = np.nan_to_num(weight, nan=0, posinf=0, neginf=0)
 
         # fill the lltt leg four-vectors
@@ -850,8 +883,6 @@ class AnalysisProcessor(processor.ProcessorABC):
                 + lltt["tt"]["t2"]
             ).mass
         )
-        print(m4l)
-        print(lltt[m4l > 750])
 
         blind_mask = np.ones(len(m4l), dtype=bool)
         if blind:
