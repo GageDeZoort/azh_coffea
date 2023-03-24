@@ -32,6 +32,8 @@ from azh_analysis.selections.preselections import (
     highest_LT,
     is_prompt,
     lepton_count_veto,
+    tight_electrons,
+    tight_muons,
     trigger_filter,
 )
 from azh_analysis.utils.corrections import (
@@ -329,17 +331,19 @@ class AnalysisProcessor(processor.ProcessorABC):
         elif not is_data:
             logging.debug("WARNING: may be using wrong sum_of_weights!")
 
-        # weight by the data-MC luminosity ratio
-        sample_weight = self.lumi[year] * xsec / nevts
-        if is_data:
-            sample_weight = 1
-
         # apply global event selections
         global_selections = analysis_tools.PackedSelection()
         filter_MET(events, global_selections, year, UL=True, data=is_data)
         filter_PV(events, global_selections)
+        if is_data:
+            global_selections.add(
+                "lumi_mask",
+                self.lumi_masks[year](events.run, events.luminosityBlock),
+            )
         global_mask = global_selections.all(*global_selections.names)
         events = events[global_mask]
+        if len(events) == 0:
+            return self.output
 
         # initial weights
         global_weights = analysis_tools.Weights(len(events), storeIndividual=True)
@@ -350,6 +354,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             njets = ak.to_numpy(events.LHE.Njets)
             global_weights.add("dyjets_sample_weights", self.dyjets_weights(njets))
         else:  # otherwise weight by luminosity ratio
+            sample_weight = 1 if is_data else self.lumi[year] * xsec / nevts
             global_weights.add("sample_weight", ones * sample_weight)
 
         # pileup weights or luminosity weights
@@ -361,10 +366,6 @@ class AnalysisProcessor(processor.ProcessorABC):
                 weightUp=self.pu_weights["up"](events.Pileup.nTrueInt),
                 weightDown=self.pu_weights["down"](events.Pileup.nTrueInt),
             )
-        if is_data:  # golden json weighleting
-            lumi_mask = self.lumi_masks[year]
-            lumi_mask = lumi_mask(events.run, events.luminosityBlock)
-            global_weights.add("lumi_mask", lumi_mask)
 
         # L1 prefiring weights if available
         if not is_data:
@@ -421,8 +422,10 @@ class AnalysisProcessor(processor.ProcessorABC):
             MET = shift_MET(MET, [e_shifts, m_shifts, t_shifts], is_data=is_data)
 
             # seeds the lepton count veto
-            e_counts = ak.num(baseline_e)
-            m_counts = ak.num(baseline_m)
+            tight_e = baseline_e[tight_electrons(baseline_e)]
+            tight_m = baseline_m[tight_muons(baseline_m)]
+            e_counts = ak.num(tight_e)  # baseline_e)
+            m_counts = ak.num(tight_m)  # baseline_m)
 
             # grab the jets, count the number of b jets
             baseline_j = get_baseline_jets(events.Jet)
@@ -437,7 +440,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 if (ll_pair[:2] == "mm") and ("_Muons" not in filename):
                     continue
 
-                l = baseline_e if (ll_pair == "ee") else baseline_m
+                l = tight_e if (ll_pair == "ee") else tight_m
                 ll = ak.combinations(l, 2, axis=1, fields=["l1", "l2"])
                 ll = dR_ll(ll)
                 ll = build_Z_cand(ll)
@@ -460,6 +463,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                     tt = get_tt(baseline_e, baseline_m, baseline_t, cat)
                     lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
                     lltt = dR_lltt(lltt, cat)
+                    lltt = lltt[(lltt.tt.t1.charge * lltt.tt.t2.charge < 0)]
                     lltt = highest_LT(lltt)
                     lltt = ak.fill_none(lltt.mask[mask], [], axis=0)
                     if len(ak.flatten(lltt)) == 0:
@@ -485,13 +489,7 @@ class AnalysisProcessor(processor.ProcessorABC):
 
                         # mask non-prompt and non-tight MC events
                         lltt = lltt[
-                            is_prompt(lltt, cat)
-                            & (
-                                lltt.l1_tight
-                                & lltt.l2_tight
-                                & lltt.t1_tight
-                                & lltt.t2_tight
-                            )
+                            is_prompt(lltt, cat) & lltt.t1_tight & lltt.t2_tight
                         ]
                         if len(ak.flatten(lltt)) == 0:
                             continue
@@ -509,24 +507,17 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             if len(candidates) == 0:
                 return self.output
-
             cands = ak.concatenate(list(candidates.values()), axis=1)
             cands["btags"] = b_counts
-            mask = (
-                ak.num(cands) == 1
-            )  # & ((cands.tt.t1.charge * cands.tt.t2.charge) < 0)
+            mask = ak.num(cands) == 1
             cands, jets = cands[mask], baseline_j[mask]
-            global_weight = global_weights.weight()[mask]
-            if len(ak.flatten(cands)) == 0:
+            cands = ak.flatten(cands)
+            if len(cands) == 0:
                 return self.output
 
             # for data, fill in categories of reducible/fake and tight/loose
             if is_data:
-                cands["weight"] = cands.weight * global_weight
-                cands = ak.flatten(cands)
-                is_tight = (
-                    cands.l1_tight & cands.l2_tight & cands.t1_tight & cands.t2_tight
-                )
+                is_tight = cands.t1_tight & cands.t2_tight
                 for group_label, mask in [(group, is_tight), ("reducible", ~is_tight)]:
                     cands_group = cands[mask]
                     if len(cands_group) == 0:
@@ -534,18 +525,21 @@ class AnalysisProcessor(processor.ProcessorABC):
                     fastmtt_out = self.run_fastmtt(cands_group) if self.fastmtt else {}
                     self.fill_histos(
                         cands_group,
+                        cands_group["weight"],
                         fastmtt_out,
                         group=group_label,
                         dataset=dataset,
                         name=name,
                         syst_shift="none",
-                        blind=(is_data & self.blind),
+                        blind=self.blind,
                     )
                 return self.output
 
             # if MC
-            cands = ak.flatten(cands)
             if not is_data:
+
+                # calculate baseline global event weights
+                global_weight = global_weights.weight()[mask]
 
                 # calculate the nominal btag event weights
                 bshift_weight = apply_btag_corrections(
@@ -600,9 +594,6 @@ class AnalysisProcessor(processor.ProcessorABC):
                     else:
                         w = w * bshift_weight * global_weight
 
-                    print(cands["weight"])
-                    print(f"{e_shift}", w)
-
                     # label the systematics
                     syst_shift = "nom"
                     if e_shift != "nom":
@@ -624,77 +615,40 @@ class AnalysisProcessor(processor.ProcessorABC):
         return self.output
 
     def get_fake_weights(self, lltt, cat):
-        l1_tight_mask, l2_tight_mask = lltt.l1_tight, lltt.l2_tight
         t1_tight_mask, t2_tight_mask = lltt.t1_tight, lltt.t2_tight
-
-        l1_tight_mask, num = ak.flatten(l1_tight_mask), ak.num(l1_tight_mask)
-        l2_tight_mask = ak.flatten(l2_tight_mask)
-        t1_tight_mask = ak.flatten(t1_tight_mask)
+        t1_tight_mask, num = ak.flatten(t1_tight_mask), ak.num(t1_tight_mask)
         t2_tight_mask = ak.flatten(t2_tight_mask)
-        if len(l1_tight_mask) == 0:
+        if len(t1_tight_mask) == 0:
             return np.ones(len(lltt), dtype=float)
 
-        l1_barrel = ak.flatten(abs(lltt["ll"]["l1"].eta) < 1.479)
-        l2_barrel = ak.flatten(abs(lltt["ll"]["l2"].eta) < 1.479)
-        t1_barrel = ak.flatten(abs(lltt["tt"]["t1"].eta) < 1.479)
-        t2_barrel = ak.flatten(abs(lltt["tt"]["t2"].eta) < 1.479)
-        l1l2_fr_barrel = self.fake_rates[cat[:2]]["barrel"]
-        l1l2_fr_endcap = self.fake_rates[cat[:2]]["endcap"]
-
-        # fake rate regions
-        l1_fake_barrel = l1_barrel & ~l1_tight_mask
-        l1_fake_endcap = ~l1_barrel & ~l1_tight_mask
-        l2_fake_barrel = l2_barrel & ~l2_tight_mask
-        l2_fake_endcap = ~l2_barrel & ~l2_tight_mask
-        l1_pt = ak.flatten(lltt["ll"]["l1"].pt)
-        l2_pt = ak.flatten(lltt["ll"]["l2"].pt)
-
-        # l1 fake rates: barrel+fake, endcap+fake, or tight
-        fr1_barrel = l1l2_fr_barrel(l1_pt)
-        fr1_endcap = l1l2_fr_endcap(l1_pt)
-        fr1 = (
-            (fr1_barrel * l1_fake_barrel)
-            + (fr1_endcap * l1_fake_endcap)
-            + (np.ones(len(l1_pt)) * l1_tight_mask)
-        )
-
-        # l2 fake rates: barrel+fake, endcap+fake, or tight
-        fr2_barrel = l1l2_fr_barrel(l2_pt)
-        fr2_endcap = l1l2_fr_endcap(l2_pt)
-        fr2 = (
-            (fr2_barrel * l2_fake_barrel)
-            + (fr2_endcap * l2_fake_endcap)
-            + (np.ones(len(l2_pt)) * l2_tight_mask)
-        )
+        # determine if in the barrel
+        t1_barrel = ak.flatten(abs(lltt.tt.t1.eta) < 1.479)
+        t2_barrel = ak.flatten(abs(lltt.tt.t2.eta) < 1.479)
 
         # t1 and t2 depend on the type of tau decay being considered
         t1_fake_barrel = t1_barrel & ~t1_tight_mask
         t1_fake_endcap = ~t1_barrel & ~t1_tight_mask
         t2_fake_barrel = t2_barrel & ~t2_tight_mask
         t2_fake_endcap = ~t2_barrel & ~t2_tight_mask
-        t1_pt = ak.flatten(lltt["tt"]["t1"].pt)
-        t2_pt = ak.flatten(lltt["tt"]["t2"].pt)
+        t1_pt = ak.flatten(lltt.tt.t1.pt)
+        t2_pt = ak.flatten(lltt.tt.t2.pt)
 
         # leptonic decays are easy to handle
+        fr3 = np.ones(len(t1_pt)) * t1_tight_mask
         if (cat[2] == "e") or (cat[2] == "m"):
             ll_str = "ee" if cat[2] == "e" else "mm"
             t1_fr_barrel = self.fake_rates[ll_str]["barrel"]
             t1_fr_endcap = self.fake_rates[ll_str]["endcap"]
             fr3_barrel = t1_fr_barrel(t1_pt)
             fr3_endcap = t1_fr_endcap(t1_pt)
-            fr3 = (
-                (fr3_barrel * t1_fake_barrel)
-                + (fr3_endcap * t1_fake_endcap)
-                + (np.ones(len(t1_pt)) * t1_tight_mask)
-            )
+            fr3 = fr3 + ((fr3_barrel * t1_fake_barrel) + (fr3_endcap * t1_fake_endcap))
 
         # hadronic tau decays are not so easy
         elif cat[2] == "t":
             t1_fr_barrel = self.fake_rates["tt"]["barrel"]
             t1_fr_endcap = self.fake_rates["tt"]["endcap"]
-            fr3 = np.ones(len(t1_pt)) * t1_tight_mask
             for dm in [0, 1, 10, 11]:
-                t1_dm = ak.flatten(lltt["tt"]["t1"].decayMode == dm)
+                t1_dm = ak.flatten(lltt.tt.t1.decayMode == dm)
                 fr3_barrel = t1_fr_barrel[dm](t1_pt)
                 fr3_endcap = t1_fr_endcap[dm](t1_pt)
                 t1_fake_barrel_dm = t1_fake_barrel & t1_dm
@@ -704,21 +658,17 @@ class AnalysisProcessor(processor.ProcessorABC):
                 )
 
         # ditto for the second di-tau leg
+        fr4 = np.ones(len(t2_pt)) * t2_tight_mask
         if cat[3] == "m":
             t2_fr_barrel = self.fake_rates["mm"]["barrel"]
             t2_fr_endcap = self.fake_rates["mm"]["endcap"]
             fr4_barrel = t2_fr_barrel(t2_pt)
             fr4_endcap = t2_fr_endcap(t2_pt)
-            fr4 = (
-                (fr4_barrel * t2_fake_barrel)
-                + (fr4_endcap * t2_fake_endcap)
-                + (np.ones(len(t2_pt)) * t2_tight_mask)
-            )
+            fr4 = fr4 + ((fr4_barrel * t2_fake_barrel) + (fr4_endcap * t2_fake_endcap))
 
         elif cat[3] == "t":
             t2_fr_barrel = self.fake_rates[cat[2:]]["barrel"]
             t2_fr_endcap = self.fake_rates[cat[2:]]["endcap"]
-            fr4 = np.ones(len(t2_pt)) * t2_tight_mask
             for dm in [0, 1, 10, 11]:
                 t2_dm = ak.flatten(lltt["tt"]["t2"].decayMode == dm)
                 fr4_barrel = t2_fr_barrel[dm](t2_pt)
@@ -729,86 +679,23 @@ class AnalysisProcessor(processor.ProcessorABC):
                     (fr4_barrel * t2_fake_barrel_dm) + (fr4_endcap * t2_fake_endcap_dm)
                 )
 
-        fw1 = ak.nan_to_num(fr1 / (1 - fr1), nan=0, posinf=0, neginf=0)
-        fw2 = ak.nan_to_num(fr2 / (1 - fr2), nan=0, posinf=0, neginf=0)
-        fw3 = ak.nan_to_num(fr3 / (1 - fr3), nan=0, posinf=0, neginf=0)
-        fw4 = ak.nan_to_num(fr4 / (1 - fr4), nan=0, posinf=0, neginf=0)
-
-        apply_w1 = (
-            ((~l1_tight_mask & l2_tight_mask & t1_tight_mask & t2_tight_mask) * fw1)
-            + ((l1_tight_mask & ~l2_tight_mask & t1_tight_mask & t2_tight_mask) * fw2)
-            + ((l1_tight_mask & l2_tight_mask & ~t1_tight_mask & t2_tight_mask) * fw3)
-            + ((l1_tight_mask & l2_tight_mask & t1_tight_mask & ~t2_tight_mask) * fw4)
-        )
-        apply_w2 = (
-            (
-                (~l1_tight_mask & ~l2_tight_mask & t1_tight_mask & t2_tight_mask)
-                * fw1
-                * fw2
-            )
-            + (
-                (~l1_tight_mask & l2_tight_mask & ~t1_tight_mask & t2_tight_mask)
-                * fw1
-                * fw3
-            )
-            + (
-                (~l1_tight_mask & l2_tight_mask & t1_tight_mask & ~t2_tight_mask)
-                * fw1
-                * fw4
-            )
-            + (
-                (l1_tight_mask & ~l2_tight_mask & ~t1_tight_mask & t2_tight_mask)
-                * fw2
-                * fw3
-            )
-            + (
-                (l1_tight_mask & ~l2_tight_mask & t1_tight_mask & ~t2_tight_mask)
-                * fw2
-                * fw4
-            )
-            + (
-                (l1_tight_mask & l2_tight_mask & ~t2_tight_mask & ~t2_tight_mask)
-                * fw3
-                * fw4
-            )
-        )
-        apply_w3 = (
-            (
-                (~l1_tight_mask & ~l2_tight_mask & ~t1_tight_mask & t2_tight_mask)
-                * fw1
-                * fw2
-                * fw3
-            )
-            + (
-                (~l1_tight_mask & ~l2_tight_mask & t1_tight_mask & ~t2_tight_mask)
-                * fw1
-                * fw2
-                * fw4
-            )
-            + (
-                (~l1_tight_mask & l2_tight_mask & ~t1_tight_mask & ~t2_tight_mask)
-                * fw1
-                * fw3
-                * fw4
-            )
-            + (
-                (l1_tight_mask & ~l2_tight_mask & ~t1_tight_mask & ~t2_tight_mask)
-                * fw2
-                * fw3
-                * fw4
-            )
-        )
-        apply_w4 = (
-            (~l1_tight_mask & ~l2_tight_mask & ~t1_tight_mask & ~t2_tight_mask)
-            * fw1
-            * fw2
-            * fw3
-            * fw4
-        )
-
-        out = apply_w1 - apply_w2 + apply_w3 - apply_w4
+        fw1 = ak.nan_to_num(fr3 / (1 - fr3), nan=0, posinf=0, neginf=0)
+        fw2 = ak.nan_to_num(fr4 / (1 - fr4), nan=0, posinf=0, neginf=0)
+        print("fw1", fw1)
+        print("fw2", fw2)
+        ff = (~t1_tight_mask & ~t2_tight_mask) * fw1 * fw2
+        pf = (t1_tight_mask & ~t2_tight_mask) * fw2
+        fp = (~t1_tight_mask & t2_tight_mask) * fw1
+        print("t1_tight", t1_tight_mask)
+        print("t2_tight", t2_tight_mask)
+        print("ff", ff)
+        print("pf", pf)
+        print("fp", fp)
+        out = pf + fp - ff
+        print("fake weights", out)
         # make sure data gets a weight of 1
-        out = out + (l1_tight_mask & l2_tight_mask & t1_tight_mask & t2_tight_mask)
+        out = out + (t1_tight_mask & t2_tight_mask)
+        print("adjusted", out)
         return ak.unflatten(out, num)
 
     def fill_histos(
@@ -891,7 +778,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             self.output["mtt"][name].fill(
                 group=group,
                 category=cats[blind_mask],
-                sign=signs,
+                sign=signs[blind_mask],
                 mass_type="raw",
                 btags=btags[blind_mask],
                 syst_shift=syst_shift,
@@ -901,7 +788,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             self.output["m4l"][name].fill(
                 group=group,
                 category=cats[blind_mask],
-                sign=signs,
+                sign=signs[blind_mask],
                 mass_type="raw",
                 btags=btags[blind_mask],
                 syst_shift=syst_shift,
@@ -916,7 +803,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 self.output[key][name].fill(
                     group=group,
                     category=cats[blind_mask],
-                    sign=signs,
+                    sign=signs[blind_mask],
                     mass_type=mass_type,
                     btags=btags[blind_mask],
                     syst_shift=syst_shift,
