@@ -124,15 +124,8 @@ def tight_hadronic_taus(taus, cat):
 
 # in use
 def append_tight_masks(lltt, cat):
-    l1, l2 = lltt["ll"]["l1"], lltt["ll"]["l2"]
     t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
-    l1_mask, l2_mask, t1_mask, t2_mask = 0, 0, 0, 0
-    if cat[:2] == "ee":
-        l1_mask = tight_electrons(l1)
-        l2_mask = tight_electrons(l2)
-    if cat[:2] == "mm":
-        l1_mask = tight_muons(l1)
-        l2_mask = tight_muons(l2)
+    t1_mask, t2_mask = None, None
     if cat[2:] == "em":
         t1_mask = tight_electrons(t1)
         t2_mask = tight_muons(t2)
@@ -145,9 +138,6 @@ def append_tight_masks(lltt, cat):
     if cat[2:] == "tt":
         t1_mask = tight_hadronic_taus(t1, cat)
         t2_mask = tight_hadronic_taus(t2, cat)
-
-    lltt["l1_tight"] = l1_mask
-    lltt["l2_tight"] = l2_mask
     lltt["t1_tight"] = t1_mask
     lltt["t2_tight"] = t2_mask
     return lltt
