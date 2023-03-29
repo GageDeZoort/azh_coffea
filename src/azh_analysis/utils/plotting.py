@@ -85,6 +85,64 @@ def plot_variable(
     plt.show()
 
 
+def plot_var_fake_val(
+    data,
+    reducible,
+    var,
+    cat_label,
+    var_label,
+    xlim=None,
+    xscale=None,
+):
+    hep.style.use(["CMS", "fira", "firamath"])
+    colors = {
+        "Reducible": "#005F73",
+    }
+
+    stack = hist.Stack.from_dict({"Reducible": reducible})
+
+    fig, (ax, rax) = plt.subplots(
+        nrows=2,
+        ncols=1,
+        figsize=(12, 16),
+        dpi=200,
+        gridspec_kw={"height_ratios": (4, 1)},
+        sharex=True,
+    )
+    fig.subplots_adjust(hspace=0.07)
+    ax.set_prop_cycle(cycler(color=list(colors.values())))
+    stack.plot(ax=ax, stack=True, histtype="fill", edgecolor=(0, 0, 0, 0.3))
+    data.plot1d(ax=ax, histtype="errorbar", color="k", label="Data")
+
+    red_vals = reducible.values()
+    data_vals = data.values()
+    bins = data.axes[0].centers
+    rax.errorbar(
+        x=bins,
+        y=data_vals / red_vals,
+        yerr=ratio_uncertainty(data_vals, red_vals, "poisson"),
+        color="k",
+        linestyle="none",
+        marker="o",
+        elinewidth=1,
+    )
+
+    if xlim is not None:
+        ax.set_xlim(xlim)
+    if xscale is not None:
+        ax.set_xscale(xscale)
+    ax.set_ylabel("Counts")
+    rax.set_xlabel(var_label)
+    ax.set_xlabel("")
+    ax.legend()
+    rax.set_ylim([0, 2])
+    ax.legend(loc="best", prop={"size": 16}, frameon=True)
+    ax.get_legend().set_title(f"{cat_label}")
+
+    hep.cms.label("Preliminary", data=True, lumi=59.7, year=2018, ax=ax)
+    plt.show()
+
+
 def get_ratios(denom, num, combine_bins=True):
     num_sum = num.values()
     denom_sum = denom.values()
@@ -224,4 +282,125 @@ def plot_fake_rates_data(
     rax.set_ylim(ylim)
     ax.get_legend().set_title(f"{label}", prop={"size": 16})
     hep.cms.label("Preliminary", data=True, lumi=59.7, year=2018, ax=ax)
+    plt.show()
+
+
+def plot_m4l_systematic(nom, up, down, syst, cat_label, mass_label):
+    fig, axs = plt.subplots(
+        nrows=3,
+        ncols=3,
+        figsize=(30, 16),
+        dpi=200,
+        gridspec_kw={"height_ratios": (4, 1, 1)},
+        sharex=True,
+    )
+    fig.subplots_adjust(hspace=0.07)
+    colors = {"up": "#45ADA8", "down": "#FF4E50", "nom": "#2A363B"}
+    for i, mass_type in enumerate(["raw", "corr", "cons"]):
+        nom_s = nom[mass_type, :]
+        shift_up = up[mass_type, :]
+        shift_down = down[mass_type, :]
+
+        n, u, d = nom_s.values(), shift_up.values(), shift_down.values()
+        bin_centers = nom_s.axes[0].centers
+        # un_ratio, un_err = np.nan_to_num(n / u), ratio_uncertainty(n, u, "poisson")
+        # dn_ratio, dn_err = np.nan_to_num(n / d), ratio_uncertainty(n, d, "poisson")
+
+        shift_up.plot1d(
+            ax=axs[0, i], label=f"{syst} up", histtype="step", color=colors["up"]
+        )
+        shift_down.plot1d(
+            ax=axs[0, i], label=f"{syst} down", histtype="step", color=colors["down"]
+        )
+        nom_s.plot1d(
+            ax=axs[0, i], label=f"{syst} nom", histtype="step", color=colors["nom"]
+        )
+
+        # axs[0,i].set_title(mass_type)
+        axs[0, i].set_xlabel("")
+        axs[0, i].set_ylabel("")
+        axs[0, i].legend(loc="best", prop={"size": 16}, frameon=True)
+        axs[0, i].get_legend().set_title(f"{cat_label}")
+
+        un_rel_diffs = np.nan_to_num((n - u) / n)
+        axs[1, i].plot(
+            bin_centers,
+            un_rel_diffs,
+            color=colors["up"],
+            linestyle="none",
+            marker="^",
+            lw=0,
+        )
+        dn_rel_diffs = np.nan_to_num((n - d) / n)
+        axs[2, i].errorbar(
+            bin_centers,
+            dn_rel_diffs,
+            color=colors["down"],
+            linestyle="none",
+            marker="v",
+            lw=0,
+        )
+        axs[1, i].set_ylim([-0.1, 0.1])
+        axs[2, i].set_ylim([-0.1, 0.1])
+        axs[1, i].set_ylabel("(Nom-Up)/Nom", fontsize=20)
+        axs[2, i].set_ylabel("(Nom-Down)/Nom", fontsize=20)
+        labels = {"raw": "Raw", "corr": "Corrected", "cons": "Constrained"}
+        axs[2, i].set_xlabel(f"{labels[mass_type]} " + mass_label)
+
+    for i in range(2):
+        axs[0, i].set_ylim(axs[0, 2].get_ylim())
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_systematic(nom, up, down, syst, cat_label, var_label):
+    fig, axs = plt.subplots(
+        nrows=3,
+        ncols=1,
+        figsize=(10, 16),
+        dpi=200,
+        gridspec_kw={"height_ratios": (4, 1, 1)},
+        sharex=True,
+    )
+    fig.subplots_adjust(hspace=0.07)
+    colors = {"up": "#45ADA8", "down": "#FF4E50", "nom": "#2A363B"}
+    n, u, d = nom.values(), up.values(), down.values()
+    bin_centers = nom.axes[0].centers
+    # un_ratio, un_err = np.nan_to_num(n / u), ratio_uncertainty(n, u, "poisson")
+    # dn_ratio, dn_err = np.nan_to_num(n / d), ratio_uncertainty(n, d, "poisson")
+
+    up.plot1d(ax=axs[0], label=f"{syst} up", histtype="step", color=colors["up"])
+    down.plot1d(ax=axs[0], label=f"{syst} down", histtype="step", color=colors["down"])
+    nom.plot1d(ax=axs[0], label=f"{syst} nom", histtype="step", color=colors["nom"])
+
+    axs[0].set_xlabel("")
+    axs[0].set_ylabel("")
+    axs[0].legend(loc="best", prop={"size": 16}, frameon=True)
+    axs[0].get_legend().set_title(f"{cat_label}")
+
+    un_rel_diffs = np.nan_to_num((n - u) / n)
+    axs[1].plot(
+        bin_centers,
+        un_rel_diffs,
+        color=colors["up"],
+        linestyle="none",
+        marker="^",
+        lw=0,
+    )
+    dn_rel_diffs = np.nan_to_num((n - d) / n)
+    axs[2].errorbar(
+        bin_centers,
+        dn_rel_diffs,
+        color=colors["down"],
+        linestyle="none",
+        marker="v",
+        lw=0,
+    )
+    axs[1].set_ylim([-0.1, 0.1])
+    axs[2].set_ylim([-0.1, 0.1])
+    axs[1].set_ylabel("(Nom-Up)/Nom", fontsize=20)
+    axs[2].set_ylabel("(Nom-Down)/Nom", fontsize=20)
+    axs[2].set_xlabel(var_label)
+
+    plt.tight_layout()
     plt.show()
