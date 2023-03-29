@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 import math
-import time
+
+# import time
 import warnings
 
 import awkward as ak
@@ -601,12 +602,12 @@ class AnalysisProcessor(processor.ProcessorABC):
                     if l1prefire_shift is not None:
                         gw = global_weights.weight(
                             modifier=f"l1prefire{l1prefire_shift.capitalize()}",
-                        )[mask]
+                        )[mask][veto_mask]
                         w = w * bshift_weight * gw
                     elif pileup_shift is not None:
                         gw = global_weights.weight(
                             modifier=f"pileup{pileup_shift.capitalize()}",
-                        )[mask]
+                        )[mask][veto_mask]
                         w = w * bshift_weight * gw
                     elif btag_shift is not None:
                         bw = apply_btag_corrections(
@@ -871,31 +872,33 @@ class AnalysisProcessor(processor.ProcessorABC):
         map_it = {"e": 0, "m": 1, "t": 2}
         t1_cats = np.array([map_it[self.categories[cat][2]] for cat in cats])
         t2_cats = np.array([map_it[self.categories[cat][3]] for cat in cats])
+        print("t1_cats", t1_cats)
+        print("t2_cats", t2_cats)
         return fastmtt(
-            np_flat(l1.pt),
-            np_flat(l1.eta),
-            np_flat(l1.phi),
-            np_flat(l1.mass),
-            np_flat(l2.pt),
-            np_flat(l2.eta),
-            np_flat(l2.phi),
-            np_flat(l2.mass),
-            np_flat(t1.pt),
-            np_flat(t1.eta),
-            np_flat(t1.phi),
-            np_flat(t1.mass),
-            t1_cats,
-            np_flat(t2.pt),
-            np_flat(t2.eta),
-            np_flat(t2.phi),
-            np_flat(t2.mass),
-            t2_cats,
-            np_flat(met.pt * np.cos(met.phi)),
-            np_flat(met.pt * np.sin(met.phi)),
-            np_flat(met.covXX),
-            np_flat(met.covXY),
-            np_flat(met.covXY),
-            np_flat(met.covYY),
+            np_flat(l1.pt).astype(np.float64),
+            np_flat(l1.eta).astype(np.float64),
+            np_flat(l1.phi).astype(np.float64),
+            np_flat(l1.mass).astype(np.float64),
+            np_flat(l2.pt).astype(np.float64),
+            np_flat(l2.eta).astype(np.float64),
+            np_flat(l2.phi).astype(np.float64),
+            np_flat(l2.mass).astype(np.float64),
+            np_flat(t1.pt).astype(np.float64),
+            np_flat(t1.eta).astype(np.float64),
+            np_flat(t1.phi).astype(np.float64),
+            np_flat(t1.mass).astype(np.float64),
+            t1_cats.astype(np.int64),
+            np_flat(t2.pt).astype(np.float64),
+            np_flat(t2.eta).astype(np.float64),
+            np_flat(t2.phi).astype(np.float64),
+            np_flat(t2.mass).astype(np.float64),
+            t2_cats.astype(np.int64),
+            np_flat(met.pt * np.cos(met.phi)).astype(np.float64),
+            np_flat(met.pt * np.sin(met.phi)).astype(np.float64),
+            np_flat(met.covXX).astype(np.float64),
+            np_flat(met.covXY).astype(np.float64),
+            np_flat(met.covXY).astype(np.float64),
+            np_flat(met.covYY).astype(np.float64),
             constrain=True,
         )
 
@@ -934,7 +937,7 @@ def fastmtt(
     reg_order=6,
     constrain=False,
     constraint_window=np.array([124, 126]),
-):
+) -> dict[str, float]:
 
     # initialize global parameters
     light_masses = {0: 0.51100e-3, 1: 0.10566}

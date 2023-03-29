@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from time import time
-
 import awkward as ak
 import numba as nb
 import numpy as np
+
+# from time import time
 
 
 # in use
