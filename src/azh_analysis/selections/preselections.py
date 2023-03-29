@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from time import time
+
 import awkward as ak
+import numba as nb
 import numpy as np
 
 
@@ -388,30 +391,96 @@ def check_trigger_path(HLT, year, cat, sync=False):
     return triggered
 
 
-# in use
-def lepton_count_veto(e_counts, m_counts, cat):
-    correct_e_counts = {
-        "eeem": 3,
-        "eeet": 3,
-        "eemt": 2,
-        "eett": 2,
-        "mmem": 1,
-        "mmet": 1,
-        "mmmt": 0,
-        "mmtt": 0,
-    }
-    correct_m_counts = {
-        "eeem": 1,
-        "eeet": 0,
-        "eemt": 1,
-        "eett": 0,
-        "mmem": 3,
-        "mmet": 2,
-        "mmmt": 3,
-        "mmtt": 2,
-    }
-    mask = (e_counts == correct_e_counts[cat]) & (m_counts == correct_m_counts[cat])
-    return mask
+@nb.njit
+def lepton_count_veto(builder, idx1, idx2, idx3, idx4, cat):
+    for i in range(len(idx1)):
+        i1, i2, i3, i4 = idx1[i], idx2[i], idx3[i], idx4[i]
+        builder.begin_list()
+        e, m = [], []
+        for j in range(len(i1)):
+            if cat[0] == "m":
+                m.append(int(i1[j]))
+                m.append(int(i2[j]))
+            if cat == "eemt":
+                m.append(int(i3[j]))
+            if cat == "eeem":
+                m.append(int(i4[j]))
+            if cat[0] == "e":
+                e.append(int(i1[j]))
+                e.append(int(i2[j]))
+            if (cat == "mmem") or (cat == "mmet"):
+                e.append(int(i3[j]))
+        e, m = np.array(e), np.array(m)
+        ne, nm = len(np.unique(e)), len(np.unique(m))
+        if cat == "eeem":
+            ec = ne == 3
+            mc = nm == 1
+        elif cat == "eeet":
+            ec = ne == 3
+            mc = nm == 0
+        elif cat == "eemt":
+            ec = ne == 2
+            mc = nm == 1
+        elif cat == "eett":
+            ec = ne == 2
+            mc = nm == 0
+        elif cat == "mmem":
+            ec = ne == 1
+            mc = nm == 3
+        elif cat == "mmet":
+            ec = ne == 1
+            mc = nm == 2
+        elif cat == "mmmt":
+            ec = ne == 0
+            mc = nm == 3
+        elif cat == "mmtt":
+            ec = ne == 0
+            mc = nm == 2
+        else:
+            raise Exception("Please enter a valid category")
+        builder.append(ec and mc)
+        builder.end_list()
+    return builder
+
+
+def get_lepton_count_veto_masks(baseline_e, baseline_m, baseline_t):
+    baseline_e["idx"] = ak.local_index(baseline_e)
+    baseline_m["idx"] = ak.local_index(baseline_m)
+    baseline_t["idx"] = ak.local_index(baseline_t)
+    cats = ["warmup", "eeem", "eeet", "eemt", "eett", "mmem", "mmet", "mmmt", "mmtt"]
+    vetos = {}
+    leps = {"e": baseline_e, "m": baseline_m, "t": baseline_t}
+    for cat in cats:
+        if cat == "warmup":
+            ll = ak.combinations(baseline_e[:2], 2, axis=1, fields=["l1", "l2"])
+            tt = ak.combinations(baseline_t[:2], 2, axis=1, fields=["t1", "t2"])
+            lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
+            lltt = dR_lltt(lltt, cat="eett")
+            i1, i2 = ak.values_astype(lltt.ll.l1.idx, int), ak.values_astype(
+                lltt.ll.l2.idx, int
+            )
+            i3, i4 = ak.values_astype(lltt.tt.t1.idx, int), ak.values_astype(
+                lltt.tt.t2.idx, int
+            )
+            lepton_count_veto(ak.ArrayBuilder(), i1, i2, i3, i4, "eett")
+            continue
+        ll = ak.combinations(leps[cat[0]], 2, axis=1, fields=["l1", "l2"])
+        if cat[2:] == "tt":
+            tt = ak.combinations(leps["t"], 2, axis=1, fields=["t1", "t2"])
+        else:
+            tt = ak.cartesian({"t1": leps[cat[2]], "t2": leps[cat[3]]}, axis=1)
+        lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
+        lltt = dR_lltt(lltt, cat=cat)
+        i1, i2 = ak.values_astype(lltt.ll.l1.idx, int), ak.values_astype(
+            lltt.ll.l2.idx, int
+        )
+        i3, i4 = ak.values_astype(lltt.tt.t1.idx, int), ak.values_astype(
+            lltt.tt.t2.idx, int
+        )
+        vetos[cat] = ak.flatten(
+            lepton_count_veto(ak.ArrayBuilder(), i1, i2, i3, i4, cat)
+        )
+    return vetos
 
 
 def bjetveto(baseline_b):

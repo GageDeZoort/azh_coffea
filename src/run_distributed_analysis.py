@@ -47,7 +47,8 @@ def parse_args():
     add_arg("--max-workers", type=int, default=300)
     add_arg("--mass", type=str, default="")
     add_arg("--use-coffea-frs", action="store_true")
-    add_arg("--systematic", default="nom")
+    add_arg("--systematic", default=None)
+    add_arg("--same-sign", action="store_true")
     return parser.parse_args()
 
 
@@ -168,8 +169,10 @@ tic = time.time()
 infiles = ["azh_analysis"]
 
 # configure dask
+memory = "4GB" if "data" in args.source else "2GB"
 dask.config.set(
     {
+        "jobqueue.lpccondor.memory": memory,
         "distributed.worker.memory.target": 0.8,
         "distributed.worker.memory.spill": 0.9,
         "distributed.worker.memory.pause": False,
@@ -180,6 +183,7 @@ dask.config.set(
         "distributed.nanny.environ.MALLOC_TRIM_THRESHOLD_": "65536",
     }
 )
+print(dask.config)
 
 # set up LPC condor cluster
 cluster = LPCCondorCluster(
@@ -194,14 +198,15 @@ else:
     cluster.scale(250)
 
 client = Client(cluster)
-logging.info("Waiting for at least one worker...")
-client.wait_for_workers(1)
+n_wait = 10
+logging.info(f"Waiting for at least {n_wait} workers...")
+client.wait_for_workers(n_wait)
 
 exe_args = {
     "client": client,
     "savemetrics": True,
     "schema": NanoAODSchema,
-    "align_clusters": True,
+    "align_clusters": False,
 }
 
 # instantiate processor module
@@ -227,8 +232,11 @@ proc_instance = AnalysisProcessor(
     btag_eta_bins=btag_tables[2],
     run_fastmtt=True,
     systematic=args.systematic,
+    same_sign=args.same_sign,
+    blind=not args.same_sign,
 )
 
+chunksize = 10000 if "data" in args.source else 25000
 hists, metrics = processor.run_uproot_job(
     fileset,
     treename="Events",
@@ -259,5 +267,7 @@ if ("signal" in source) and (len(args.mass) > 0):
     namestring = namestring + f"_M{args.mass}GeV"
 if "data" not in source:
     namestring = namestring + f"_{args.systematic}"
+sign = "SS" if args.same_sign else "OS"
+namestring = namestring + f"_{sign}"
 
 util.save(hists, join(outdir, f"{namestring}_{outfile}"))

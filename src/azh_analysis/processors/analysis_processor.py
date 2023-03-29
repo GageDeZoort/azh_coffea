@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
-
-# import time
+import time
 import warnings
 
 import awkward as ak
@@ -12,7 +11,7 @@ import numpy as np
 import vector as vec
 from coffea import analysis_tools, processor
 from hist import Hist
-from hist.axis import IntCategory, Regular, StrCategory
+from hist.axis import IntCategory, Regular, StrCategory, Variable
 
 from azh_analysis.selections.preselections import (
     append_tight_masks,
@@ -28,10 +27,10 @@ from azh_analysis.selections.preselections import (
     get_baseline_jets,
     get_baseline_muons,
     get_baseline_taus,
+    get_lepton_count_veto_masks,
     get_tt,
     highest_LT,
     is_prompt,
-    lepton_count_veto,
     tight_electrons,
     tight_muons,
     trigger_filter,
@@ -98,6 +97,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         verbose=False,
         A_mass="",
         systematic=None,
+        same_sign=False,
     ):
 
         # initialize member variables
@@ -154,6 +154,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.fastmtt = run_fastmtt
         self.fill_hists = fill_hists
         self.A_mass = A_mass
+        self.same_sign = same_sign
 
         # systematics that affect event kinematics
         self.k_shifts = {
@@ -239,7 +240,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 leg_axis,
                 btags_axis,
                 syst_shift_axis,
-                Regular(name="pt", bins=30, start=0, stop=300),
+                Regular(name="pt", bins=10, start=0, stop=200),
             )
             for dataset in fileset.keys()
         }
@@ -262,16 +263,12 @@ class AnalysisProcessor(processor.ProcessorABC):
                 mass_type_axis,
                 btags_axis,
                 syst_shift_axis,
-                Regular(name="mass", bins=40, start=0, stop=400),
+                Regular(name="mass", bins=20, start=0, stop=300),
             )
             for dataset in fileset.keys()
         }
 
         # if signal sample, adjust based on A mass
-        bins = 20
-        lower_bound, upper_bound = 0, 400
-        if "signal" in source:
-            bins, lower_bound, upper_bound = 70, 0, 1400
         m4l = {
             dataset.split(split_str)[0]: Hist(
                 group_axis,
@@ -280,7 +277,27 @@ class AnalysisProcessor(processor.ProcessorABC):
                 mass_type_axis,
                 btags_axis,
                 syst_shift_axis,
-                Regular(name="mass", bins=bins, start=lower_bound, stop=upper_bound),
+                Variable(
+                    [
+                        200,
+                        220,
+                        240,
+                        260,
+                        280,
+                        300,
+                        320,
+                        340,
+                        360,
+                        380,
+                        400,
+                        450,
+                        550,
+                        700,
+                        1000,
+                        2400,
+                    ],
+                    name="mass",
+                ),
             )
             for dataset in fileset.keys()
         }
@@ -424,8 +441,6 @@ class AnalysisProcessor(processor.ProcessorABC):
             # seeds the lepton count veto
             tight_e = baseline_e[tight_electrons(baseline_e)]
             tight_m = baseline_m[tight_muons(baseline_m)]
-            e_counts = ak.num(tight_e)  # baseline_e)
-            m_counts = ak.num(tight_m)  # baseline_m)
 
             # grab the jets, count the number of b jets
             baseline_j = get_baseline_jets(events.Jet)
@@ -457,14 +472,15 @@ class AnalysisProcessor(processor.ProcessorABC):
                 for cat in self.categories.values():
                     if cat[:2] != ll_pair:
                         continue
-                    mask = lepton_count_veto(e_counts, m_counts, cat)
 
                     # build 4l final state
                     tt = get_tt(baseline_e, baseline_m, baseline_t, cat)
                     lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
                     lltt = dR_lltt(lltt, cat)
-                    lltt = lltt[(lltt.tt.t1.charge * lltt.tt.t2.charge < 0)]
+                    charge = lltt.tt.t1.charge * lltt.tt.t2.charge
+                    lltt = lltt[charge > 0] if self.same_sign else lltt[charge < 0]
                     lltt = highest_LT(lltt)
+                    mask = np.ones(len(lltt), dtype=bool)
                     lltt = ak.fill_none(lltt.mask[mask], [], axis=0)
                     if len(ak.flatten(lltt)) == 0:
                         continue
@@ -513,7 +529,19 @@ class AnalysisProcessor(processor.ProcessorABC):
             cands, jets = cands[mask], baseline_j[mask]
             cands = ak.flatten(cands)
             if len(cands) == 0:
-                return self.output
+                continue
+
+            # get lepton count veto masks
+            lepton_count_veto_masks = get_lepton_count_veto_masks(
+                baseline_e[mask], baseline_m[mask], baseline_t[mask]
+            )
+            veto_mask = np.zeros(len(cands), dtype=bool)
+            for cat_str, cat_num in self.cat_to_num.items():
+                veto_mask = veto_mask | (
+                    lepton_count_veto_masks[cat_str] & (cands.cat == cat_num)
+                )
+            cands = cands[veto_mask]
+            jets = jets[veto_mask]
 
             # for data, fill in categories of reducible/fake and tight/loose
             if is_data:
@@ -539,7 +567,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             if not is_data:
 
                 # calculate baseline global event weights
-                global_weight = global_weights.weight()[mask]
+                global_weight = global_weights.weight()[mask][veto_mask]
 
                 # calculate the nominal btag event weights
                 bshift_weight = apply_btag_corrections(
@@ -681,21 +709,12 @@ class AnalysisProcessor(processor.ProcessorABC):
 
         fw1 = ak.nan_to_num(fr3 / (1 - fr3), nan=0, posinf=0, neginf=0)
         fw2 = ak.nan_to_num(fr4 / (1 - fr4), nan=0, posinf=0, neginf=0)
-        print("fw1", fw1)
-        print("fw2", fw2)
         ff = (~t1_tight_mask & ~t2_tight_mask) * fw1 * fw2
         pf = (t1_tight_mask & ~t2_tight_mask) * fw2
         fp = (~t1_tight_mask & t2_tight_mask) * fw1
-        print("t1_tight", t1_tight_mask)
-        print("t2_tight", t2_tight_mask)
-        print("ff", ff)
-        print("pf", pf)
-        print("fp", fp)
         out = pf + fp - ff
-        print("fake weights", out)
         # make sure data gets a weight of 1
         out = out + (t1_tight_mask & t2_tight_mask)
-        print("adjusted", out)
         return ak.unflatten(out, num)
 
     def fill_histos(
