@@ -11,8 +11,6 @@ import numba as nb
 import numpy as np
 import vector as vec
 from coffea import analysis_tools, processor
-from hist import Hist
-from hist.axis import IntCategory, Regular, StrCategory, Variable
 
 from azh_analysis.selections.preselections import (
     append_tight_masks,
@@ -47,6 +45,8 @@ from azh_analysis.utils.corrections import (
     shift_MET,
     tau_ID_weight,
 )
+from azh_analysis.utils.histograms import make_analysis_hist_stack
+from azh_analysis.utils.logging import init_logging
 
 warnings.filterwarnings("ignore")
 
@@ -102,9 +102,10 @@ class AnalysisProcessor(processor.ProcessorABC):
     ):
 
         # initialize member variables
-        self.init_logging(verbose=verbose)
+        init_logging(verbose=verbose)
         self.sync = sync
         self.info = sample_info
+        self.fileset = fileset
         self.collection_vars = collection_vars
         self.global_vars = global_vars
         self.blind = blind
@@ -195,141 +196,6 @@ class AnalysisProcessor(processor.ProcessorABC):
         logging.info(f"Kinematic systematic shifts: {self.kin_syst_shifts}")
         logging.info(f"Event-level systematic shifts: {self.event_syst_shifts}")
 
-        # bin variables along axes
-        group_axis = StrCategory(
-            name="group",
-            categories=[],
-            growth=True,
-        )
-        category_axis = StrCategory(
-            name="category",
-            categories=[],
-            growth=True,
-        )
-        sign_axis = IntCategory(
-            name="sign",
-            categories=[],
-            growth=True,
-        )
-        leg_axis = StrCategory(
-            name="leg",
-            categories=[],
-            growth=True,
-        )
-        btags_axis = IntCategory(
-            name="btags",
-            categories=[],
-            growth=True,
-        )
-        mass_type_axis = StrCategory(
-            name="mass_type",
-            categories=[],
-            growth=True,
-        )
-        syst_shift_axis = StrCategory(
-            name="syst_shift",
-            categories=[],
-            growth=True,
-        )
-
-        split_str = f"_{year}"
-        pt = {
-            dataset.split(split_str)[0]: Hist(
-                group_axis,
-                category_axis,
-                sign_axis,
-                leg_axis,
-                btags_axis,
-                syst_shift_axis,
-                Regular(name="pt", bins=10, start=0, stop=200),
-            )
-            for dataset in fileset.keys()
-        }
-        met = {
-            dataset.split(split_str)[0]: Hist(
-                group_axis,
-                category_axis,
-                sign_axis,
-                btags_axis,
-                syst_shift_axis,
-                Regular(name="met", bins=10, start=0, stop=200),
-            )
-            for dataset in fileset.keys()
-        }
-        mtt = {
-            dataset.split(split_str)[0]: Hist(
-                group_axis,
-                category_axis,
-                sign_axis,
-                mass_type_axis,
-                btags_axis,
-                syst_shift_axis,
-                Regular(name="mass", bins=20, start=0, stop=300),
-            )
-            for dataset in fileset.keys()
-        }
-
-        # if signal sample, adjust based on A mass
-        m4l = {
-            dataset.split(split_str)[0]: Hist(
-                group_axis,
-                category_axis,
-                sign_axis,
-                mass_type_axis,
-                btags_axis,
-                syst_shift_axis,
-                Variable(
-                    [
-                        200,
-                        220,
-                        240,
-                        260,
-                        280,
-                        300,
-                        320,
-                        340,
-                        360,
-                        380,
-                        400,
-                        450,
-                        550,
-                        700,
-                        1000,
-                        2400,
-                    ],
-                    name="mass",
-                ),
-            )
-            for dataset in fileset.keys()
-        }
-        mll = {
-            dataset.split(split_str)[0]: Hist(
-                group_axis,
-                category_axis,
-                sign_axis,
-                btags_axis,
-                syst_shift_axis,
-                Regular(name="mll", bins=10, start=60, stop=120),
-            )
-            for dataset in fileset.keys()
-        }
-
-        self.output = processor.dict_accumulator(
-            {
-                "mtt": processor.dict_accumulator(mtt),
-                "m4l": processor.dict_accumulator(m4l),
-                "mll": processor.dict_accumulator(mll),
-                "pt": processor.dict_accumulator(pt),
-                "met": processor.dict_accumulator(met),
-            }
-        )
-
-    def init_logging(self, verbose=False):
-        log_format = "%(asctime)s %(levelname)s %(message)s"
-        log_level = logging.DEBUG if verbose else logging.INFO
-        logging.basicConfig(level=log_level, format=log_format)
-        logging.info("Initializing processor logger.")
-
     def process(self, events):
         logging.info(f"Processing {events.metadata['dataset']}")
         filename = events.metadata["filename"]
@@ -342,6 +208,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         group = properties["group"][0]
         is_data = "data" in group
         nevts, xsec = properties["nevts"][0], properties["xsec"][0]
+        output = make_analysis_hist_stack(self.fileset, year)
 
         # if running on ntuples, need the pre-skim sum_of_weights
         if self.nevts_dict is not None:
@@ -351,7 +218,7 @@ class AnalysisProcessor(processor.ProcessorABC):
 
         # apply global event selections
         global_selections = analysis_tools.PackedSelection()
-        filter_MET(events, global_selections, year, UL=True, data=is_data)
+        filter_MET(events, global_selections, year, data=is_data)
         filter_PV(events, global_selections)
         if is_data:
             global_selections.add(
@@ -361,7 +228,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         global_mask = global_selections.all(*global_selections.names)
         events = events[global_mask]
         if len(events) == 0:
-            return self.output
+            return output
 
         # initial weights
         global_weights = analysis_tools.Weights(len(events), storeIndividual=True)
@@ -523,7 +390,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                     candidates[cat] = lltt
 
             if len(candidates) == 0:
-                return self.output
+                return output
             cands = ak.concatenate(list(candidates.values()), axis=1)
             cands["btags"] = b_counts
             mask = ak.num(cands) == 1
@@ -553,6 +420,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         continue
                     fastmtt_out = self.run_fastmtt(cands_group) if self.fastmtt else {}
                     self.fill_histos(
+                        output,
                         cands_group,
                         cands_group["weight"],
                         fastmtt_out,
@@ -562,7 +430,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         syst_shift="none",
                         blind=self.blind,
                     )
-                return self.output
+                return output
 
             # if MC
             if not is_data:
@@ -631,6 +499,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         syst_shift = k_shift
 
                     self.fill_histos(
+                        output,
                         cands,
                         w,
                         fastmtt_out,
@@ -641,7 +510,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         blind=(is_data and self.blind),
                     )
 
-        return self.output
+        return output
 
     def get_fake_weights(self, lltt, cat):
         t1_tight_mask, t2_tight_mask = lltt.t1_tight, lltt.t2_tight
@@ -720,6 +589,7 @@ class AnalysisProcessor(processor.ProcessorABC):
 
     def fill_histos(
         self,
+        output,
         lltt,
         weight,
         fastmtt_out,
@@ -746,7 +616,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         # fill the lltt leg four-vectors
         for leg, label in label_dict.items():
             p4 = lltt[leg[0]][leg[1]]
-            self.output["pt"][name].fill(
+            output["pt"][name].fill(
                 group=group,
                 category=cats,
                 sign=signs,
@@ -759,7 +629,7 @@ class AnalysisProcessor(processor.ProcessorABC):
 
         # fill the mass of the dilepton system w/ various systematic shifts
         mll = np_flat((lltt["ll"]["l1"] + lltt["ll"]["l2"]).mass)
-        self.output["mll"][name].fill(
+        output["mll"][name].fill(
             group=group,
             category=cats,
             sign=signs,
@@ -770,7 +640,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         )
         # fill the met with various systematics considered
         met = np_flat(lltt.MET.pt)
-        self.output["met"][name].fill(
+        output["met"][name].fill(
             group=group,
             category=cats,
             sign=signs,
@@ -795,7 +665,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         if blind:
             blind_mask[((mtt > 40) & (mtt < 120) & (signs < 0))] = False
         if sum(blind_mask) > 0:
-            self.output["mtt"][name].fill(
+            output["mtt"][name].fill(
                 group=group,
                 category=cats[blind_mask],
                 sign=signs[blind_mask],
@@ -805,7 +675,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 mass=mtt[blind_mask],
                 weight=weight[blind_mask],
             )
-            self.output["m4l"][name].fill(
+            output["m4l"][name].fill(
                 group=group,
                 category=cats[blind_mask],
                 sign=signs[blind_mask],
@@ -820,7 +690,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             for mass_label, mass_data in fastmtt_out.items():
                 key = mass_label.split("_")[0]  # mtt or m4l
                 mass_type = mass_label.split("_")[1]  # corr or cons
-                self.output[key][name].fill(
+                output[key][name].fill(
                     group=group,
                     category=cats[blind_mask],
                     sign=signs[blind_mask],
@@ -872,8 +742,6 @@ class AnalysisProcessor(processor.ProcessorABC):
         map_it = {"e": 0, "m": 1, "t": 2}
         t1_cats = np.array([map_it[self.categories[cat][2]] for cat in cats])
         t2_cats = np.array([map_it[self.categories[cat][3]] for cat in cats])
-        print("t1_cats", t1_cats)
-        print("t2_cats", t2_cats)
         return fastmtt(
             np_flat(l1.pt).astype(np.float64),
             np_flat(l1.eta).astype(np.float64),
@@ -906,7 +774,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         pass
 
 
-@nb.jit(nopython=True, parallel=False)
+@nb.jit(nopython=True)
 def fastmtt(
     pt_1,
     eta_1,

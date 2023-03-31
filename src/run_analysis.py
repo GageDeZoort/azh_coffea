@@ -5,7 +5,7 @@ import logging
 import time
 from os.path import join
 
-from coffea import processor, util
+from coffea import processor
 from coffea.lumi_tools import LumiMask
 from coffea.nanoevents import NanoAODSchema
 
@@ -16,11 +16,12 @@ from azh_analysis.utils.corrections import (
     get_electron_ID_weights,
     get_electron_trigger_SFs,
     get_fake_rates,
+    get_muon_ES_weights,
     get_muon_ID_weights,
     get_muon_trigger_SFs,
+    get_pileup_weights,
     get_tau_ID_weights,
 )
-from azh_analysis.utils.pileup import get_pileup_tables
 from azh_analysis.utils.sample import get_fileset, get_nevts_dict, get_sample_info
 
 
@@ -30,11 +31,11 @@ def parse_args():
     add_arg = parser.add_argument
     add_arg("-y", "--year", default="2018")
     add_arg("-s", "--source", default=None)
-    add_arg("--sample", default="")
     add_arg("--start-idx", default=-1)
     add_arg("--end-idx", default=-1)
     add_arg("--outdir", default=".")
     add_arg("--outfile", default="")
+    add_arg("--sample", default="")
     add_arg("--test-mode", action="store_true")
     add_arg("-v", "--verbose", default=False)
     add_arg("--show-config", action="store_true")
@@ -42,6 +43,9 @@ def parse_args():
     add_arg("--min-workers", type=int, default=50)
     add_arg("--max-workers", type=int, default=300)
     add_arg("--mass", type=str, default="")
+    add_arg("--use-coffea-frs", action="store_true")
+    add_arg("--systematic", default=None)
+    add_arg("--same-sign", action="store_true")
     return parser.parse_args()
 
 
@@ -69,7 +73,7 @@ lumi_masks = {year: LumiMask(golden_json) for year, golden_json in golden_jsons.
 
 # load up fake rates
 fr_base = f"corrections/fake_rates/UL_{year}"
-fake_rates = get_fake_rates(fr_base, year)
+fake_rates = get_fake_rates(fr_base, year, origin="_coffea")
 logging.info(f"Using fake rates\n{fr_base}")
 
 # load up electron / muon / tau IDs
@@ -84,6 +88,8 @@ mID_base = f"corrections/muon_ID/UL_{year}"
 mID_file = join(mID_base, f"Muon_RunUL{year}_IdIso_AZh_IsoLt0p15_IdLoose.root")
 mIDs = get_muon_ID_weights(mID_file)
 logging.info(f"Using mID_SFs:\n{mID_file}")
+
+mES_SFs = get_muon_ES_weights("corrections/muon_ES/", year)
 
 tID_base = f"corrections/tau_ID/UL_{year}"
 tID_file = join(tID_base, "tau.corr.json")
@@ -120,9 +126,9 @@ btag_SFs = get_btag_SFs(btag_root, "2018", UL=True)
 fset_string = f"{source}_{year}"
 sample_info = get_sample_info(join("samples", fset_string + ".csv"))
 fileset = get_fileset(join("samples/filesets", fset_string + ".yaml"))
-pileup_tables = get_pileup_tables(
-    fileset.keys(), year, UL=True, pileup_dir="corrections/pileup"
-)
+pileup_weights = None
+if "MC" in args.source or "signal" in args.source:
+    pileup_weights = get_pileup_weights("corrections/pileup/", year=year)
 
 # load up signal MC csv / yaml files
 if args.test_mode:
@@ -130,7 +136,9 @@ if args.test_mode:
 if len(args.sample) > 0:
     fileset = {k: v for k, v in fileset.items() if args.sample in k}
 elif "signal" in args.source:
-    fileset = {k: v for k, v in fileset.items() if args.mass in k}
+    fileset = {k: v for k, v in fileset.items() if f"M{args.mass}" in k}
+if len(args.sample) > 0:
+    fileset = {k: v for k, v in fileset.items() if (args.sample in k)}
 
 # only run over root files
 for sample, files in fileset.items():
@@ -155,15 +163,20 @@ logging.info(f"Successfully built dyjets stitch weights:\n {dyjets_weights}")
 # start timer, initiate cluster, ship over files
 tic = time.time()
 
+infiles = ["azh_analysis"]
+
 # instantiate processor module
 proc_instance = AnalysisProcessor(
+    source=args.source,
+    year=args.year,
     sample_info=sample_info,
     fileset=fileset,
-    pileup_tables=pileup_tables,
+    pileup_weights=pileup_weights,
     lumi_masks=lumi_masks,
     nevts_dict=nevts_dict,
     eleID_SFs=eIDs,
     muID_SFs=mIDs,
+    muES_SFs=mES_SFs,
     tauID_SFs=tIDs,
     e_trig_SFs=e_trig_SFs,
     m_trig_SFs=m_trig_SFs,
@@ -174,28 +187,20 @@ proc_instance = AnalysisProcessor(
     btag_pt_bins=btag_tables[1],
     btag_eta_bins=btag_tables[2],
     run_fastmtt=True,
+    systematic=args.systematic,
+    same_sign=args.same_sign,
+    blind=not args.same_sign,
 )
 
+chunksize = 10000 if "data" in args.source else 25000
 futures_run = processor.Runner(
-    executor=processor.FuturesExecutor(compression=None, workers=1),
+    executor=processor.FuturesExecutor(status=True, workers=2),
     schema=NanoAODSchema,
+    chunksize=chunksize,
 )
 
-out = futures_run(
+futures_run(
     fileset,
-    "Events",
+    treename="Events",
     processor_instance=proc_instance,
 )
-
-logging.info(f"Output: {out}")
-
-# measure, report summary statistics
-elapsed = time.time() - tic
-logging.info(f"Finished in {elapsed:.1f}s")
-
-# dump output
-outfile = time.strftime("%m-%d") + ".coffea"
-namestring = f"{source}_{year}"
-if len(args.outfile) > 0:
-    namestring = args.outfile
-util.save(out, join(args.outdir, f"{namestring}_{outfile}"))
