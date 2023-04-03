@@ -198,7 +198,7 @@ else:
     cluster.scale(250)
 
 client = Client(cluster)
-n_wait = 10
+n_wait = 1 if args.test_mode else 5
 logging.info(f"Waiting for at least {n_wait} workers...")
 client.wait_for_workers(n_wait)
 
@@ -243,7 +243,7 @@ hists, metrics = processor.run_uproot_job(
     processor_instance=proc_instance,
     executor=processor.dask_executor,
     executor_args=exe_args,
-    chunksize=25000,
+    chunksize=chunksize,
 )
 
 logging.info(f"Output: {hists}\n{metrics}")
