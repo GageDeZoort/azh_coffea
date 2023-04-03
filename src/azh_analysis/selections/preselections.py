@@ -397,19 +397,18 @@ def lepton_count_veto_jitted(
     for i in range(nevts):
         start, stop = offsets[i], offsets[i + 1]
         e_ids, m_ids = [], []
-        for j in range(start, stop):
-            if cat > 4:
-                m_ids.extend(i1_content[start:stop])
-                m_ids.extend(i2_content[start:stop])
-            if cat == 2:
-                m_ids.extend(i3_content[start:stop])
-            if cat == 4:
-                m_ids.extend(i4_content[start:stop])
-            if cat < 5:
-                e_ids.extend(i1_content[start:stop])
-                e_ids.extend(i2_content[start:stop])
-            if (cat == 8) or (cat == 5):
-                e_ids.extend(i3_content[start:stop])
+        if cat > 4:
+            m_ids.extend(i1_content[start:stop])
+            m_ids.extend(i2_content[start:stop])
+        if cat == 2:
+            m_ids.extend(i3_content[start:stop])
+        if cat == 4:
+            m_ids.extend(i4_content[start:stop])
+        if cat < 5:
+            e_ids.extend(i1_content[start:stop])
+            e_ids.extend(i2_content[start:stop])
+        if (cat == 8) or (cat == 5):
+            e_ids.extend(i3_content[start:stop])
 
         ne, nm = len(set(e_ids)), len(set(m_ids))
         if cat == 1:
