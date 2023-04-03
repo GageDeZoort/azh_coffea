@@ -374,7 +374,16 @@ def check_trigger_path(HLT, year, cat, sync=False):
 
 
 # in use
-@nb.njit
+@nb.njit(
+    nb.int64[:](
+        nb.types.int8,
+        nb.int64[:],
+        nb.int64[:],
+        nb.int64[:],
+        nb.int64[:],
+        nb.int64[:],
+    )
+)
 def lepton_count_veto_jitted(
     cat,
     offsets,
@@ -384,51 +393,49 @@ def lepton_count_veto_jitted(
     i4_content,
 ):
     nevts = len(offsets) - 1
-    output = np.zeros(nevts)
+    output = np.zeros(nevts, dtype=nb.int64)
     for i in range(nevts):
         start, stop = offsets[i], offsets[i + 1]
         e_ids, m_ids = [], []
         for j in range(start, stop):
-            if cat[0] == "m":
-                m_ids.append(i1_content[j])
-                m_ids.append(i2_content[j])
-            if cat == "eemt":
-                m_ids.append(i3_content[j])
-            if cat == "eeem":
-                m_ids.append(i4_content[j])
-            if cat[0] == "e":
-                e_ids.append(i1_content[j])
-                e_ids.append(i2_content[j])
-            if (cat == "mmem") or (cat == "mmet"):
-                e_ids.append(i3_content[j])
+            if cat > 4:
+                m_ids.extend(i1_content[start:stop])
+                m_ids.extend(i2_content[start:stop])
+            if cat == 2:
+                m_ids.extend(i3_content[start:stop])
+            if cat == 4:
+                m_ids.extend(i4_content[start:stop])
+            if cat < 5:
+                e_ids.extend(i1_content[start:stop])
+                e_ids.extend(i2_content[start:stop])
+            if (cat == 8) or (cat == 5):
+                e_ids.extend(i3_content[start:stop])
 
-        # e_ids, m_ids = np.array(e_ids), np.array(m_ids)
-        # ne, nm = len(np.unique(e_ids)), len(np.unique(m_ids))
         ne, nm = len(set(e_ids)), len(set(m_ids))
-        if cat == "eeem":
-            ec = ne == 3
-            mc = nm == 1
-        if cat == "eeet":
+        if cat == 1:
             ec = ne == 3
             mc = nm == 0
-        if cat == "eemt":
+        if cat == 2:
             ec = ne == 2
             mc = nm == 1
-        if cat == "eett":
+        if cat == 3:
             ec = ne == 2
             mc = nm == 0
-        if cat == "mmem":
-            ec = ne == 1
-            mc = nm == 3
-        if cat == "mmet":
+        if cat == 4:
+            ec = ne == 3
+            mc = nm == 1
+        if cat == 5:
             ec = ne == 1
             mc = nm == 2
-        if cat == "mmmt":
+        if cat == 6:
             ec = ne == 0
             mc = nm == 3
-        if cat == "mmtt":
+        if cat == 7:
             ec = ne == 0
             mc = nm == 2
+        if cat == 8:
+            ec = ne == 1
+            mc = nm == 3
         output[i] = ec & mc
     return output
 
@@ -445,10 +452,11 @@ def lepton_count_veto(lltt, cat):
     i2.behavior = None
     i3.behavior = None
     i4.behavior = None
-    i1_content, offsets = np.array(i1.layout.content), np.array(i1.layout.offsets)
-    i2_content = np.array(i2.layout.content)
-    i3_content = np.array(i3.layout.content)
-    i4_content = np.array(i4.layout.content)
+    offsets = np.array(i1.layout.offsets, dtype=np.int64)
+    i1_content = np.array(i1.layout.content, dtype=np.int64)
+    i2_content = np.array(i2.layout.content, dtype=np.int64)
+    i3_content = np.array(i3.layout.content, dtype=np.int64)
+    i4_content = np.array(i4.layout.content, dtype=np.int64)
     return np.array(
         lepton_count_veto_jitted(
             cat,
@@ -463,7 +471,7 @@ def lepton_count_veto(lltt, cat):
 
 
 # in use
-def get_lepton_count_veto_masks(baseline_e, baseline_m, baseline_t):
+def get_lepton_count_veto_masks(cat_to_num, baseline_e, baseline_m, baseline_t):
     baseline_e["idx"] = ak.local_index(baseline_e)
     baseline_m["idx"] = ak.local_index(baseline_m)
     baseline_t["idx"] = ak.local_index(baseline_t)
@@ -478,7 +486,7 @@ def get_lepton_count_veto_masks(baseline_e, baseline_m, baseline_t):
             tt = ak.cartesian({"t1": leps[cat[2]], "t2": leps[cat[3]]}, axis=1)
         lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
         lltt = dR_lltt(lltt, cat=cat)
-        vetoes[cat] = lepton_count_veto(lltt, cat)
+        vetoes[cat] = lepton_count_veto(lltt, cat_to_num[cat])
     return vetoes
 
 
