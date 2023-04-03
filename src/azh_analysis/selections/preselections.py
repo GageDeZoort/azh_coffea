@@ -8,9 +8,9 @@ import numpy as np
 
 
 # in use
-def filter_MET(events, selections, year, UL=True, data=False):
+def filter_MET(events, selections, year, data=False):
     flags = events.Flag
-    if ((year == "2017") or (year == "2018")) and UL:
+    if (year == "2017") or (year == "2018"):
         MET_filter = (
             flags.goodVertices
             & flags.globalSuperTightHalo2016Filter
@@ -23,7 +23,7 @@ def filter_MET(events, selections, year, UL=True, data=False):
         )
         # MET_filter = MET_filter & flags.BadPFMuonDzFilter
 
-    if ("2016" in year) and UL:
+    elif "2016" in year:
         MET_filter = (
             flags.goodVertices
             & flags.globalSuperTightHalo2016Filter
@@ -34,26 +34,8 @@ def filter_MET(events, selections, year, UL=True, data=False):
             & flags.BadPFMuonDzFilter
             & flags.eeBadScFilter
         )
-    if ((year == "2018") or (year == "2017")) and not UL:
-        MET_filter = (
-            flags.goodVertices
-            & flags.globalSuperTightHalo2016Filter
-            & flags.HBHENoiseFilter
-            & flags.HBHENoiseIsoFilter
-            & flags.EcalDeadCellTriggerPrimitiveFilter
-            & flags.BadPFMuonFilter
-            & flags.ecalBadCalibFilterV2
-        )
-    if ("2016" in year) and not UL:
-        MET_filter = (
-            flags.goodVertices
-            & flags.globalSuperTightHalo2016Filter
-            & flags.HBHENoiseFilter
-            & flags.HBHENoiseIsoFilter
-            & flags.EcalDeadCellTriggerPrimitiveFilter
-            & flags.BadPFMuonFilter
-        )
-
+    else:
+        raise Exception("Please enter a valid year.")
     selections.add("met_filter", MET_filter)
 
 
@@ -391,79 +373,104 @@ def check_trigger_path(HLT, year, cat, sync=False):
     return triggered
 
 
+# in use
 @nb.njit
-def lepton_count_veto(builder, idx1, idx2, idx3, idx4, cat):
-    for i in range(len(idx1)):
-        i1, i2, i3, i4 = idx1[i], idx2[i], idx3[i], idx4[i]
-        builder.begin_list()
-        e, m = [], []
-        for j in range(len(i1)):
+def lepton_count_veto_jitted(
+    cat,
+    offsets,
+    i1_content,
+    i2_content,
+    i3_content,
+    i4_content,
+):
+    nevts = len(offsets) - 1
+    output = np.zeros(nevts)
+    for i in range(nevts):
+        start, stop = offsets[i], offsets[i + 1]
+        e_ids, m_ids = [], []
+        for j in range(start, stop):
             if cat[0] == "m":
-                m.append(int(i1[j]))
-                m.append(int(i2[j]))
+                m_ids.append(i1_content[j])
+                m_ids.append(i2_content[j])
             if cat == "eemt":
-                m.append(int(i3[j]))
+                m_ids.append(i3_content[j])
             if cat == "eeem":
-                m.append(int(i4[j]))
+                m_ids.append(i4_content[j])
             if cat[0] == "e":
-                e.append(int(i1[j]))
-                e.append(int(i2[j]))
+                e_ids.append(i1_content[j])
+                e_ids.append(i2_content[j])
             if (cat == "mmem") or (cat == "mmet"):
-                e.append(int(i3[j]))
-        e, m = np.array(e), np.array(m)
-        ne, nm = len(np.unique(e)), len(np.unique(m))
+                e_ids.append(i3_content[j])
+
+        # e_ids, m_ids = np.array(e_ids), np.array(m_ids)
+        # ne, nm = len(np.unique(e_ids)), len(np.unique(m_ids))
+        ne, nm = len(set(e_ids)), len(set(m_ids))
         if cat == "eeem":
             ec = ne == 3
             mc = nm == 1
-        elif cat == "eeet":
+        if cat == "eeet":
             ec = ne == 3
             mc = nm == 0
-        elif cat == "eemt":
+        if cat == "eemt":
             ec = ne == 2
             mc = nm == 1
-        elif cat == "eett":
+        if cat == "eett":
             ec = ne == 2
             mc = nm == 0
-        elif cat == "mmem":
+        if cat == "mmem":
             ec = ne == 1
             mc = nm == 3
-        elif cat == "mmet":
+        if cat == "mmet":
             ec = ne == 1
             mc = nm == 2
-        elif cat == "mmmt":
+        if cat == "mmmt":
             ec = ne == 0
             mc = nm == 3
-        elif cat == "mmtt":
+        if cat == "mmtt":
             ec = ne == 0
             mc = nm == 2
-        else:
-            raise Exception("Please enter a valid category")
-        builder.append(ec and mc)
-        builder.end_list()
-    return builder
+        output[i] = ec & mc
+    return output
 
 
+# in use
+def lepton_count_veto(lltt, cat):
+    i1, i2 = ak.values_astype(lltt.ll.l1.idx, int), ak.values_astype(
+        lltt.ll.l2.idx, int
+    )
+    i3, i4 = ak.values_astype(lltt.tt.t1.idx, int), ak.values_astype(
+        lltt.tt.t2.idx, int
+    )
+    i1.behavior = None
+    i2.behavior = None
+    i3.behavior = None
+    i4.behavior = None
+    i1_content, offsets = np.array(i1.layout.content), np.array(i1.layout.offsets)
+    i2_content = np.array(i2.layout.content)
+    i3_content = np.array(i3.layout.content)
+    i4_content = np.array(i4.layout.content)
+    return np.array(
+        lepton_count_veto_jitted(
+            cat,
+            offsets,
+            i1_content,
+            i2_content,
+            i3_content,
+            i4_content,
+        ),
+        dtype=bool,
+    )
+
+
+# in use
 def get_lepton_count_veto_masks(baseline_e, baseline_m, baseline_t):
     baseline_e["idx"] = ak.local_index(baseline_e)
     baseline_m["idx"] = ak.local_index(baseline_m)
     baseline_t["idx"] = ak.local_index(baseline_t)
-    cats = ["warmup", "eeem", "eeet", "eemt", "eett", "mmem", "mmet", "mmmt", "mmtt"]
-    vetos = {}
+    cats = ["eeem", "eeet", "eemt", "eett", "mmem", "mmet", "mmmt", "mmtt"]
+    vetoes = {}
     leps = {"e": baseline_e, "m": baseline_m, "t": baseline_t}
     for cat in cats:
-        if cat == "warmup":
-            ll = ak.combinations(baseline_e[:2], 2, axis=1, fields=["l1", "l2"])
-            tt = ak.combinations(baseline_t[:2], 2, axis=1, fields=["t1", "t2"])
-            lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
-            lltt = dR_lltt(lltt, cat="eett")
-            i1, i2 = ak.values_astype(lltt.ll.l1.idx, int), ak.values_astype(
-                lltt.ll.l2.idx, int
-            )
-            i3, i4 = ak.values_astype(lltt.tt.t1.idx, int), ak.values_astype(
-                lltt.tt.t2.idx, int
-            )
-            lepton_count_veto(ak.ArrayBuilder(), i1, i2, i3, i4, "eett")
-            continue
         ll = ak.combinations(leps[cat[0]], 2, axis=1, fields=["l1", "l2"])
         if cat[2:] == "tt":
             tt = ak.combinations(leps["t"], 2, axis=1, fields=["t1", "t2"])
@@ -471,16 +478,8 @@ def get_lepton_count_veto_masks(baseline_e, baseline_m, baseline_t):
             tt = ak.cartesian({"t1": leps[cat[2]], "t2": leps[cat[3]]}, axis=1)
         lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
         lltt = dR_lltt(lltt, cat=cat)
-        i1, i2 = ak.values_astype(lltt.ll.l1.idx, int), ak.values_astype(
-            lltt.ll.l2.idx, int
-        )
-        i3, i4 = ak.values_astype(lltt.tt.t1.idx, int), ak.values_astype(
-            lltt.tt.t2.idx, int
-        )
-        vetos[cat] = ak.flatten(
-            lepton_count_veto(ak.ArrayBuilder(), i1, i2, i3, i4, cat)
-        )
-    return vetos
+        vetoes[cat] = lepton_count_veto(lltt, cat)
+    return vetoes
 
 
 def bjetveto(baseline_b):
