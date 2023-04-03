@@ -470,14 +470,23 @@ def lepton_count_veto(lltt, cat):
 
 
 # in use
-def get_lepton_count_veto_masks(cat_to_num, baseline_e, baseline_m, baseline_t):
+def get_lepton_count_veto_masks(baseline_e, baseline_m, baseline_t):
     baseline_e["idx"] = ak.local_index(baseline_e)
     baseline_m["idx"] = ak.local_index(baseline_m)
     baseline_t["idx"] = ak.local_index(baseline_t)
-    cats = ["eeem", "eeet", "eemt", "eett", "mmem", "mmet", "mmmt", "mmtt"]
+    cat_to_num = {
+        "eeet": 1,
+        "eemt": 2,
+        "eett": 3,
+        "eeem": 4,
+        "mmet": 5,
+        "mmmt": 6,
+        "mmtt": 7,
+        "mmem": 8,
+    }
     vetoes = {}
     leps = {"e": baseline_e, "m": baseline_m, "t": baseline_t}
-    for cat in cats:
+    for cat, num in cat_to_num.items():
         ll = ak.combinations(leps[cat[0]], 2, axis=1, fields=["l1", "l2"])
         if cat[2:] == "tt":
             tt = ak.combinations(leps["t"], 2, axis=1, fields=["t1", "t2"])
@@ -485,7 +494,7 @@ def get_lepton_count_veto_masks(cat_to_num, baseline_e, baseline_m, baseline_t):
             tt = ak.cartesian({"t1": leps[cat[2]], "t2": leps[cat[3]]}, axis=1)
         lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
         lltt = dR_lltt(lltt, cat=cat)
-        vetoes[cat] = lepton_count_veto(lltt, cat_to_num[cat])
+        vetoes[cat] = lepton_count_veto(lltt, num)
     return vetoes
 
 

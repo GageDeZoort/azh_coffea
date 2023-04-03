@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
-
-# import time
+import time
 import warnings
 
 import awkward as ak
@@ -377,8 +376,10 @@ class AnalysisProcessor(processor.ProcessorABC):
                         ]
                         if len(ak.flatten(lltt)) == 0:
                             continue
+                        t0 = time.time()
                         lepton_IDs = self.apply_lepton_ID_SFs(lltt, cat)
                         lltt["weight"] = lltt.weight * lepton_IDs
+                        print(f"Lepton IDs: {time.time() - t0}")
 
                     # otherwise, if data apply the fake weights
                     else:
@@ -400,6 +401,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 continue
 
             # get lepton count veto masks
+            t0 = time.time()
             lepton_count_veto_masks = get_lepton_count_veto_masks(
                 baseline_e[mask], baseline_m[mask], baseline_t[mask]
             )
@@ -410,6 +412,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 )
             cands = cands[veto_mask]
             jets = jets[veto_mask]
+            print(f"Lepton count veto: {time.time() - t0}")
 
             # for data, fill in categories of reducible/fake and tight/loose
             if is_data:
@@ -438,6 +441,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 # calculate baseline global event weights
                 global_weight = global_weights.weight()[mask][veto_mask]
 
+                t0 = time.time()
                 # calculate the nominal btag event weights
                 bshift_weight = apply_btag_corrections(
                     jets,
@@ -448,11 +452,14 @@ class AnalysisProcessor(processor.ProcessorABC):
                     dataset,
                     shift="central",
                 )
+                print(f"Bshift weights {time.time() - t0}")
 
                 # run fastmtt
                 fastmtt_out = {}
                 if self.fastmtt:
+                    t0 = time.time()
                     fastmtt_out = self.run_fastmtt(cands)
+                    print(f"FastMTT {time.time() - t0}")
 
                 # loop over systematic shifts for the event weights
                 for e_shift in self.event_syst_shifts:
@@ -498,6 +505,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                     if k_shift != "nom":
                         syst_shift = k_shift
 
+                    t0 = time.time()
                     self.fill_histos(
                         output,
                         cands,
@@ -509,6 +517,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         syst_shift=syst_shift,
                         blind=(is_data and self.blind),
                     )
+                    print(f"Fill histograms: {time.time() - t0}")
 
         return output
 
