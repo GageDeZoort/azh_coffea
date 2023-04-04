@@ -7,15 +7,11 @@ import awkward as ak
 import numpy as np
 from coffea import analysis_tools, processor
 
-# from coffea.processor import column_accumulator as col_acc
-from hist import Hist
-from hist.axis import IntCategory, Regular, StrCategory
-
 from azh_analysis.selections.fake_rate_selections import (
     additional_cuts,
     dr_3l,
+    get_lepton_count_veto_mask,
     is_prompt_lepton,
-    lepton_count_veto_3l,
     tight_hadronic_taus,
     transverse_mass,
 )
@@ -40,8 +36,14 @@ from azh_analysis.utils.corrections import (
     apply_unclMET_shifts,
     lepton_ID_weight,
     lepton_trig_weight,
+    shift_MET,
     tau_ID_weight_3l,
 )
+from azh_analysis.utils.histograms import make_fr_hist_stack
+from azh_analysis.utils.logging import init_logging
+
+# from coffea.processor import column_accumulator as col_acc
+
 
 warnings.filterwarnings("ignore")
 
@@ -68,6 +70,7 @@ class FakeRateProcessor(processor.ProcessorABC):
         eleID_SFs=None,
         muID_SFs=None,
         tauID_SFs=None,
+        muES_SFs=None,
         dyjets_weights=None,
         e_trig_SFs=None,
         m_trig_SFs=None,
@@ -75,8 +78,9 @@ class FakeRateProcessor(processor.ProcessorABC):
     ):
 
         # initialize member variables
-        self.init_logging(verbose=verbose)
+        init_logging(verbose=verbose)
         self.info = sample_info
+        self.fileset = fileset
 
         self.eras = {
             "2016preVFP": "Summer16",
@@ -96,115 +100,10 @@ class FakeRateProcessor(processor.ProcessorABC):
         self.eleID_SFs = eleID_SFs
         self.muID_SFs = muID_SFs
         self.tauID_SFs = tauID_SFs
+        self.muES_SFs = muES_SFs
         self.e_trig_SFs = e_trig_SFs
         self.m_trig_SFs = m_trig_SFs
         self.dyjets_weights = dyjets_weights
-
-        # bin variables along axes
-        group_axis = StrCategory(
-            name="group",
-            categories=[],
-            growth=True,
-        )
-        category_axis = StrCategory(
-            name="category",
-            categories=[],
-            growth=True,
-        )
-        prompt_axis = StrCategory(
-            name="prompt",
-            categories=[],
-            growth=True,
-        )
-        numerator_axis = StrCategory(
-            name="numerator",
-            categories=[],
-            growth=True,
-        )
-        pt_axis = StrCategory(
-            name="pt_bin",
-            categories=[],
-            growth=True,
-        )
-        eta_axis = StrCategory(
-            name="eta_bin",
-            categories=[],
-            growth=True,
-        )
-        decay_mode_axis = IntCategory(
-            [-1, 0, 1, 2, 10, 11, 15],
-            name="decay_mode",
-        )
-
-        pt = {
-            dataset.split(f"_{year}")[0]: Hist(
-                group_axis,
-                category_axis,
-                prompt_axis,
-                numerator_axis,
-                decay_mode_axis,
-                pt_axis,
-                eta_axis,
-                Regular(name="pt", bins=30, start=0, stop=300),
-            )
-            for dataset in fileset.keys()
-        }
-        met = {
-            dataset.split(f"_{year}")[0]: Hist(
-                group_axis,
-                category_axis,
-                prompt_axis,
-                numerator_axis,
-                decay_mode_axis,
-                pt_axis,
-                eta_axis,
-                Regular(name="met", bins=30, start=0, stop=300),
-            )
-            for dataset in fileset.keys()
-        }
-
-        mll = {
-            dataset.split(f"_{year}")[0]: Hist(
-                group_axis,
-                category_axis,
-                prompt_axis,
-                numerator_axis,
-                decay_mode_axis,
-                pt_axis,
-                eta_axis,
-                Regular(name="mll", bins=20, start=60, stop=120),
-            )
-            for dataset in fileset.keys()
-        }
-
-        mT = {
-            dataset.split(f"_{year}")[0]: Hist(
-                group_axis,
-                category_axis,
-                prompt_axis,
-                numerator_axis,
-                decay_mode_axis,
-                pt_axis,
-                eta_axis,
-                Regular(name="mT", bins=30, start=0, stop=300),
-            )
-            for dataset in fileset.keys()
-        }
-
-        self.output = processor.dict_accumulator(
-            {
-                "mll": processor.dict_accumulator(mll),
-                "pt": processor.dict_accumulator(pt),
-                "met": processor.dict_accumulator(met),
-                "mT": processor.dict_accumulator(mT),
-            }
-        )
-
-    def init_logging(self, verbose=False):
-        log_format = "%(asctime)s %(levelname)s %(message)s"
-        log_level = logging.DEBUG if verbose else logging.INFO
-        logging.basicConfig(level=log_level, format=log_format)
-        logging.info("Initializing processor logger.")
 
     def process(self, events):
         logging.info(f"Processing {events.metadata['dataset']}")
@@ -218,6 +117,7 @@ class FakeRateProcessor(processor.ProcessorABC):
         group = properties["group"][0]
         is_data = "data" in group
         nevts, xsec = properties["nevts"][0], properties["xsec"][0]
+        output = make_fr_hist_stack(self.fileset, year)
 
         # if running on ntuples, need the pre-skim sum_of_weights
         if self.nevts_dict is not None:
@@ -232,45 +132,77 @@ class FakeRateProcessor(processor.ProcessorABC):
 
         # apply global event selections
         global_selections = analysis_tools.PackedSelection()
-        filter_MET(events, global_selections, year, UL=True, data=is_data)
+        filter_MET(events, global_selections, year, data=is_data)
         filter_PV(events, global_selections)
+        if is_data:
+            global_selections.add(
+                "lumi_mask",
+                self.lumi_masks[year](events.run, events.luminosityBlock),
+            )
         global_mask = global_selections.all(*global_selections.names)
         events = events[global_mask]
 
         # global weights: sample weight, gen weight, pileup weight
         weights = analysis_tools.Weights(len(events), storeIndividual=True)
         ones = np.ones(len(events), dtype=float)
+
+        # sample weights OR dyjets stitching weights
         if group == "DY":
             njets = ak.to_numpy(events.LHE.Njets)
             weights.add("dyjets_sample_weights", self.dyjets_weights(njets))
         else:  # otherwise weight by luminosity ratio
             weights.add("sample_weight", ones * sample_weight)
+
+        # pileup weights and gen weights
         if (self.pileup_weights is not None) and not is_data:
             weights.add("gen_weight", events.genWeight)
-            pu_weights = self.pileup_weights(events.Pileup.nTrueInt)
+            pu_weights = self.pileup_weights["nom"](events.Pileup.nTrueInt)
             weights.add("pileup_weight", pu_weights)
-        if is_data:  # golden json weighleting
-            lumi_mask = self.lumi_masks[year]
-            lumi_mask = lumi_mask(events.run, events.luminosityBlock)
-            weights.add("lumi_mask", lumi_mask)
+
+        # L1 prefiring weights if available
+        if not is_data:
+            try:
+                weights.add(
+                    "l1prefire",
+                    weight=events.L1PreFiringWeight.Nom,
+                    weightUp=events.L1PreFiringWeight.Up,
+                    weightDown=events.L1PreFiringWeight.Dn,
+                )
+                self.has_L1PreFiringWeight = True
+            except Exception:
+                logging.info(f"No prefiring weights in {dataset}.")
+                self.has_L1PreFiringWeight = False
 
         # grab baseline defined leptons
-        baseline_e = get_baseline_electrons(events.Electron)
-        baseline_m = get_baseline_muons(events.Muon)
-        baseline_t = get_baseline_taus(events.Tau, loose=True)
+        baseline_e, e_shifts = apply_eleES(
+            get_baseline_electrons(events.Electron),
+            "nom",
+            "nom",
+            is_data=is_data,
+        )
+        baseline_m, m_shifts = apply_muES(
+            get_baseline_muons(events.Muon), self.muES_SFs, "nom", is_data=is_data
+        )
+        baseline_t, t_shifts = apply_tauES(
+            get_baseline_taus(events.Tau),
+            self.tauID_SFs,
+            "nom",
+            "nom",
+            "nom",
+            is_data=is_data,
+        )
         baseline_l = {"e": baseline_e, "m": baseline_m, "t": baseline_t}
 
         # grab tight electrons and muons, count them
         tight_e = baseline_e[tight_electrons(baseline_e)]
         tight_m = baseline_m[tight_muons(baseline_m)]
-        e_counts = ak.num(tight_e)
-        m_counts = ak.num(tight_m)
 
         # grab met,
         MET = events.MET
         MET["pt"] = MET.T1_pt
         MET["phi"] = MET.T1_phi
         MET = apply_unclMET_shifts(MET, "nom")
+        MET = shift_MET(MET, [e_shifts, m_shifts, t_shifts], is_data=is_data)
 
         # build ll pairs
         for z_pair in ["ee", "mm"]:
@@ -290,8 +222,8 @@ class FakeRateProcessor(processor.ProcessorABC):
             mask, tpt1, teta1, tpt2, teta2 = trigger_filter(ll, events.TrigObj, z_pair)
             mask = mask & check_trigger_path(events.HLT, year, z_pair)
             ll = ak.fill_none(ll.mask[mask], [], axis=0)
-            trig_SFs = self.e_trig_SFs if z_pair == "ee" else self.m_trig_SFs
             if not is_data:
+                trig_SFs = self.e_trig_SFs if z_pair == "ee" else self.m_trig_SFs
                 wt1 = lepton_trig_weight(tpt1, teta1, trig_SFs, lep=z_pair[0])
                 wt2 = lepton_trig_weight(tpt2, teta2, trig_SFs, lep=z_pair[0])
                 weights.add("l1_trig_weight", wt1)
@@ -308,16 +240,12 @@ class FakeRateProcessor(processor.ProcessorABC):
                 lll["cat"] = cat
                 lll = dr_3l(lll, cat)
 
-                # get tight taus (irrelevant for j->e,m measurements)
-                tight_t = tight_hadronic_taus(baseline_t, mode=mode)
-                t_counts = ak.num(tight_t)
-
                 # apply lepton count veto
-                lll_mask = lepton_count_veto_3l(
-                    e_counts,
-                    m_counts,
-                    t_counts,
+                lll_mask = get_lepton_count_veto_mask(
                     cat,
+                    baseline_e,
+                    baseline_m,
+                    baseline_t,
                 )
 
                 # create denominator and numerator regions
@@ -363,9 +291,10 @@ class FakeRateProcessor(processor.ProcessorABC):
                             is_data=False,
                             numerator=(label[0] == "Numerator"),
                         )
-                        lll = self.apply_ES_shifts(lll, z_pair, mode)
+                        # lll = self.apply_ES_shifts(lll, z_pair, mode)
 
                     self.fill_histos(
+                        output,
                         lll,
                         z_pair,
                         mode,
@@ -376,7 +305,7 @@ class FakeRateProcessor(processor.ProcessorABC):
                         group=group,
                     )
 
-        return self.output
+        return output
 
     def apply_ES_shifts(
         self,
@@ -440,6 +369,7 @@ class FakeRateProcessor(processor.ProcessorABC):
 
     def fill_histos(
         self,
+        output,
         lll,
         z_pair,
         mode,
@@ -463,69 +393,61 @@ class FakeRateProcessor(processor.ProcessorABC):
         # print(category, lll.l.fields)
         if len(mode) > 1:
             decay_mode = np_flat(l.decayMode)
-        # print(mode, decay_mode)
-        for pt_range in [(10, 20), (20, 30), (30, 40), (40, 60), (60, 10**6)]:
-            pt_bin = f"${pt_range[0]}<p_T<{pt_range[1]}$ GeV"
-            eta_barrel_bin = r"$|\eta|<1.479$"
-            eta_endcap_bin = r"$|\eta|>1.479$"
-            pt_mask = (pt > pt_range[0]) & (pt <= pt_range[1])
-            barrel_mask = (abs(eta) < 1.479) & pt_mask
-            endcap_mask = (abs(eta) > 1.479) & pt_mask
-            for eta_bin, m in [
-                (eta_barrel_bin, barrel_mask),
-                (eta_endcap_bin, endcap_mask),
-            ]:
-                if np.sum(m) == 0:
-                    continue
+        eta_barrel_bin = r"$|\eta|<1.479$"
+        eta_endcap_bin = r"$|\eta|>1.479$"
+        barrel_mask = abs(eta) < 1.479
+        endcap_mask = abs(eta) > 1.479
+        for eta_bin, m in [
+            (eta_barrel_bin, barrel_mask),
+            (eta_endcap_bin, endcap_mask),
+        ]:
+            if np.sum(m) == 0:
+                continue
 
-                # fill pt
-                self.output["pt"][name].fill(
-                    group=group,
-                    category=category,
-                    prompt=prompt,
-                    numerator=numerator,
-                    pt_bin=pt_bin,
-                    eta_bin=eta_bin,
-                    pt=pt[m],
-                    decay_mode=decay_mode[m],
-                    weight=weight[m],
-                )
-                # fill the mass of the dilepton system w/ various systematic shifts
-                self.output["mll"][name].fill(
-                    group=group,
-                    category=category,
-                    prompt=prompt,
-                    numerator=numerator,
-                    pt_bin=pt_bin,
-                    eta_bin=eta_bin,
-                    decay_mode=decay_mode[m],
-                    mll=mll[m],
-                    weight=weight[m],
-                )
-                # fill the met with various systematics considered
-                self.output["met"][name].fill(
-                    group=group,
-                    category=category,
-                    prompt=prompt,
-                    numerator=numerator,
-                    pt_bin=pt_bin,
-                    eta_bin=eta_bin,
-                    decay_mode=decay_mode[m],
-                    met=met[m],
-                    weight=weight[m],
-                )
-                # fill the transverse mass
-                self.output["mT"][name].fill(
-                    group=group,
-                    category=category,
-                    prompt=prompt,
-                    numerator=numerator,
-                    pt_bin=pt_bin,
-                    eta_bin=eta_bin,
-                    decay_mode=decay_mode[m],
-                    mT=mT[m],
-                    weight=weight[m],
-                )
+            # fill pt
+            output["pt"][name].fill(
+                group=group,
+                category=category,
+                prompt=prompt,
+                numerator=numerator,
+                eta_bin=eta_bin,
+                decay_mode=decay_mode[m],
+                pt=pt[m],
+                weight=weight[m],
+            )
+            # fill the mass of the dilepton system w/ various systematic shifts
+            output["mll"][name].fill(
+                group=group,
+                category=category,
+                prompt=prompt,
+                numerator=numerator,
+                eta_bin=eta_bin,
+                decay_mode=decay_mode[m],
+                mll=mll[m],
+                weight=weight[m],
+            )
+            # fill the met with various systematics considered
+            output["met"][name].fill(
+                group=group,
+                category=category,
+                prompt=prompt,
+                numerator=numerator,
+                eta_bin=eta_bin,
+                decay_mode=decay_mode[m],
+                met=met[m],
+                weight=weight[m],
+            )
+            # fill the transverse mass
+            output["mT"][name].fill(
+                group=group,
+                category=category,
+                prompt=prompt,
+                numerator=numerator,
+                eta_bin=eta_bin,
+                decay_mode=decay_mode[m],
+                mT=mT[m],
+                weight=weight[m],
+            )
 
     def apply_lepton_ID_SFs(self, lll, z_pair, mode, is_data=False, numerator=False):
         if len(lll) == 0:

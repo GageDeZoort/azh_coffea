@@ -470,7 +470,7 @@ def lepton_count_veto(lltt, cat):
 
 
 # in use
-def get_lepton_count_veto_masks(baseline_e, baseline_m, baseline_t):
+def get_lepton_count_veto_mask(baseline_e, baseline_m, baseline_t):
     baseline_e["idx"] = ak.local_index(baseline_e)
     baseline_m["idx"] = ak.local_index(baseline_m)
     baseline_t["idx"] = ak.local_index(baseline_t)
