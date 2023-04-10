@@ -10,6 +10,8 @@ import numba as nb
 import numpy as np
 import vector as vec
 from coffea import analysis_tools, processor
+from numba.core import types
+from numba.typed import Dict
 
 from azh_analysis.selections.preselections import (
     append_tight_masks,
@@ -48,6 +50,8 @@ from azh_analysis.utils.histograms import make_analysis_hist_stack
 from azh_analysis.utils.logging import init_logging
 
 warnings.filterwarnings("ignore")
+
+float_array = types.float32[:]
 
 
 def flat(a, axis=None):
@@ -241,7 +245,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             sample_weight = 1 if is_data else self.lumi[year] * xsec / nevts
             global_weights.add("sample_weight", ones * sample_weight)
 
-        # pileup weights or luminosity weights
+        # pileup weights and gen weights
         if (self.pu_weights is not None) and not is_data:
             global_weights.add("gen_weight", events.genWeight)
             global_weights.add(
@@ -421,7 +425,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                     cands_group = cands[mask]
                     if len(cands_group) == 0:
                         continue
+                    t0 = time.time()
                     fastmtt_out = self.run_fastmtt(cands_group) if self.fastmtt else {}
+                    print(f"fastmtt time: {time.time() - t0}")
                     self.fill_histos(
                         output,
                         cands_group,
@@ -752,38 +758,64 @@ class AnalysisProcessor(processor.ProcessorABC):
         t1_cats = np.array([map_it[self.categories[cat][2]] for cat in cats])
         t2_cats = np.array([map_it[self.categories[cat][3]] for cat in cats])
         return fastmtt(
-            np_flat(l1.pt).astype(np.float64),
-            np_flat(l1.eta).astype(np.float64),
-            np_flat(l1.phi).astype(np.float64),
-            np_flat(l1.mass).astype(np.float64),
-            np_flat(l2.pt).astype(np.float64),
-            np_flat(l2.eta).astype(np.float64),
-            np_flat(l2.phi).astype(np.float64),
-            np_flat(l2.mass).astype(np.float64),
-            np_flat(t1.pt).astype(np.float64),
-            np_flat(t1.eta).astype(np.float64),
-            np_flat(t1.phi).astype(np.float64),
-            np_flat(t1.mass).astype(np.float64),
+            np_flat(l1.pt).astype(np.float32),
+            np_flat(l1.eta).astype(np.float32),
+            np_flat(l1.phi).astype(np.float32),
+            np_flat(l1.mass).astype(np.float32),
+            np_flat(l2.pt).astype(np.float32),
+            np_flat(l2.eta).astype(np.float32),
+            np_flat(l2.phi).astype(np.float32),
+            np_flat(l2.mass).astype(np.float32),
+            np_flat(t1.pt).astype(np.float32),
+            np_flat(t1.eta).astype(np.float32),
+            np_flat(t1.phi).astype(np.float32),
+            np_flat(t1.mass).astype(np.float32),
             t1_cats.astype(np.int64),
-            np_flat(t2.pt).astype(np.float64),
-            np_flat(t2.eta).astype(np.float64),
-            np_flat(t2.phi).astype(np.float64),
-            np_flat(t2.mass).astype(np.float64),
+            np_flat(t2.pt).astype(np.float32),
+            np_flat(t2.eta).astype(np.float32),
+            np_flat(t2.phi).astype(np.float32),
+            np_flat(t2.mass).astype(np.float32),
             t2_cats.astype(np.int64),
-            np_flat(met.pt * np.cos(met.phi)).astype(np.float64),
-            np_flat(met.pt * np.sin(met.phi)).astype(np.float64),
-            np_flat(met.covXX).astype(np.float64),
-            np_flat(met.covXY).astype(np.float64),
-            np_flat(met.covXY).astype(np.float64),
-            np_flat(met.covYY).astype(np.float64),
-            constrain=True,
+            np_flat(met.pt * np.cos(met.phi)).astype(np.float32),
+            np_flat(met.pt * np.sin(met.phi)).astype(np.float32),
+            np_flat(met.covXX).astype(np.float32),
+            np_flat(met.covXY).astype(np.float32),
+            np_flat(met.covXY).astype(np.float32),
+            np_flat(met.covYY).astype(np.float32),
         )
 
     def postprocess(self, accumulator):
         pass
 
 
-@nb.jit(nopython=True)
+@nb.njit(
+    nb.types.DictType(nb.types.unicode_type, nb.float32[:])(
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.int64[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.int64[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+        nb.float32[::1],
+    )
+)
 def fastmtt(
     pt_1,
     eta_1,
@@ -809,12 +841,7 @@ def fastmtt(
     metcov_xy,
     metcov_yx,
     metcov_yy,
-    verbosity=-1,
-    delta=1 / 1.15,
-    reg_order=6,
-    constrain=False,
-    constraint_window=np.array([124, 126]),
-) -> dict[str, float]:
+):
 
     # initialize global parameters
     light_masses = {0: 0.51100e-3, 1: 0.10566}
@@ -887,15 +914,11 @@ def fastmtt(
                 test_mass = ditau_test.mass
 
                 passes_constraint = False
-                if (
-                    (test_mass > constraint_window[0])
-                    and (test_mass < constraint_window[1])
-                ) and constrain:
-
+                if (test_mass > 124) and (test_mass < 126):
                     passes_constraint = True
 
                 # calculate mass likelihood integral
-                m_shift = test_mass * delta
+                m_shift = test_mass * (1 / 1.15)
                 if m_shift < m_vis:
                     continue
                 x1_min = min(1.0, math.pow((m_vis_1 / m_tau), 2))
@@ -905,7 +928,7 @@ def fastmtt(
                 x2_max = min(1.0, math.pow((m_vis / m_shift), 2) / x1_min)
                 if x2_max < x2_min:
                     continue
-                J = 2 * math.pow(m_vis, 2) * math.pow(m_shift, -reg_order)
+                J = 2 * math.pow(m_vis, 2) * math.pow(m_shift, -6)
                 I_x2 = math.log(x2_max) - math.log(x2_min)
                 I_tot = I_x2
                 if decay_type_3[i] != 2:
@@ -972,9 +995,13 @@ def fastmtt(
         m_lltt_opt[i] = lltt_opt.mass
         m_lltt_opt_c[i] = lltt_opt_c.mass
 
-    return {
-        "mtt_corr": m_tt_opt,
-        "mtt_cons": m_tt_opt_c,
-        "m4l_corr": m_lltt_opt,
-        "m4l_cons": m_lltt_opt_c,
-    }
+    result_dict = Dict.empty(
+        key_type=nb.types.unicode_type,
+        value_type=float_array,
+    )
+
+    result_dict["mtt_corr"] = m_tt_opt.astype("f")
+    result_dict["mtt_cons"] = m_tt_opt_c.astype("f")
+    result_dict["m4l_corr"] = m_lltt_opt.astype("f")
+    result_dict["m4l_cons"] = m_lltt_opt_c.astype("f")
+    return result_dict
