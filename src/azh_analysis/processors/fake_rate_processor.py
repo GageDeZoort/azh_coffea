@@ -141,6 +141,8 @@ class FakeRateProcessor(processor.ProcessorABC):
             )
         global_mask = global_selections.all(*global_selections.names)
         events = events[global_mask]
+        if len(events) == 0:
+            return output
 
         # global weights: sample weight, gen weight, pileup weight
         weights = analysis_tools.Weights(len(events), storeIndividual=True)
