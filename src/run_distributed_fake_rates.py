@@ -17,6 +17,7 @@ from azh_analysis.utils.corrections import (
     dyjets_stitch_weights,
     get_electron_ID_weights,
     get_electron_trigger_SFs,
+    get_muon_ES_weights,
     get_muon_ID_weights,
     get_muon_trigger_SFs,
     get_pileup_weights,
@@ -106,6 +107,9 @@ m_trig_base = f"corrections/muon_trigger/UL_{year}"
 m_trig_file = join(m_trig_base, f"Muon_RunUL{year}_{m_trigs[year]}.root")
 m_trig_SFs = get_muon_trigger_SFs(m_trig_file)
 
+# get muon scale factors
+mES_SFs = get_muon_ES_weights("corrections/muon_ES/", year)
+
 # load up non-signal MC csv / yaml files
 fset_string = f"{source}_{year}"
 sample_info = get_sample_info(join("samples", fset_string + ".csv"))
@@ -147,8 +151,10 @@ tic = time.time()
 infiles = ["azh_analysis"]
 
 # configure dask
+memory = "4GB" if "data" in args.source else "2GB"
 dask.config.set(
     {
+        "jobqueue.lpccondor.memory": memory,
         "distributed.worker.memory.target": 0.8,
         "distributed.worker.memory.spill": 0.9,
         "distributed.worker.memory.pause": False,
@@ -159,6 +165,7 @@ dask.config.set(
         "distributed.nanny.environ.MALLOC_TRIM_THRESHOLD_": "65536",
     }
 )
+print(dask.config)
 
 # set up LPC condor cluster
 cluster = LPCCondorCluster(
@@ -170,18 +177,19 @@ cluster = LPCCondorCluster(
 if args.test_mode:
     cluster.scale(2)
 else:
-    # cluster.scale(250)
-    cluster.adapt(minimum=20, maximum=150)
+    cluster.scale(250)
+    # cluster.adapt(minimum=20, maximum=150)
 
 client = Client(cluster)
-logging.info("Waiting for at least one worker...")
-client.wait_for_workers(1)
+n_wait = 1 if args.test_mode else 5
+logging.info(f"Waiting for at least {n_wait} worker(s)...")
+client.wait_for_workers(n_wait)
 
 exe_args = {
     "client": client,
     "savemetrics": True,
     "schema": NanoAODSchema,
-    "align_clusters": True,
+    "align_clusters": False,
 }
 
 proc_instance = FakeRateProcessor(
@@ -193,19 +201,21 @@ proc_instance = FakeRateProcessor(
     nevts_dict=nevts_dict,
     eleID_SFs=eIDs,
     muID_SFs=mIDs,
+    muES_SFs=mES_SFs,
     tauID_SFs=tIDs,
     e_trig_SFs=e_trig_SFs,
     m_trig_SFs=m_trig_SFs,
     dyjets_weights=dyjets_weights,
 )
 
+chunksize = 10000 if "data" in args.source else 25000
 hists, metrics = processor.run_uproot_job(
     fileset,
     treename="Events",
     processor_instance=proc_instance,
     executor=processor.dask_executor,
     executor_args=exe_args,
-    chunksize=25000,
+    chunksize=chunksize,
 )
 
 logging.info(f"Output: {hists}\n{metrics}")
