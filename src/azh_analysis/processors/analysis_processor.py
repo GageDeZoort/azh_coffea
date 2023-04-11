@@ -88,6 +88,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         eleID_SFs=None,
         muID_SFs=None,
         tauID_SFs=None,
+        eleES_SFs=None,
         muES_SFs=None,
         dyjets_weights=None,
         e_trig_SFs=None,
@@ -148,6 +149,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.eleID_SFs = eleID_SFs
         self.muID_SFs = muID_SFs
         self.tauID_SFs = tauID_SFs
+        self.eleES_SFs = eleES_SFs
         self.muES_SFs = muES_SFs
         self.e_trig_SFs = e_trig_SFs
         self.m_trig_SFs = m_trig_SFs
@@ -283,6 +285,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             # grab baseline leptons, apply energy scale shifts
             baseline_e, e_shifts = apply_eleES(
                 get_baseline_electrons(events.Electron),
+                self.eleES_SFs,
+                year=year,
                 eleES_shift=eleES_shift,
                 eleSmear_shift=eleSmear_shift,
                 is_data=is_data,
