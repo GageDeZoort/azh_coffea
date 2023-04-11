@@ -303,22 +303,29 @@ def dyjets_stitch_weights(info, nevts_dict, year):
     return CustomWeights(bins, weights)
 
 
-def apply_eleES(ele, eleES_shift="nom", eleSmear_shift="nom", is_data=False):
+def get_electron_ES_weights(root, year):
+    return correctionlib.CorrectionSet.from_file(
+        join(root, f"UL_{year}/EGM_ScaleUnc.json.gz")
+    )["UL-EGM_ScaleUnc"]
+
+
+def apply_eleES(
+    ele, eleES_shifts, year, eleES_shift="nom", eleSmear_shift="nom", is_data=False
+):
     if is_data:
         return ele, {"x": 0, "y": 0}
     # decide ES weights by region of the detector
     ele, num = ak.flatten(ele), ak.num(ele)
-    in_barrel = abs(ele.eta) <= 1.479
-    in_crossover = (abs(ele.eta) > 1.479) & (abs(ele.eta) <= 1.653)
-    in_endcap = abs(ele.eta) > 1.653
-    barrel_shifts = {"up": 1.03, "nom": 1.0, "down": 0.97}
-    crossover_shifts = {"up": 1.04, "nom": 1.0, "down": 0.96}
-    endcap_shifts = {"up": 1.05, "nom": 1.0, "down": 0.95}
-    eleES_weights = (
-        in_barrel * barrel_shifts[eleES_shift]
-        + in_crossover * crossover_shifts[eleES_shift]
-        + in_endcap * endcap_shifts[eleES_shift]
-    )
+
+    shift = "scaleunc"
+    if "up" in eleES_shift.lower():
+        shift = "scaleup"
+    if "down" in eleES_shift.lower():
+        shift = "scaledown"
+    eta = ele.eta
+    eleES_weights = eleES_shifts.evaluate(year, shift, eta, 1)
+    if ("up" not in shift) and ("down" not in shift):
+        eleES_weights = np.ones(len(ele))
 
     # get smearing weights
     if eleSmear_shift == "nom":

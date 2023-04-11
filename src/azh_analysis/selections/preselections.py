@@ -470,7 +470,7 @@ def lepton_count_veto(lltt, cat):
 
 
 # in use
-def get_lepton_count_veto_mask(baseline_e, baseline_m, baseline_t):
+def get_lepton_count_veto_masks(baseline_e, baseline_m, baseline_t):
     baseline_e["idx"] = ak.local_index(baseline_e)
     baseline_m["idx"] = ak.local_index(baseline_m)
     baseline_t["idx"] = ak.local_index(baseline_t)
@@ -494,8 +494,44 @@ def get_lepton_count_veto_mask(baseline_e, baseline_m, baseline_t):
             tt = ak.cartesian({"t1": leps[cat[2]], "t2": leps[cat[3]]}, axis=1)
         lltt = ak.cartesian({"ll": ll, "tt": tt}, axis=1)
         lltt = dR_lltt(lltt, cat=cat)
-        vetoes[cat] = lepton_count_veto(lltt, num)
+        veto = lepton_count_veto(lltt, num)
+
+        # present in the event
+        if ("m" not in cat) or ("e" not in cat):
+            check_lep = "e" if ("e" not in cat) else "m"
+            llttl = ak.cartesian({"lltt": lltt, "l": leps[check_lep]}, axis=1)
+            llttl = dr_clean(llttl, cat + check_lep)
+            mask = ak.num(llttl) == 0
+            vetoes[cat] = veto & mask
+        else:
+            vetoes[cat] = veto
+
     return vetoes
+
+
+def dr_clean(llttl, cat):
+    dR_select = {
+        "ee": 0.3,
+        "em": 0.3,
+        "mm": 0.3,
+        "me": 0.3,
+        "et": 0.5,
+        "te": 0.5,
+        "mt": 0.5,
+        "tm": 0.5,
+        "tt": 0.5,
+    }
+    l1, l2 = llttl.lltt.ll.l1, llttl.lltt.ll.l2
+    t1, t2 = llttl.lltt.tt.t1, llttl.lltt.tt.t2
+    l = llttl.l
+    dR_mask = (
+        (l1.delta_r(l) > dR_select[cat[0] + cat[-1]])
+        & (l2.delta_r(l) > dR_select[cat[1] + cat[-1]])
+        & (t1.delta_r(l) > dR_select[cat[2] + cat[-1]])
+        & (t2.delta_r(l) > dR_select[cat[3] + cat[-1]])
+    )
+    llttl = llttl.mask[(dR_mask)]
+    return llttl[~ak.is_none(llttl, axis=1)]
 
 
 def bjetveto(baseline_b):
