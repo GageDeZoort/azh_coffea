@@ -15,6 +15,7 @@ from lpcjobqueue import LPCCondorCluster
 from azh_analysis.processors.fake_rate_processor import FakeRateProcessor
 from azh_analysis.utils.corrections import (
     dyjets_stitch_weights,
+    get_electron_ES_weights,
     get_electron_ID_weights,
     get_electron_trigger_SFs,
     get_muon_ES_weights,
@@ -96,6 +97,7 @@ e_trigs = {
 e_trig_base = f"corrections/electron_trigger/UL_{year}"
 e_trig_file = join(e_trig_base, f"Electron_RunUL{year}_{e_trigs[year]}.root")
 e_trig_SFs = get_electron_trigger_SFs(e_trig_file)
+eES_SFs = get_electron_ES_weights("corrections/electron_ES/", year)
 
 m_trigs = {
     "2016preVFP": "IsoMu24orIsoTkMu24",
@@ -201,6 +203,7 @@ proc_instance = FakeRateProcessor(
     nevts_dict=nevts_dict,
     eleID_SFs=eIDs,
     muID_SFs=mIDs,
+    eleES_SFs=eES_SFs,
     muES_SFs=mES_SFs,
     tauID_SFs=tIDs,
     e_trig_SFs=e_trig_SFs,
