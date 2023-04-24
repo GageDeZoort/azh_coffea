@@ -89,6 +89,7 @@ eIDs = get_electron_ID_weights(eID_file)
 logging.info(f"Using eID_SFs:\n{eID_file}")
 
 eES_SFs = get_electron_ES_weights("corrections/electron_ES/", year)
+logging.info(f"Using eES_SFs:\n{eES_SFs}")
 
 mID_base = f"corrections/muon_ID/UL_{year}"
 mID_file = join(mID_base, f"Muon_RunUL{year}_IdIso_AZh_IsoLt0p15_IdLoose.root")
