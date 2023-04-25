@@ -13,7 +13,53 @@ from matplotlib import pyplot as plt
 warnings.filterwarnings("ignore")
 
 
-def plot_variable(
+def plot_mc(
+    mc,
+    var,
+    var_label,
+    cat_label,
+):
+    hep.style.use(["CMS", "fira", "firamath"])
+    colors = {
+        "DY": "#0A9396",
+        "SM-H(125)": "#E9D8A6",
+        "ZZ": "#94D2BD",
+        "WZ": "#9b2226",
+        "tt": "#EE9B00",
+        "VVV": "#bb3e03",
+    }
+
+    # grab the correct MC histogram
+    group_hists = {}
+    for group in colors.keys():
+        try:
+            group_hists[group] = mc[group, :]
+        except Exception:
+            dummy_axis = mc["ZZ", :].axes[var]
+            group_hists[group] = Hist(dummy_axis)
+            continue
+    stack = hist.Stack.from_dict(group_hists)
+
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=1,
+        figsize=(12, 12),
+        dpi=200,
+    )
+    ax.set_prop_cycle(cycler(color=list(colors.values())))
+    stack.plot(ax=ax, stack=True, histtype="fill", edgecolor=(0, 0, 0, 0.3))
+
+    ax.set_ylabel("Counts")
+    ax.set_xlabel(var_label)
+    ax.legend()
+    ax.legend(loc="best", prop={"size": 16}, frameon=True)
+    ax.get_legend().set_title(f"{cat_label}")
+
+    hep.cms.label("Preliminary", data=True, lumi=59.7, year=2018, ax=ax)
+    plt.show()
+
+
+def plot_data_vs_mc(
     data,
     mc,
     var,
@@ -161,7 +207,7 @@ def get_ratios(denom, num, combine_bins=True):
         centers = np.array(list(centers[:4]) + [50, 70, 90])
 
     ratios = np.nan_to_num(num_sum / denom_sum)
-    mask = (num_sum > 0) & (denom_sum > 0)
+    mask = (num_sum > 0) & (denom_sum > 0) & (num_sum / denom_sum <= 1)
     centers, ratios, num_sum, denom_sum = (
         centers[mask],
         ratios[mask],
@@ -181,7 +227,8 @@ def fit_polynomial(ax, centers, ratios, yerr):
         ratios[mask],
         2,
         cov=True,
-        rcond=None,  # w=1/std
+        rcond=None,
+        # w=1/std,
     )
     x = np.linspace(0, 120, 1000)
     ax.plot(
@@ -272,8 +319,8 @@ def plot_fake_rates_data(
         capsize=2,
     )
 
-    # ax.set_yscale("log")
     ax.set_xlim(xlim)
+    ax.set_yscale("log")
     ax.set_xlabel(r"$p_T$")
     ax.set_ylabel("Counts")
     rax.set_xlabel(ax.get_xlabel() + " [GeV]")
