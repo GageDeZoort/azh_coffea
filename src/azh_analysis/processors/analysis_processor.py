@@ -183,9 +183,13 @@ class AnalysisProcessor(processor.ProcessorABC):
                 self.kin_syst_shifts = [
                     f"{systematic}_{i}" for i in self.k_shifts[systematic]
                 ]
+            elif systematic == "all":
+                for k, v in self.k_shifts.items():
+                    self.kin_syst_shifts.append(f"{k}_{v[0]}")
+                    self.kin_syst_shifts.append(f"{k}_{v[1]}")
             else:
                 raise Exception(f"Systematic {systematic} unaccounted for.")
-        else:
+        if (systematic is None) or ("all" in systematic):
             self.event_syst_shifts = [
                 "nom",
                 "l1prefire_up",
