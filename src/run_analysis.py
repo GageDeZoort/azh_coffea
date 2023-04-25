@@ -13,6 +13,7 @@ from azh_analysis.processors.analysis_processor import AnalysisProcessor
 from azh_analysis.utils.btag import get_btag_SFs, get_btag_tables
 from azh_analysis.utils.corrections import (
     dyjets_stitch_weights,
+    get_electron_ES_weights,
     get_electron_ID_weights,
     get_electron_trigger_SFs,
     get_fake_rates,
@@ -89,6 +90,7 @@ mID_file = join(mID_base, f"Muon_RunUL{year}_IdIso_AZh_IsoLt0p15_IdLoose.root")
 mIDs = get_muon_ID_weights(mID_file)
 logging.info(f"Using mID_SFs:\n{mID_file}")
 
+eES_SFs = get_electron_ES_weights("corrections/electron_ES/", year)
 mES_SFs = get_muon_ES_weights("corrections/muon_ES/", year)
 
 tID_base = f"corrections/tau_ID/UL_{year}"
@@ -175,6 +177,7 @@ proc_instance = AnalysisProcessor(
     lumi_masks=lumi_masks,
     nevts_dict=nevts_dict,
     eleID_SFs=eIDs,
+    eleES_SFs=eES_SFs,
     muID_SFs=mIDs,
     muES_SFs=mES_SFs,
     tauID_SFs=tIDs,
