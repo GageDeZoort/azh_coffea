@@ -29,6 +29,7 @@ class bTagEffProcessor(processor.ProcessorABC):
         jet = events.Jet
         bjet = ak.flatten(jet[(abs(jet.partonFlavour) == 5)])
         delta = {
+            "2016": 0.2598,
             "2016preVFP": 0.2598,
             "2016postVFP": 0.2598,
             "2017": 0.3040,

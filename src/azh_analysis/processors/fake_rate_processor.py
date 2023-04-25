@@ -70,6 +70,7 @@ class FakeRateProcessor(processor.ProcessorABC):
         eleID_SFs=None,
         muID_SFs=None,
         tauID_SFs=None,
+        eleES_SFs=None,
         muES_SFs=None,
         dyjets_weights=None,
         e_trig_SFs=None,
@@ -100,6 +101,7 @@ class FakeRateProcessor(processor.ProcessorABC):
         self.eleID_SFs = eleID_SFs
         self.muID_SFs = muID_SFs
         self.tauID_SFs = tauID_SFs
+        self.eleES_SFs = eleES_SFs
         self.muES_SFs = muES_SFs
         self.e_trig_SFs = e_trig_SFs
         self.m_trig_SFs = m_trig_SFs
@@ -175,11 +177,13 @@ class FakeRateProcessor(processor.ProcessorABC):
                 logging.info(f"No prefiring weights in {dataset}.")
                 self.has_L1PreFiringWeight = False
 
-        # grab baseline defined leptons
+        # grab baseline leptons
         baseline_e, e_shifts = apply_eleES(
             get_baseline_electrons(events.Electron),
-            "nom",
-            "nom",
+            self.eleES_SFs,
+            year=year,
+            eleES_shift="nom",
+            eleSmear_shift="nom",
             is_data=is_data,
         )
         baseline_m, m_shifts = apply_muES(
