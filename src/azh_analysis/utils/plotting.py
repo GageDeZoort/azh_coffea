@@ -65,6 +65,7 @@ def plot_data_vs_mc(
     var,
     cat_label,
     var_label,
+    logscale=False,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = {
@@ -119,6 +120,8 @@ def plot_data_vs_mc(
         elinewidth=1,
     )
 
+    if logscale:
+        ax.set_yscale("log")
     ax.set_ylabel("Counts")
     rax.set_xlabel(var_label)
     ax.set_xlabel("")
@@ -332,7 +335,9 @@ def plot_fake_rates_data(
     plt.show()
 
 
-def plot_m4l_systematic(nom, up, down, syst, cat_label, mass_label):
+def plot_m4l_systematic(
+    nom, up, down, syst, cat_label, mass_label, logscale=False, outfile=None
+):
     fig, axs = plt.subplots(
         nrows=3,
         ncols=3,
@@ -363,7 +368,10 @@ def plot_m4l_systematic(nom, up, down, syst, cat_label, mass_label):
             ax=axs[0, i], label=f"{syst} nom", histtype="step", color=colors["nom"]
         )
 
-        # axs[0,i].set_title(mass_type)
+        if logscale:
+            axs[0, i].set_ylim([0.01, 50])
+            axs[0, i].set_yscale("log")
+            axs[0, i].set_xscale("log")
         axs[0, i].set_xlabel("")
         axs[0, i].set_ylabel("")
         axs[0, i].legend(loc="best", prop={"size": 16}, frameon=True)
@@ -378,6 +386,7 @@ def plot_m4l_systematic(nom, up, down, syst, cat_label, mass_label):
             marker="^",
             lw=0,
         )
+        axs[1, i].axhline(y=0, color="black", alpha=0.5, linestyle="--")
         dn_rel_diffs = np.nan_to_num((n - d) / n)
         axs[2, i].errorbar(
             bin_centers,
@@ -387,6 +396,8 @@ def plot_m4l_systematic(nom, up, down, syst, cat_label, mass_label):
             marker="v",
             lw=0,
         )
+        axs[2, i].axhline(y=0, color="black", alpha=0.5, linestyle="--")
+
         axs[1, i].set_ylim([-0.1, 0.1])
         axs[2, i].set_ylim([-0.1, 0.1])
         axs[1, i].set_ylabel("(Nom-Up)/Nom", fontsize=20)
@@ -397,6 +408,8 @@ def plot_m4l_systematic(nom, up, down, syst, cat_label, mass_label):
     for i in range(2):
         axs[0, i].set_ylim(axs[0, 2].get_ylim())
     plt.tight_layout()
+    if outfile is not None:
+        plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()
 
 
