@@ -41,6 +41,7 @@ from azh_analysis.utils.corrections import (
 )
 from azh_analysis.utils.histograms import make_fr_hist_stack
 from azh_analysis.utils.logging import init_logging
+from azh_analysis.utils.parameters import get_eras, get_lumis
 
 # from coffea.processor import column_accumulator as col_acc
 
@@ -83,18 +84,8 @@ class FakeRateProcessor(processor.ProcessorABC):
         self.info = sample_info
         self.fileset = fileset
 
-        self.eras = {
-            "2016preVFP": "Summer16",
-            "2016postVFP": "Summer16",
-            "2017": "Fall17",
-            "2018": "Autumn18",
-        }
-        self.lumi = {
-            "2016preVFP": 35.9 * 1000,
-            "2016postVFP": 35.9 * 1000,
-            "2017": 41.5 * 1000,
-            "2018": 59.7 * 1000,
-        }
+        self.eras = get_eras()
+        self.lumi = get_lumis(as_picobarns=True)
         self.pileup_weights = pileup_weights
         self.lumi_masks = lumi_masks
         self.nevts_dict = nevts_dict

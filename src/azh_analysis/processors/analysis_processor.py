@@ -48,6 +48,7 @@ from azh_analysis.utils.corrections import (
 )
 from azh_analysis.utils.histograms import make_analysis_hist_stack
 from azh_analysis.utils.logging import init_logging
+from azh_analysis.utils.parameters import get_categories, get_eras, get_lumis
 
 warnings.filterwarnings("ignore")
 
@@ -114,32 +115,11 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.global_vars = global_vars
         self.blind = blind
 
-        # define maps between integer labels and categories
-        self.categories = {
-            1: "eeet",
-            2: "eemt",
-            3: "eett",
-            4: "eeem",
-            5: "mmet",
-            6: "mmmt",
-            7: "mmtt",
-            8: "mmem",
-        }
+        # grab categories, eras, labels
+        self.categories = get_categories()
         self.cat_to_num = {v: k for k, v in self.categories.items()}
-
-        # LHC-specific maps
-        self.eras = {
-            "2016preVFP": "Summer16",
-            "2016postVFP": "Summer16",
-            "2017": "Fall17",
-            "2018": "Autumn18",
-        }
-        self.lumi = {
-            "2016preVFP": 35.9 * 1000,
-            "2016postVFP": 35.9 * 1000,
-            "2017": 41.5 * 1000,
-            "2018": 59.7 * 1000,
-        }
+        self.eras = get_eras()
+        self.lumi = get_lumis(as_picobarns=True)
 
         # store inputs to the processor
         self.pu_weights = pileup_weights
