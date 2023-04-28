@@ -45,12 +45,3 @@ def get_eras():
         "2017": "Fall17",
         "2018": "Autumn18",
     }
-
-
-def get_category_labels():
-    return {
-        "tt": r"$ll\tau_h\tau_h$",
-        "et": r"$ll e\tau_h$",
-        "mt": r"$ll\mu\tau_h$",
-        "em": r"$ll e\mu$",
-    }

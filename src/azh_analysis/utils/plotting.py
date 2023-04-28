@@ -13,6 +13,19 @@ from matplotlib import pyplot as plt
 warnings.filterwarnings("ignore")
 
 
+def get_color_list():
+    return ["#005F73", "#0A9396", "#E9D8A6", "#94D2BD", "#9b2226", "#EE9B00", "#bb3e03"]
+
+
+def get_category_labels():
+    return {
+        "tt": r"$ll\tau_h\tau_h$",
+        "et": r"$ll e\tau_h$",
+        "mt": r"$ll\mu\tau_h$",
+        "em": r"$ll e\mu$",
+    }
+
+
 def plot_mc(
     mc,
     var,
@@ -66,6 +79,7 @@ def plot_data_vs_mc(
     cat_label,
     var_label,
     logscale=False,
+    outfile=None,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = {
@@ -86,7 +100,6 @@ def plot_data_vs_mc(
         try:  # assuming the group has been populated
             group_hists[group] = mc[group, :]
         except Exception:  # use a dummy axis to display empty fields
-            print(data["reducible", :].axes)
             dummy_axis = data["reducible", :].axes[var]
             group_hists[group] = Hist(dummy_axis)
             # print(f"{group} not in file")
@@ -98,7 +111,7 @@ def plot_data_vs_mc(
         nrows=2,
         ncols=1,
         figsize=(12, 16),
-        dpi=200,
+        dpi=120,
         gridspec_kw={"height_ratios": (4, 1)},
         sharex=True,
     )
@@ -122,6 +135,7 @@ def plot_data_vs_mc(
 
     if logscale:
         ax.set_yscale("log")
+        ax.set_xscale("log")
     ax.set_ylabel("Counts")
     rax.set_xlabel(var_label)
     ax.set_xlabel("")
@@ -129,8 +143,9 @@ def plot_data_vs_mc(
     rax.set_ylim([0, 2])
     ax.legend(loc="best", prop={"size": 16}, frameon=True)
     ax.get_legend().set_title(f"{cat_label}")
-
     hep.cms.label("Preliminary", data=True, lumi=59.7, year=2018, ax=ax)
+    if outfile is not None:
+        plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()
 
 
@@ -247,6 +262,9 @@ def plot_fake_rate_measurements(
     xlim,
     ylim,
     combine_bins=True,
+    outfile=None,
+    lumi=59.7,
+    year=2018,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), dpi=200)
@@ -270,7 +288,9 @@ def plot_fake_rate_measurements(
     ax.legend(loc="best", prop={"size": 16}, frameon=True)
     ax.set_ylim(ylim)
     ax.get_legend().set_title(f"{label}", prop={"size": 16})
-    hep.cms.label("Preliminary", data=True, lumi=59.7, year=2018, ax=ax)
+    hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax)
+    if outfile is not None:
+        plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()
     return edges, centers, ratio, uncerts, bin_errs
 
@@ -282,6 +302,9 @@ def plot_fake_rates_data(
     xlim,
     ylim,
     combine_bins=True,
+    outfile=None,
+    year=2018,
+    lumi=59.7,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = ["#94d2bd", "#0a9396"]
@@ -331,12 +354,23 @@ def plot_fake_rates_data(
     ax.legend(loc="best", prop={"size": 16}, frameon=True)
     rax.set_ylim(ylim)
     ax.get_legend().set_title(f"{label}", prop={"size": 16})
-    hep.cms.label("Preliminary", data=True, lumi=59.7, year=2018, ax=ax)
+    hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax)
+    if outfile is not None:
+        plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()
 
 
 def plot_m4l_systematic(
-    nom, up, down, syst, cat_label, mass_label, logscale=False, outfile=None
+    nom,
+    up,
+    down,
+    syst,
+    cat_label,
+    mass_label,
+    logscale=False,
+    outfile=None,
+    year=2018,
+    lumi=59.7,
 ):
     fig, axs = plt.subplots(
         nrows=3,
@@ -376,6 +410,7 @@ def plot_m4l_systematic(
         axs[0, i].set_ylabel("")
         axs[0, i].legend(loc="best", prop={"size": 16}, frameon=True)
         axs[0, i].get_legend().set_title(f"{cat_label}")
+        hep.cms.label("Preliminary", data=False, lumi=lumi, year=year, ax=axs[0, i])
 
         un_rel_diffs = np.nan_to_num((n - u) / n)
         axs[1, i].plot(
@@ -413,7 +448,9 @@ def plot_m4l_systematic(
     plt.show()
 
 
-def plot_systematic(nom, up, down, syst, cat_label, var_label):
+def plot_systematic(
+    nom, up, down, syst, cat_label, var_label, outfile=None, year=2018, lumi=59.7
+):
     fig, axs = plt.subplots(
         nrows=3,
         ncols=1,
@@ -433,6 +470,9 @@ def plot_systematic(nom, up, down, syst, cat_label, var_label):
     down.plot1d(ax=axs[0], label=f"{syst} down", histtype="step", color=colors["down"])
     nom.plot1d(ax=axs[0], label=f"{syst} nom", histtype="step", color=colors["nom"])
 
+    hep.cms.label(
+        "Preliminary", data=False, lumi=lumi, year=year, ax=axs[0], fontsize=25
+    )
     axs[0].set_xlabel("")
     axs[0].set_ylabel("")
     axs[0].legend(loc="best", prop={"size": 16}, frameon=True)
@@ -463,4 +503,7 @@ def plot_systematic(nom, up, down, syst, cat_label, var_label):
     axs[2].set_xlabel(var_label)
 
     plt.tight_layout()
+    if outfile is not None:
+        plt.savefig(outfile, format="pdf", dpi=800)
+
     plt.show()
