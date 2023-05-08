@@ -622,7 +622,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             output["pt"][name].fill(
                 group=group,
                 category=cats,
-                sign=signs,
+                # sign=signs,
                 leg=label,
                 btags=btags,
                 syst_shift=syst_shift,
@@ -635,7 +635,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         output["mll"][name].fill(
             group=group,
             category=cats,
-            sign=signs,
+            # sign=signs,
             btags=btags,
             syst_shift=syst_shift,
             mll=mll,
@@ -646,7 +646,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         output["met"][name].fill(
             group=group,
             category=cats,
-            sign=signs,
+            # sign=signs,
             btags=btags,
             syst_shift=syst_shift,
             met=met,
@@ -671,7 +671,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             output["mtt"][name].fill(
                 group=group,
                 category=cats[blind_mask],
-                sign=signs[blind_mask],
+                # sign=signs[blind_mask],
                 mass_type="raw",
                 btags=btags[blind_mask],
                 syst_shift=syst_shift,
@@ -681,7 +681,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             output["m4l"][name].fill(
                 group=group,
                 category=cats[blind_mask],
-                sign=signs[blind_mask],
+                # sign=signs[blind_mask],
                 mass_type="raw",
                 btags=btags[blind_mask],
                 syst_shift=syst_shift,
@@ -696,7 +696,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 output[key][name].fill(
                     group=group,
                     category=cats[blind_mask],
-                    sign=signs[blind_mask],
+                    # sign=signs[blind_mask],
                     mass_type=mass_type,
                     btags=btags[blind_mask],
                     syst_shift=syst_shift,

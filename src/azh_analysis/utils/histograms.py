@@ -16,11 +16,6 @@ def make_analysis_hist_stack(fileset, year):
         categories=[],
         growth=True,
     )
-    sign_axis = IntCategory(
-        name="sign",
-        categories=[-1, 1],
-        growth=True,
-    )
     leg_axis = StrCategory(
         name="leg",
         categories=[],
@@ -47,10 +42,9 @@ def make_analysis_hist_stack(fileset, year):
         dataset.split(split_str)[0]: Hist(
             group_axis,
             category_axis,
-            sign_axis,
-            leg_axis,
             btags_axis,
             syst_shift_axis,
+            leg_axis,
             Regular(name="pt", bins=10, start=0, stop=200),
         )
         for dataset in fileset.keys()
@@ -59,7 +53,6 @@ def make_analysis_hist_stack(fileset, year):
         dataset.split(split_str)[0]: Hist(
             group_axis,
             category_axis,
-            sign_axis,
             btags_axis,
             syst_shift_axis,
             Regular(name="met", bins=10, start=0, stop=200),
@@ -70,10 +63,9 @@ def make_analysis_hist_stack(fileset, year):
         dataset.split(split_str)[0]: Hist(
             group_axis,
             category_axis,
-            sign_axis,
-            mass_type_axis,
             btags_axis,
             syst_shift_axis,
+            mass_type_axis,
             Regular(name="mass", bins=20, start=0, stop=300),
         )
         for dataset in fileset.keys()
@@ -83,10 +75,9 @@ def make_analysis_hist_stack(fileset, year):
         dataset.split(split_str)[0]: Hist(
             group_axis,
             category_axis,
-            sign_axis,
-            mass_type_axis,
             btags_axis,
             syst_shift_axis,
+            mass_type_axis,
             Variable(
                 [
                     200,
@@ -115,7 +106,6 @@ def make_analysis_hist_stack(fileset, year):
         dataset.split(split_str)[0]: Hist(
             group_axis,
             category_axis,
-            sign_axis,
             btags_axis,
             syst_shift_axis,
             Regular(name="mll", bins=10, start=60, stop=120),

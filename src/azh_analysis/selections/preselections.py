@@ -180,7 +180,13 @@ def tight_events_denom(lltt, cat, mode=-1):
 
 def get_baseline_jets(jet, year="2018"):
     baseline_j = jet[(jet.pt > 20)]
-    eta_per_year = {"2018": 2.5, "2017": 2.5, "2016postVFP": 2.4, "2016preVFP": 2.4}
+    eta_per_year = {
+        "2018": 2.5,
+        "2017": 2.5,
+        "2016postVFP": 2.4,
+        "2016preVFP": 2.4,
+        "2016": 2.4,
+    }
     baseline_j = baseline_j[(np.abs(baseline_j.eta) < eta_per_year[year])]
     baseline_j = baseline_j[(baseline_j.jetId > 0)]
     return baseline_j
@@ -188,6 +194,7 @@ def get_baseline_jets(jet, year="2018"):
 
 def get_baseline_bjets(baseline_j, year="2018"):
     delta = {
+        "2016": 0.2598,
         "2016preVFP": 0.2598,
         "2016postVFP": 0.2598,
         "2017": 0.3040,
@@ -357,12 +364,14 @@ def check_trigger_path(HLT, year, cat, sync=False):
             "2017": ["Ele35_WPTight_Gsf"],
             "2016preVFP": ["Ele25_eta2p1_WPTight_Gsf"],
             "2016postVFP": ["Ele25_eta2p1_WPTight_Gsf"],
+            "2016": ["Ele25_eta2p1_WPTight_Gsf"],
         },
         "mm": {
             "2018": ["IsoMu27"],
             "2017": ["IsoMu27"],
             "2016preVFP": ["IsoMu24", "IsoTkMu24"],
             "2016postVFP": ["IsoMu24", "IsoTkMu24"],
+            "2016": ["IsoMu24", "IsoTkMu24"],
         },
     }
     trig_list = single_lep_trigs[cat[:2]][year]
