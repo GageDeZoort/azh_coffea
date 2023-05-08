@@ -89,7 +89,7 @@ eIDs = get_electron_ID_weights(eID_file)
 logging.info(f"Using eID_SFs:\n{eID_file}")
 
 eES_SFs = get_electron_ES_weights("corrections/electron_ES/", year)
-logging.info(f"Using eES_SFs:\n{eES_SFs}")
+logging.info(f"Using eES_SFs from corrections/ele_ES/UL_{year}")
 
 mID_base = f"corrections/muon_ID/UL_{year}"
 mID_file = join(mID_base, f"Muon_RunUL{year}_IdIso_AZh_IsoLt0p15_IdLoose.root")
@@ -97,6 +97,7 @@ mIDs = get_muon_ID_weights(mID_file)
 logging.info(f"Using mID_SFs:\n{mID_file}")
 
 mES_SFs = get_muon_ES_weights("corrections/muon_ES/", year)
+logging.info(f"Using mES_SFs from corrections/muon_ES/UL_{year}")
 
 tID_base = f"corrections/tau_ID/UL_{year}"
 tID_file = join(tID_base, "tau.corr.json")
@@ -126,8 +127,8 @@ m_trig_SFs = get_muon_trigger_SFs(m_trig_file)
 
 # load up btagging tables
 btag_root = "corrections/btag/"
-btag_tables = get_btag_tables(btag_root, "2018", UL=True)
-btag_SFs = get_btag_SFs(btag_root, "2018", UL=True)
+btag_tables = get_btag_tables(btag_root, f"{year}", UL=True)
+btag_SFs = get_btag_SFs(btag_root, f"{year}", UL=True)
 
 # load up non-signal MC csv / yaml files
 fset_string = f"{source}_{year}"
@@ -173,7 +174,7 @@ tic = time.time()
 infiles = ["azh_analysis"]
 
 # configure dask
-memory = "4GB" if "data" in args.source else "2GB"
+memory = "4GB" if "data" in args.source else "4GB"
 dask.config.set(
     {
         "jobqueue.lpccondor.memory": memory,
@@ -199,7 +200,7 @@ cluster = LPCCondorCluster(
 if args.test_mode:
     cluster.scale(2)
 else:
-    cluster.scale(250)
+    cluster.scale(350)
 
 client = Client(cluster)
 n_wait = 1 if args.test_mode else 5
@@ -238,10 +239,10 @@ proc_instance = AnalysisProcessor(
     run_fastmtt=True,
     systematic=args.systematic,
     same_sign=args.same_sign,
-    blind=not args.same_sign,
+    blind=False,
 )
 
-chunksize = 10000 if "data" in args.source else 25000
+chunksize = 50000 if "data" in args.source else 50000
 hists, metrics = processor.run_uproot_job(
     fileset,
     treename="Events",
