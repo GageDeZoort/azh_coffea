@@ -155,9 +155,11 @@ else:
             for step in steps:
                 for i, istep in enumerate(step):
                     combine_cmd = (
-                        f"combine -M AsymptoticLimits --noFitAsimov --rMin=0 --run blind --rMax={rmax[i]}"
-                        + f" --X-rtd MINIMIZER_analytic --cminDefaultMinimizerStrategy=0"
-                        + f" --cminDefaultMinimizerTolerance=0.01 .datacards/azh_run2_{channel}_{cat}_{istep}.txt"
+                        "combine -M AsymptoticLimits --noFitAsimov "
+                        + f"--rMin=0 --run blind --rMax={rmax[i]}"
+                        + " --X-rtd MINIMIZER_analytic --cminDefaultMinimizerStrategy=0"
+                        + " --cminDefaultMinimizerTolerance=0.01 "
+                        + f".datacards/azh_run2_{channel}_{cat}_{istep}.txt"
                         f" -t -1 -m {istep} -n .{channel}_{cat}"
                     )
                     os.system(combine_cmd)

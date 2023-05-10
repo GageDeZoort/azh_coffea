@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import uproot
+from coffea import util
 from hist import Hist
 from hist.axis import Variable
-from matplotlib import pyplot as plt
 
 
 def get_empty_hist():
