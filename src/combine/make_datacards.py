@@ -7,7 +7,12 @@ import CombineHarvester.CombineTools.ch as ch
 parser = argparse.ArgumentParser(description="Description of your program")
 parser.add_argument("-m", "--mass", required=True)
 parser.add_argument("-s", "--sig", required=True)
+parser.add_argument("-y", "--year", required=True)
+parser.add_argument("--per-category", action="store_true")
 args = vars(parser.parse_args())
+
+year, mass, sig = args["year"], args["mass"], args["sig"]
+per_category = args["per_category"]
 
 mc_bkgd = [
     "ggZZ",
@@ -30,7 +35,6 @@ mc_bkgd = [
     "ggHZZ",
 ]
 reducible = ["reducible"]
-mass, sig = [args["mass"]], [args["sig"]]
 
 cb = ch.CombineHarvester()
 cats = [
@@ -43,12 +47,12 @@ cats = [
     (7, "mmmt"),
     (8, "mmtt"),
 ]
-btag_label = "0btag" if "gg" in args["sig"] else "btag"
+btag_label = "0btag" if "gg" in sig else "btag"
 
-cb.AddObservations(["*"], ["azh"], ["2018"], [btag_label], cats)
-cb.AddProcesses(["*"], ["azh"], ["2018"], [btag_label], reducible, cats, False)
-cb.AddProcesses(["*"], ["azh"], ["2018"], [btag_label], mc_bkgd, cats, False)
-cb.AddProcesses(mass, ["azh"], ["2018"], [btag_label], sig, cats, True)
+cb.AddObservations(["*"], ["azh"], [], [btag_label], cats)
+cb.AddProcesses([mass], ["azh"], [year], [btag_label], [sig], cats, True)
+cb.AddProcesses(["*"], ["azh"], [year], [btag_label], reducible, cats, False)
+cb.AddProcesses(["*"], ["azh"], [year], [btag_label], mc_bkgd, cats, False)
 
 # Higgs tau tau PU alphas
 cb.cp().signals().AddSyst(cb, "BR_htt_PU_alphas", "lnN", ch.SystMap()(1.062))
@@ -145,21 +149,23 @@ cb.cp().process(["VBFHtt", "VBFHWW"]).AddSyst(
 cb.cp().process(["TTHtt"]).AddSyst(cb, "pdf_Higgs_ttH", "lnN", ch.SystMap()(1.036))
 
 # add shape systematics
-cb.cp().process(mc_bkgd + sig).AddSyst(cb, "tauES", "shape", ch.SystMap()(1.00))
-cb.cp().process(mc_bkgd + sig).AddSyst(cb, "unclMET", "shape", ch.SystMap()(1.00))
-cb.cp().process(mc_bkgd + sig).AddSyst(cb, "pileup", "shape", ch.SystMap()(1.00))
-cb.cp().process(mc_bkgd + sig).AddSyst(cb, "l1prefire", "shape", ch.SystMap()(1.00))
-cb.cp().process(mc_bkgd + sig).AddSyst(cb, "eleES", "shape", ch.SystMap()(1.00))
-cb.cp().process(mc_bkgd + sig).AddSyst(cb, "eleSmear", "shape", ch.SystMap()(1.00))
-cb.cp().process(mc_bkgd + sig).AddSyst(cb, "muES", "shape", ch.SystMap()(1.00))
-cb.cp().process(mc_bkgd + sig).AddSyst(cb, "efake", "shape", ch.SystMap()(1.00))
-cb.cp().process(mc_bkgd + sig).AddSyst(cb, "mfake", "shape", ch.SystMap()(1.00))
+bkgd = mc_bkgd + [sig]
+bkgd_mod = [b for b in bkgd if "ggHWW" not in b]
+cb.cp().process(bkgd_mod).AddSyst(cb, "tauES", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd).AddSyst(cb, "unclMET", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd).AddSyst(cb, "pileup", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd).AddSyst(cb, "l1prefire", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd).AddSyst(cb, "eleES", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd).AddSyst(cb, "eleSmear", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd).AddSyst(cb, "muES", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd).AddSyst(cb, "efake", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd).AddSyst(cb, "mfake", "shape", ch.SystMap()(1.00))
 
 # extract shapes
 cb.cp().backgrounds().ExtractShapes(
     (
         "/uscms_data/d3/jdezoort/AZh_columnar/CMSSW_10_2_9/src/"
-        + f"azh_coffea/src/notebooks/root_for_combine/2018_{btag_label}.root"
+        + f"azh_coffea/src/notebooks/root_for_combine/MC_{btag_label}_{year}.root"
     ),
     "$BIN/$PROCESS",
     "$BIN/$PROCESS_$SYSTEMATIC",
@@ -168,15 +174,23 @@ cb.cp().backgrounds().ExtractShapes(
 cb.cp().signals().ExtractShapes(
     (
         "/uscms_data/d3/jdezoort/AZh_columnar/CMSSW_10_2_9/src/"
-        + f"azh_coffea/src/notebooks/root_for_combine/2018_{btag_label}.root"
+        + f"azh_coffea/src/notebooks/root_for_combine/{sig}_{mass}_{year}.root"
     ),
-    "$BIN/$PROCESS$MASS",
-    "$BIN/$PROCESS$MASS_$SYSTEMATIC",
+    "$BIN/$PROCESS_$MASS",
+    "$BIN/$PROCESS_$MASS_$SYSTEMATIC",
 )
 
-writer = ch.CardWriter(
-    "$TAG/$BIN_$CHANNEL_$ERA_$MASS.txt",
-    "$TAG/common/$ANALYSIS_$CHANNEL.input_$ERA.root",
-)
-writer.WriteCards("LIMITS/", cb)
-print(f"wrote {args['mass']}, {args['sig']}")
+if per_category:
+    writer = ch.CardWriter(
+        "$TAG/$ANALYSIS_$ERA_$CHANNEL_$BIN_$MASS.txt",
+        "$TAG/common/$ANALYSIS_$ERA_$CHANNEL_$BIN_$MASS.root",
+    )
+    writer.WriteCards(f"UL_{year}/", cb)
+    print(f"wrote {mass}, {sig}")
+else:
+    writer = ch.CardWriter(
+        "$TAG/$ANALYSIS_$ERA_$CHANNEL_$MASS.txt",
+        "$TAG/common/$ANALYSIS_$ERA_$CHANNEL_$MASS.root",
+    )
+    writer.WriteCards(f"UL_{year}/", cb)
+    print(f"wrote {mass}, {sig}")
