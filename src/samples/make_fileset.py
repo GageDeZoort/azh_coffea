@@ -6,7 +6,25 @@ from os.path import join
 
 import numpy as np
 
-from azh_analysis.utils.sample_utils import get_sample_info
+
+def get_sample_info(f):
+    return np.genfromtxt(
+        f,
+        delimiter=",",
+        names=True,
+        comments="#",
+        dtype=np.dtype(
+            [
+                ("f0", "<U9"),
+                ("f1", "<U64"),
+                ("f2", "<U32"),
+                ("f3", "<U250"),
+                ("f4", "<f16"),
+                ("f5", "<f8"),
+            ]
+        ),
+    )
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--source", default="MC")
@@ -35,9 +53,10 @@ def make_yaml(source, year, all_samples, sample_info, target_group=None):
             break
         sample_dir = join(base_dir, samples[0])
         files = os.listdir(sample_dir)
+        files = [f for f in files if ".root" in f]
         sample_dir = join("root://cmseos.fnal.gov/", sample_dir)
         files = [join(sample_dir, f) for f in files]
-        outfile.write(f"{name}_{args.year}:\n")
+        outfile.write(f"{name.strip('TuneCP5')}_{args.year}:\n")
         for f in files:
             outfile.write(f" - {f}\n")
     outfile.close()
