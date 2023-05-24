@@ -176,10 +176,10 @@ class AnalysisProcessor(processor.ProcessorABC):
                 "l1prefire_down",
                 "pileup_up",
                 "pileup_down",
-                "btag_down_uncorrelated",
-                "btag_down_correlated",
-                "btag_up_uncorrelated",
-                "btag_up_correlated",
+                # "btag_down_uncorrelated",
+                # "btag_down_correlated",
+                # "btag_up_uncorrelated",
+                # "btag_up_correlated",
             ]
 
         logging.info(f"Kinematic systematic shifts: {self.kin_syst_shifts}")
@@ -193,7 +193,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         dataset = events.metadata["dataset"]
         year = dataset.split("_")[-1]
         name = dataset.replace(f"_{year}", "")
-        properties = self.info[self.info["name"] == name]
+        names = np.array([n.replace("TuneCP5", "") for n in self.info["name"]])
+        properties = self.info[names == name]
         group = properties["group"][0]
         is_data = "data" in group
         nevts, xsec = properties["nevts"][0], properties["xsec"][0]
@@ -457,6 +458,9 @@ class AnalysisProcessor(processor.ProcessorABC):
 
                 # loop over systematic shifts for the event weights
                 for e_shift in self.event_syst_shifts:
+                    if ("nom" not in k_shift) and ("nom" not in e_shift):
+                        continue
+                    print(k_shift, e_shift)
                     up_or_down = e_shift.split("_")[-1]
 
                     # shift l1prefire or pileup weights
@@ -611,7 +615,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             ("tt", "t2"): "4",
         }
         signs = np_flat(lltt["tt"]["t1"].charge * lltt["tt"]["t2"].charge)
-        btags = np_flat(lltt.btags == 0)
+        btags = np_flat(lltt.btags > 0)
         cats = np_flat(lltt.cat)
         cats = np.array([self.categories[c] for c in cats])
         weight = np.nan_to_num(weight, nan=0, posinf=0, neginf=0)
