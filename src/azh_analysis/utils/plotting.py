@@ -80,6 +80,9 @@ def plot_data_vs_mc(
     var_label,
     logscale=False,
     outfile=None,
+    year="1",
+    lumi="1",
+    blind=False,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = {
@@ -118,15 +121,23 @@ def plot_data_vs_mc(
     fig.subplots_adjust(hspace=0.07)
     ax.set_prop_cycle(cycler(color=list(colors.values())))
     stack.plot(ax=ax, stack=True, histtype="fill", edgecolor=(0, 0, 0, 0.3))
-    data["data", :].plot1d(ax=ax, histtype="errorbar", color="k", label="Data")
+    if not blind:
+        data["data", :].plot1d(ax=ax, histtype="errorbar", color="k", label="Data")
 
     mc_vals = sum(list(group_hists.values())).values()
     data_vals = data["data", :].values()
     bins = data["data", :].axes[0].centers
+    if blind:
+        y = np.ones_like(data_vals)
+        yerr = np.zeros_like(data_vals)
+    else:
+        y = data_vals / mc_vals
+        yerr = ratio_uncertainty(data_vals, mc_vals, "poisson")
+
     rax.errorbar(
         x=bins,
-        y=data_vals / mc_vals,
-        yerr=ratio_uncertainty(data_vals, mc_vals, "poisson"),
+        y=y,
+        yerr=yerr,
         color="k",
         linestyle="none",
         marker="o",
@@ -143,7 +154,7 @@ def plot_data_vs_mc(
     rax.set_ylim([0, 2])
     ax.legend(loc="best", prop={"size": 16}, frameon=True)
     ax.get_legend().set_title(f"{cat_label}")
-    hep.cms.label("Preliminary", data=True, lumi=59.7, year=2018, ax=ax)
+    hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax)
     if outfile is not None:
         plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()
@@ -403,7 +414,7 @@ def plot_m4l_systematic(
         )
 
         if logscale:
-            axs[0, i].set_ylim([0.01, 50])
+            # axs[0, i].set_ylim([0.01, 50])
             axs[0, i].set_yscale("log")
             axs[0, i].set_xscale("log")
         axs[0, i].set_xlabel("")

@@ -23,7 +23,7 @@ def make_analysis_hist_stack(fileset, year):
     )
     btags_axis = IntCategory(
         name="btags",
-        categories=[],
+        categories=[0, 1],
         growth=True,
     )
     mass_type_axis = StrCategory(
