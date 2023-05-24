@@ -1,4 +1,4 @@
-DYJetsToLLM-50_postVFP_2016postVFP:
+DYJetsToLLM-50_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM-50_postVFP/all_DYJetsToLLM-50_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM-50_postVFP/all_DYJetsToLLM-50_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM-50_postVFP/all_DYJetsToLLM-50_postFVP_file001_part_2of3_Electrons.root
@@ -365,7 +365,7 @@ DYJetsToLLM-50_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM-50_postVFP/all_DYJetsToLLM-50_postFVP_file061_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM-50_postVFP/all_DYJetsToLLM-50_postFVP_file061_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM-50_postVFP/all_DYJetsToLLM-50_postFVP_file061_part_3of3_Muons.root
-DY1JetsToLLM-50_postVFP_2016postVFP:
+DY1JetsToLLM-50_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLLM-50_postVFP/all_DY1JetsToLLM-50_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLLM-50_postVFP/all_DY1JetsToLLM-50_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLLM-50_postVFP/all_DY1JetsToLLM-50_postFVP_file001_part_2of3_Electrons.root
@@ -528,7 +528,7 @@ DY1JetsToLLM-50_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLLM-50_postVFP/all_DY1JetsToLLM-50_postFVP_file027_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLLM-50_postVFP/all_DY1JetsToLLM-50_postFVP_file027_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLLM-50_postVFP/all_DY1JetsToLLM-50_postFVP_file027_part_3of3_Muons.root
-DY2JetsToLLM-50_postVFP_2016postVFP:
+DY2JetsToLLM-50_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLLM-50_postVFP/all_DY2JetsToLLM-50_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLLM-50_postVFP/all_DY2JetsToLLM-50_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLLM-50_postVFP/all_DY2JetsToLLM-50_postFVP_file001_part_2of3_Electrons.root
@@ -619,7 +619,7 @@ DY2JetsToLLM-50_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLLM-50_postVFP/all_DY2JetsToLLM-50_postFVP_file015_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLLM-50_postVFP/all_DY2JetsToLLM-50_postFVP_file015_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLLM-50_postVFP/all_DY2JetsToLLM-50_postFVP_file015_part_3of3_Muons.root
-DY3JetsToLLM-50_postVFP_2016postVFP:
+DY3JetsToLLM-50_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLLM-50_postVFP/all_DY3JetsToLLM-50_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLLM-50_postVFP/all_DY3JetsToLLM-50_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLLM-50_postVFP/all_DY3JetsToLLM-50_postFVP_file001_part_2of3_Electrons.root
@@ -722,7 +722,7 @@ DY3JetsToLLM-50_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLLM-50_postVFP/all_DY3JetsToLLM-50_postFVP_file017_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLLM-50_postVFP/all_DY3JetsToLLM-50_postFVP_file017_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLLM-50_postVFP/all_DY3JetsToLLM-50_postFVP_file017_part_3of3_Muons.root
-DY4JetsToLLM-50_postVFP_2016postVFP:
+DY4JetsToLLM-50_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY4JetsToLLM-50_postVFP/all_DY4JetsToLLM-50_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY4JetsToLLM-50_postVFP/all_DY4JetsToLLM-50_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY4JetsToLLM-50_postVFP/all_DY4JetsToLLM-50_postFVP_file001_part_2of3_Electrons.root
@@ -1023,7 +1023,7 @@ DY4JetsToLLM-50_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY4JetsToLLM-50_postVFP/all_DY4JetsToLLM-50_postFVP_file050_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY4JetsToLLM-50_postVFP/all_DY4JetsToLLM-50_postFVP_file050_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY4JetsToLLM-50_postVFP/all_DY4JetsToLLM-50_postFVP_file050_part_3of3_Muons.root
-TTTo2L2NuTuneCP5_postVFP_2016postVFP:
+TTTo2L2Nu_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTTo2L2NuTuneCP5_postVFP/all_TTTo2L2NuTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTTo2L2NuTuneCP5_postVFP/all_TTTo2L2NuTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTTo2L2NuTuneCP5_postVFP/all_TTTo2L2NuTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -1318,7 +1318,7 @@ TTTo2L2NuTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTTo2L2NuTuneCP5_postVFP/all_TTTo2L2NuTuneCP5_postFVP_file049_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTTo2L2NuTuneCP5_postVFP/all_TTTo2L2NuTuneCP5_postFVP_file049_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTTo2L2NuTuneCP5_postVFP/all_TTTo2L2NuTuneCP5_postFVP_file049_part_3of3_Muons.root
-TTToHadronicTuneCP5_postVFP_2016postVFP:
+TTToHadronic_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToHadronicTuneCP5_postVFP/all_TTToHadronicTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToHadronicTuneCP5_postVFP/all_TTToHadronicTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToHadronicTuneCP5_postVFP/all_TTToHadronicTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -2195,7 +2195,7 @@ TTToHadronicTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToHadronicTuneCP5_postVFP/all_TTToHadronicTuneCP5_postFVP_file146_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToHadronicTuneCP5_postVFP/all_TTToHadronicTuneCP5_postFVP_file146_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToHadronicTuneCP5_postVFP/all_TTToHadronicTuneCP5_postFVP_file146_part_3of3_Muons.root
-TTToSemiLeptonicTuneCP5_postVFP_2016postVFP:
+TTToSemiLeptonic_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToSemiLeptonicTuneCP5_postVFP/all_TTToSemiLeptonicTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToSemiLeptonicTuneCP5_postVFP/all_TTToSemiLeptonicTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToSemiLeptonicTuneCP5_postVFP/all_TTToSemiLeptonicTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -3024,7 +3024,7 @@ TTToSemiLeptonicTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToSemiLeptonicTuneCP5_postVFP/all_TTToSemiLeptonicTuneCP5_postFVP_file138_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToSemiLeptonicTuneCP5_postVFP/all_TTToSemiLeptonicTuneCP5_postFVP_file138_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToSemiLeptonicTuneCP5_postVFP/all_TTToSemiLeptonicTuneCP5_postFVP_file138_part_3of3_Muons.root
-ZZTo2Q2Lmllmin4p0_postVFP_2016postVFP:
+ZZTo2Q2Lmllmin4p0_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo2Q2Lmllmin4p0_postVFP/all_ZZTo2Q2Lmllmin4p0_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo2Q2Lmllmin4p0_postVFP/all_ZZTo2Q2Lmllmin4p0_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo2Q2Lmllmin4p0_postVFP/all_ZZTo2Q2Lmllmin4p0_postFVP_file001_part_2of3_Electrons.root
@@ -3109,7 +3109,7 @@ ZZTo2Q2Lmllmin4p0_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo2Q2Lmllmin4p0_postVFP/all_ZZTo2Q2Lmllmin4p0_postFVP_file014_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo2Q2Lmllmin4p0_postVFP/all_ZZTo2Q2Lmllmin4p0_postFVP_file014_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo2Q2Lmllmin4p0_postVFP/all_ZZTo2Q2Lmllmin4p0_postFVP_file014_part_3of3_Muons.root
-ZZTo4LTuneCP5_postVFP_2016postVFP:
+ZZTo4L_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo4LTuneCP5_postVFP/all_ZZTo4LTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo4LTuneCP5_postVFP/all_ZZTo4LTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo4LTuneCP5_postVFP/all_ZZTo4LTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -3704,7 +3704,7 @@ ZZTo4LTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo4LTuneCP5_postVFP/all_ZZTo4LTuneCP5_postFVP_file099_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo4LTuneCP5_postVFP/all_ZZTo4LTuneCP5_postFVP_file099_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZTo4LTuneCP5_postVFP/all_ZZTo4LTuneCP5_postFVP_file099_part_3of3_Muons.root
-WZTo2Q2LTuneCP5_postVFP_2016postVFP:
+WZTo2Q2L_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo2Q2LTuneCP5_postVFP/all_WZTo2Q2LTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo2Q2LTuneCP5_postVFP/all_WZTo2Q2LTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo2Q2LTuneCP5_postVFP/all_WZTo2Q2LTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -3939,7 +3939,7 @@ WZTo2Q2LTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo2Q2LTuneCP5_postVFP/all_WZTo2Q2LTuneCP5_postFVP_file039_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo2Q2LTuneCP5_postVFP/all_WZTo2Q2LTuneCP5_postFVP_file039_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo2Q2LTuneCP5_postVFP/all_WZTo2Q2LTuneCP5_postFVP_file039_part_3of3_Muons.root
-WZTo3LNuTuneCP5_postVFP_2016postVFP:
+WZTo3LNu_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo3LNuTuneCP5_postVFP/all_WZTo3LNuTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo3LNuTuneCP5_postVFP/all_WZTo3LNuTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo3LNuTuneCP5_postVFP/all_WZTo3LNuTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -4126,7 +4126,7 @@ WZTo3LNuTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo3LNuTuneCP5_postVFP/all_WZTo3LNuTuneCP5_postFVP_file031_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo3LNuTuneCP5_postVFP/all_WZTo3LNuTuneCP5_postFVP_file031_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZTo3LNuTuneCP5_postVFP/all_WZTo3LNuTuneCP5_postFVP_file031_part_3of3_Muons.root
-ttZJetsTuneCP5_postVFP_2016postVFP:
+ttZJets_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJetsTuneCP5_postVFP/all_ttZJetsTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJetsTuneCP5_postVFP/all_ttZJetsTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJetsTuneCP5_postVFP/all_ttZJetsTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -4295,7 +4295,7 @@ ttZJetsTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJetsTuneCP5_postVFP/all_ttZJetsTuneCP5_postFVP_file028_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJetsTuneCP5_postVFP/all_ttZJetsTuneCP5_postFVP_file028_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJetsTuneCP5_postVFP/all_ttZJetsTuneCP5_postFVP_file028_part_3of3_Muons.root
-TTWJetsToLNuTuneCP5_postVFP_2016postVFP:
+TTWJetsToLNu_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTWJetsToLNuTuneCP5_postVFP/all_TTWJetsToLNuTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTWJetsToLNuTuneCP5_postVFP/all_TTWJetsToLNuTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTWJetsToLNuTuneCP5_postVFP/all_TTWJetsToLNuTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -4368,7 +4368,7 @@ TTWJetsToLNuTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTWJetsToLNuTuneCP5_postVFP/all_TTWJetsToLNuTuneCP5_postFVP_file012_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTWJetsToLNuTuneCP5_postVFP/all_TTWJetsToLNuTuneCP5_postFVP_file012_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTWJetsToLNuTuneCP5_postVFP/all_TTWJetsToLNuTuneCP5_postFVP_file012_part_3of3_Muons.root
-GluGluToContinToZZTo2e2muTuneCP5_postVFP_2016postVFP:
+GluGluToContinToZZTo2e2mu_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2muTuneCP5_postVFP/all_GluGluToContinToZZTo2e2muTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2muTuneCP5_postVFP/all_GluGluToContinToZZTo2e2muTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2muTuneCP5_postVFP/all_GluGluToContinToZZTo2e2muTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -4441,7 +4441,7 @@ GluGluToContinToZZTo2e2muTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2muTuneCP5_postVFP/all_GluGluToContinToZZTo2e2muTuneCP5_postFVP_file012_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2muTuneCP5_postVFP/all_GluGluToContinToZZTo2e2muTuneCP5_postFVP_file012_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2muTuneCP5_postVFP/all_GluGluToContinToZZTo2e2muTuneCP5_postFVP_file012_part_3of3_Muons.root
-GluGluToContinToZZTo2e2tauTuneCP5_postVFP_2016postVFP:
+GluGluToContinToZZTo2e2tau_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2e2tauTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2e2tauTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2e2tauTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -4556,7 +4556,7 @@ GluGluToContinToZZTo2e2tauTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2e2tauTuneCP5_postFVP_file019_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2e2tauTuneCP5_postFVP_file019_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2e2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2e2tauTuneCP5_postFVP_file019_part_3of3_Muons.root
-GluGluToContinToZZTo2mu2tauTuneCP5_postVFP_2016postVFP:
+GluGluToContinToZZTo2mu2tau_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2mu2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2mu2tauTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2mu2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2mu2tauTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2mu2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2mu2tauTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -4701,7 +4701,7 @@ GluGluToContinToZZTo2mu2tauTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2mu2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2mu2tauTuneCP5_postFVP_file024_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2mu2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2mu2tauTuneCP5_postFVP_file024_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo2mu2tauTuneCP5_postVFP/all_GluGluToContinToZZTo2mu2tauTuneCP5_postFVP_file024_part_3of3_Muons.root
-GluGluToContinToZZTo4eTuneCP5_postVFP_2016postVFP:
+GluGluToContinToZZTo4e_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4eTuneCP5_postVFP/all_GluGluToContinToZZTo4eTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4eTuneCP5_postVFP/all_GluGluToContinToZZTo4eTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4eTuneCP5_postVFP/all_GluGluToContinToZZTo4eTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -4738,7 +4738,7 @@ GluGluToContinToZZTo4eTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4eTuneCP5_postVFP/all_GluGluToContinToZZTo4eTuneCP5_postFVP_file006_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4eTuneCP5_postVFP/all_GluGluToContinToZZTo4eTuneCP5_postFVP_file006_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4eTuneCP5_postVFP/all_GluGluToContinToZZTo4eTuneCP5_postFVP_file006_part_3of3_Muons.root
-GluGluToContinToZZTo4muTuneCP5_postVFP_2016postVFP:
+GluGluToContinToZZTo4mu_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4muTuneCP5_postVFP/all_GluGluToContinToZZTo4muTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4muTuneCP5_postVFP/all_GluGluToContinToZZTo4muTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4muTuneCP5_postVFP/all_GluGluToContinToZZTo4muTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -4751,7 +4751,7 @@ GluGluToContinToZZTo4muTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4muTuneCP5_postVFP/all_GluGluToContinToZZTo4muTuneCP5_postFVP_file002_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4muTuneCP5_postVFP/all_GluGluToContinToZZTo4muTuneCP5_postFVP_file002_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4muTuneCP5_postVFP/all_GluGluToContinToZZTo4muTuneCP5_postFVP_file002_part_3of3_Muons.root
-GluGluToContinToZZTo4tauTuneCP5_postVFP_2016postVFP:
+GluGluToContinToZZTo4tau_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4tauTuneCP5_postVFP/all_GluGluToContinToZZTo4tauTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4tauTuneCP5_postVFP/all_GluGluToContinToZZTo4tauTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4tauTuneCP5_postVFP/all_GluGluToContinToZZTo4tauTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -4884,7 +4884,7 @@ GluGluToContinToZZTo4tauTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4tauTuneCP5_postVFP/all_GluGluToContinToZZTo4tauTuneCP5_postFVP_file022_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4tauTuneCP5_postVFP/all_GluGluToContinToZZTo4tauTuneCP5_postFVP_file022_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluToContinToZZTo4tauTuneCP5_postVFP/all_GluGluToContinToZZTo4tauTuneCP5_postFVP_file022_part_3of3_Muons.root
-WWW4F_postVFP_2016postVFP:
+WWW4F_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_postVFP/all_WWW4F_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_postVFP/all_WWW4F_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_postVFP/all_WWW4F_postFVP_file001_part_2of3_Electrons.root
@@ -4969,7 +4969,7 @@ WWW4F_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_postVFP/all_WWW4F_postFVP_file014_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_postVFP/all_WWW4F_postFVP_file014_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_postVFP/all_WWW4F_postFVP_file014_part_3of3_Muons.root
-WWW4F_ext1_postVFP_2016postVFP:
+WWW4F_ext1_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_ext1_postVFP/all_WWW4F_ext1_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_ext1_postVFP/all_WWW4F_ext1_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_ext1_postVFP/all_WWW4F_ext1_postFVP_file001_part_2of3_Electrons.root
@@ -5114,7 +5114,7 @@ WWW4F_ext1_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_ext1_postVFP/all_WWW4F_ext1_postFVP_file024_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_ext1_postVFP/all_WWW4F_ext1_postFVP_file024_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWW4F_ext1_postVFP/all_WWW4F_ext1_postFVP_file024_part_3of3_Muons.root
-ZZZTuneCP5_postVFP_2016postVFP:
+ZZZ_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_postVFP/all_ZZZTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_postVFP/all_ZZZTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_postVFP/all_ZZZTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -5139,7 +5139,7 @@ ZZZTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_postVFP/all_ZZZTuneCP5_postFVP_file004_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_postVFP/all_ZZZTuneCP5_postFVP_file004_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_postVFP/all_ZZZTuneCP5_postFVP_file004_part_3of3_Muons.root
-ZZZTuneCP5_ext1_postVFP_2016postVFP:
+ZZZ_ext1_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_ext1_postVFP/all_ZZZTuneCP5_ext1_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_ext1_postVFP/all_ZZZTuneCP5_ext1_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_ext1_postVFP/all_ZZZTuneCP5_ext1_postFVP_file001_part_2of3_Electrons.root
@@ -5260,7 +5260,7 @@ ZZZTuneCP5_ext1_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_ext1_postVFP/all_ZZZTuneCP5_ext1_postFVP_file020_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_ext1_postVFP/all_ZZZTuneCP5_ext1_postFVP_file020_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZZZTuneCP5_ext1_postVFP/all_ZZZTuneCP5_ext1_postFVP_file020_part_3of3_Muons.root
-WWZ4F_postVFP_2016postVFP:
+WWZ4F_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_postVFP/all_WWZ4F_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_postVFP/all_WWZ4F_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_postVFP/all_WWZ4F_postFVP_file001_part_2of3_Electrons.root
@@ -5309,7 +5309,7 @@ WWZ4F_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_postVFP/all_WWZ4F_postFVP_file008_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_postVFP/all_WWZ4F_postFVP_file008_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_postVFP/all_WWZ4F_postFVP_file008_part_3of3_Muons.root
-WWZ4F_ext1_postVFP_2016postVFP:
+WWZ4F_ext1_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_ext1_postVFP/all_WWZ4F_ext1_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_ext1_postVFP/all_WWZ4F_ext1_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_ext1_postVFP/all_WWZ4F_ext1_postFVP_file001_part_2of3_Electrons.root
@@ -5352,7 +5352,7 @@ WWZ4F_ext1_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_ext1_postVFP/all_WWZ4F_ext1_postFVP_file007_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_ext1_postVFP/all_WWZ4F_ext1_postFVP_file007_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WWZ4F_ext1_postVFP/all_WWZ4F_ext1_postFVP_file007_part_3of3_Muons.root
-WZZTuneCP5_postVFP_2016postVFP:
+WZZ_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_postVFP/all_WZZTuneCP5_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_postVFP/all_WZZTuneCP5_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_postVFP/all_WZZTuneCP5_postFVP_file001_part_2of3_Electrons.root
@@ -5461,7 +5461,7 @@ WZZTuneCP5_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_postVFP/all_WZZTuneCP5_postFVP_file018_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_postVFP/all_WZZTuneCP5_postFVP_file018_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_postVFP/all_WZZTuneCP5_postFVP_file018_part_3of3_Muons.root
-WZZTuneCP5_ext1_postVFP_2016postVFP:
+WZZ_ext1_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_ext1_postVFP/all_WZZTuneCP5_ext1_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_ext1_postVFP/all_WZZTuneCP5_ext1_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_ext1_postVFP/all_WZZTuneCP5_ext1_postFVP_file001_part_2of3_Electrons.root
@@ -5516,7 +5516,7 @@ WZZTuneCP5_ext1_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_ext1_postVFP/all_WZZTuneCP5_ext1_postFVP_file009_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_ext1_postVFP/all_WZZTuneCP5_ext1_postFVP_file009_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WZZTuneCP5_ext1_postVFP/all_WZZTuneCP5_ext1_postFVP_file009_part_3of3_Muons.root
-GluGluHToTauTauM125_postVFP_2016postVFP:
+GluGluHToTauTauM125_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToTauTauM125_postVFP/all_GluGluHToTauTauM125_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToTauTauM125_postVFP/all_GluGluHToTauTauM125_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToTauTauM125_postVFP/all_GluGluHToTauTauM125_postFVP_file001_part_2of3_Electrons.root
@@ -5757,7 +5757,7 @@ GluGluHToTauTauM125_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToTauTauM125_postVFP/all_GluGluHToTauTauM125_postFVP_file040_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToTauTauM125_postVFP/all_GluGluHToTauTauM125_postFVP_file040_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToTauTauM125_postVFP/all_GluGluHToTauTauM125_postFVP_file040_part_3of3_Muons.root
-VBFHToTauTauM125_postVFP_2016postVFP:
+VBFHToTauTauM125_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToTauTauM125_postVFP/all_VBFHToTauTauM125_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToTauTauM125_postVFP/all_VBFHToTauTauM125_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToTauTauM125_postVFP/all_VBFHToTauTauM125_postFVP_file001_part_2of3_Electrons.root
@@ -5800,7 +5800,7 @@ VBFHToTauTauM125_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToTauTauM125_postVFP/all_VBFHToTauTauM125_postFVP_file007_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToTauTauM125_postVFP/all_VBFHToTauTauM125_postFVP_file007_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToTauTauM125_postVFP/all_VBFHToTauTauM125_postFVP_file007_part_3of3_Muons.root
-ZHToTauTauM125_ext1_postVFP_2016postVFP:
+ZHToTauTauM125_ext1_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZHToTauTauM125_ext1_postVFP/all_ZHToTauTauM125_ext1_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZHToTauTauM125_ext1_postVFP/all_ZHToTauTauM125_ext1_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZHToTauTauM125_ext1_postVFP/all_ZHToTauTauM125_ext1_postFVP_file001_part_2of3_Electrons.root
@@ -5837,7 +5837,7 @@ ZHToTauTauM125_ext1_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZHToTauTauM125_ext1_postVFP/all_ZHToTauTauM125_ext1_postFVP_file006_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZHToTauTauM125_ext1_postVFP/all_ZHToTauTauM125_ext1_postFVP_file006_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ZHToTauTauM125_ext1_postVFP/all_ZHToTauTauM125_ext1_postFVP_file006_part_3of3_Muons.root
-WplusHToTauTauM125_postVFP_2016postVFP:
+WplusHToTauTauM125_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WplusHToTauTauM125_postVFP/all_WplusHToTauTauM125_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WplusHToTauTauM125_postVFP/all_WplusHToTauTauM125_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WplusHToTauTauM125_postVFP/all_WplusHToTauTauM125_postFVP_file001_part_2of3_Electrons.root
@@ -5880,7 +5880,7 @@ WplusHToTauTauM125_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WplusHToTauTauM125_postVFP/all_WplusHToTauTauM125_postFVP_file007_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WplusHToTauTauM125_postVFP/all_WplusHToTauTauM125_postFVP_file007_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WplusHToTauTauM125_postVFP/all_WplusHToTauTauM125_postFVP_file007_part_3of3_Muons.root
-WminusHToTauTauM125_postVFP_2016postVFP:
+WminusHToTauTauM125_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WminusHToTauTauM125_postVFP/all_WminusHToTauTauM125_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WminusHToTauTauM125_postVFP/all_WminusHToTauTauM125_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WminusHToTauTauM125_postVFP/all_WminusHToTauTauM125_postFVP_file001_part_2of3_Electrons.root
@@ -5899,7 +5899,7 @@ WminusHToTauTauM125_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WminusHToTauTauM125_postVFP/all_WminusHToTauTauM125_postFVP_file003_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WminusHToTauTauM125_postVFP/all_WminusHToTauTauM125_postFVP_file003_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/WminusHToTauTauM125_postVFP/all_WminusHToTauTauM125_postFVP_file003_part_3of3_Muons.root
-ttHToTauTauM125_postVFP_2016postVFP:
+ttHToTauTauM125_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttHToTauTauM125_postVFP/all_ttHToTauTauM125_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttHToTauTauM125_postVFP/all_ttHToTauTauM125_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttHToTauTauM125_postVFP/all_ttHToTauTauM125_postFVP_file001_part_2of3_Electrons.root
@@ -6014,7 +6014,7 @@ ttHToTauTauM125_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttHToTauTauM125_postVFP/all_ttHToTauTauM125_postFVP_file019_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttHToTauTauM125_postVFP/all_ttHToTauTauM125_postFVP_file019_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttHToTauTauM125_postVFP/all_ttHToTauTauM125_postFVP_file019_part_3of3_Muons.root
-GluGluHToWWTo2L2NuM-125_postVFP_2016postVFP:
+GluGluHToWWTo2L2NuM-125_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToWWTo2L2NuM-125_postVFP/all_GluGluHToWWTo2L2NuM-125_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToWWTo2L2NuM-125_postVFP/all_GluGluHToWWTo2L2NuM-125_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToWWTo2L2NuM-125_postVFP/all_GluGluHToWWTo2L2NuM-125_postFVP_file001_part_2of3_Electrons.root
@@ -6081,7 +6081,7 @@ GluGluHToWWTo2L2NuM-125_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToWWTo2L2NuM-125_postVFP/all_GluGluHToWWTo2L2NuM-125_postFVP_file011_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToWWTo2L2NuM-125_postVFP/all_GluGluHToWWTo2L2NuM-125_postFVP_file011_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToWWTo2L2NuM-125_postVFP/all_GluGluHToWWTo2L2NuM-125_postFVP_file011_part_3of3_Muons.root
-VBFHToWWTo2L2NuM-125_postVFP_2016postVFP:
+VBFHToWWTo2L2NuM-125_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToWWTo2L2NuM-125_postVFP/all_VBFHToWWTo2L2NuM-125_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToWWTo2L2NuM-125_postVFP/all_VBFHToWWTo2L2NuM-125_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToWWTo2L2NuM-125_postVFP/all_VBFHToWWTo2L2NuM-125_postFVP_file001_part_2of3_Electrons.root
@@ -6310,7 +6310,7 @@ VBFHToWWTo2L2NuM-125_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToWWTo2L2NuM-125_postVFP/all_VBFHToWWTo2L2NuM-125_postFVP_file038_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToWWTo2L2NuM-125_postVFP/all_VBFHToWWTo2L2NuM-125_postFVP_file038_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/VBFHToWWTo2L2NuM-125_postVFP/all_VBFHToWWTo2L2NuM-125_postFVP_file038_part_3of3_Muons.root
-HZJHToWWTo2L2Nu_postVFP_2016postVFP:
+HZJHToWWTo2L2Nu_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HZJHToWWTo2L2Nu_postVFP/all_HZJHToWWTo2L2Nu_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HZJHToWWTo2L2Nu_postVFP/all_HZJHToWWTo2L2Nu_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HZJHToWWTo2L2Nu_postVFP/all_HZJHToWWTo2L2Nu_postFVP_file001_part_2of3_Electrons.root
@@ -6665,7 +6665,7 @@ HZJHToWWTo2L2Nu_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HZJHToWWTo2L2Nu_postVFP/all_HZJHToWWTo2L2Nu_postFVP_file059_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HZJHToWWTo2L2Nu_postVFP/all_HZJHToWWTo2L2Nu_postFVP_file059_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HZJHToWWTo2L2Nu_postVFP/all_HZJHToWWTo2L2Nu_postFVP_file059_part_3of3_Muons.root
-HWminusJHToWW_postVFP_2016postVFP:
+HWminusJHToWW_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWminusJHToWW_postVFP/all_HWminusJHToWW_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWminusJHToWW_postVFP/all_HWminusJHToWW_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWminusJHToWW_postVFP/all_HWminusJHToWW_postFVP_file001_part_2of3_Electrons.root
@@ -7062,7 +7062,7 @@ HWminusJHToWW_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWminusJHToWW_postVFP/all_HWminusJHToWW_postFVP_file066_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWminusJHToWW_postVFP/all_HWminusJHToWW_postFVP_file066_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWminusJHToWW_postVFP/all_HWminusJHToWW_postFVP_file066_part_3of3_Muons.root
-HWplusJHToWW_postVFP_2016postVFP:
+HWplusJHToWW_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWplusJHToWW_postVFP/all_HWplusJHToWW_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWplusJHToWW_postVFP/all_HWplusJHToWW_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWplusJHToWW_postVFP/all_HWplusJHToWW_postFVP_file001_part_2of3_Electrons.root
@@ -7411,7 +7411,7 @@ HWplusJHToWW_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWplusJHToWW_postVFP/all_HWplusJHToWW_postFVP_file058_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWplusJHToWW_postVFP/all_HWplusJHToWW_postFVP_file058_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/HWplusJHToWW_postVFP/all_HWplusJHToWW_postFVP_file058_part_3of3_Muons.root
-GluGluZHHToWW_postVFP_2016postVFP:
+GluGluZHHToWW_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluZHHToWW_postVFP/all_GluGluZHHToWW_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluZHHToWW_postVFP/all_GluGluZHHToWW_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluZHHToWW_postVFP/all_GluGluZHHToWW_postFVP_file001_part_2of3_Electrons.root
@@ -7484,7 +7484,7 @@ GluGluZHHToWW_postVFP_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluZHHToWW_postVFP/all_GluGluZHHToWW_postFVP_file012_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluZHHToWW_postVFP/all_GluGluZHHToWW_postFVP_file012_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluZHHToWW_postVFP/all_GluGluZHHToWW_postFVP_file012_part_3of3_Muons.root
-GluGluHToZZTo4LM125_postVFP_2016postVFP:
+GluGluHToZZTo4LM125_2016postVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToZZTo4LM125_postVFP/all_GluGluHToZZTo4LM125_postFVP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToZZTo4LM125_postVFP/all_GluGluHToZZTo4LM125_postFVP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/GluGluHToZZTo4LM125_postVFP/all_GluGluHToZZTo4LM125_postFVP_file001_part_2of3_Electrons.root

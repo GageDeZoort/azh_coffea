@@ -1,0 +1,7 @@
+#group,name,redirector,dataset,nevts,xsec
+data,SingleElectron_Run2016Fv1,/cmsxrootd-site.fnal.gov/,/SingleElectron/Run2016F-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD,8858206,1
+data,SingleElectron_Run2016G,/cmsxrootd-site.fnal.gov/,/SingleElectron/Run2016G-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD,153363109,1
+data,SingleElectron_Run2016H,/cmsxrootd-site.fnal.gov/,/SingleElectron/Run2016H-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD,129021893,1
+data,SingleMuon_Run2016Fv1,/cmsxrootd-site.fnal.gov/,/SingleMuon/Run2016F-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD,8024195,1
+data,SingleMuon_Run2016G,/cmsxrootd-site.fnal.gov/,/SingleMuon/Run2016G-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD,149916849,1
+data,SingleMuon_Run2016H,/cmsxrootd-site.fnal.gov/,/SingleMuon/Run2016H-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD,174035164,1
