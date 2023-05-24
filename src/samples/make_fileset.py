@@ -16,8 +16,8 @@ def get_sample_info(f):
         dtype=np.dtype(
             [
                 ("f0", "<U9"),
-                ("f1", "<U64"),
-                ("f2", "<U32"),
+                ("f1", "<U128"),
+                ("f2", "<U128"),
                 ("f3", "<U250"),
                 ("f4", "<f16"),
                 ("f5", "<f8"),
@@ -46,7 +46,7 @@ def make_yaml(source, year, all_samples, sample_info, target_group=None):
         group = sample_info["group"][i]
         if (target_group is not None) and (target_group != group):
             continue
-        print(f"...processing {group}: {name}")
+        print(f"...processing {group}: {name.replace('TuneCP5', '')}")
         samples = [s for s in all_samples if name == s]
         if len(samples) != 1:
             print(f"only found {samples}")
@@ -56,9 +56,9 @@ def make_yaml(source, year, all_samples, sample_info, target_group=None):
         files = [f for f in files if ".root" in f]
         sample_dir = join("root://cmseos.fnal.gov/", sample_dir)
         files = [join(sample_dir, f) for f in files]
-        outfile.write(f"{name.strip('TuneCP5')}_{args.year}:\n")
+        outfile.write(f"{name.replace('TuneCP5', '')}_{args.year}:\n")
         for f in files:
-            outfile.write(f" - {f}\n")
+            outfile.write(f" - root://cmseos.fnal.gov/{f}\n")
     outfile.close()
 
 
