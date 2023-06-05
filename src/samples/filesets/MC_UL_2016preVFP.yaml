@@ -1,4 +1,4 @@
-DYJetsToLLM50_2016preVFP:
+DYJetsToLLM-50_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM50_preVFP/all_DYJetsToLLM50_preVFP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM50_preVFP/all_DYJetsToLLM50_preVFP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM50_preVFP/all_DYJetsToLLM50_preVFP_file001_part_2of3_Electrons.root
@@ -395,7 +395,7 @@ DYJetsToLLM50_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM50_preVFP/all_DYJetsToLLM50_preVFP_file066_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM50_preVFP/all_DYJetsToLLM50_preVFP_file066_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DYJetsToLLM50_preVFP/all_DYJetsToLLM50_preVFP_file066_part_3of3_Muons.root
-DY1JetsToLL_M-50_2016preVFP:
+DY1JetsToLLM-50_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLL_M-50_preVFP/all_DY1JetsToLL_M-50_preVFP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLL_M-50_preVFP/all_DY1JetsToLL_M-50_preVFP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLL_M-50_preVFP/all_DY1JetsToLL_M-50_preVFP_file001_part_2of3_Electrons.root
@@ -588,7 +588,7 @@ DY1JetsToLL_M-50_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLL_M-50_preVFP/all_DY1JetsToLL_M-50_preVFP_file032_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLL_M-50_preVFP/all_DY1JetsToLL_M-50_preVFP_file032_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY1JetsToLL_M-50_preVFP/all_DY1JetsToLL_M-50_preVFP_file032_part_3of3_Muons.root
-DY2JetsToLL_M-50_2016preVFP:
+DY2JetsToLLM-50_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLL_M-50_preVFP/all_DY2JetsToLL_M-50_preVFP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLL_M-50_preVFP/all_DY2JetsToLL_M-50_preVFP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLL_M-50_preVFP/all_DY2JetsToLL_M-50_preVFP_file001_part_2of3_Electrons.root
@@ -721,7 +721,7 @@ DY2JetsToLL_M-50_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLL_M-50_preVFP/all_DY2JetsToLL_M-50_preVFP_file022_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLL_M-50_preVFP/all_DY2JetsToLL_M-50_preVFP_file022_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY2JetsToLL_M-50_preVFP/all_DY2JetsToLL_M-50_preVFP_file022_part_3of3_Muons.root
-DY3JetsToLL_M-50_2016preVFP:
+DY3JetsToLLM-50_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLL_M-50_preVFP/all_DY3JetsToLL_M-50_preVFP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLL_M-50_preVFP/all_DY3JetsToLL_M-50_preVFP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLL_M-50_preVFP/all_DY3JetsToLL_M-50_preVFP_file001_part_2of3_Electrons.root
@@ -812,7 +812,7 @@ DY3JetsToLL_M-50_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLL_M-50_preVFP/all_DY3JetsToLL_M-50_preVFP_file015_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLL_M-50_preVFP/all_DY3JetsToLL_M-50_preVFP_file015_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY3JetsToLL_M-50_preVFP/all_DY3JetsToLL_M-50_preVFP_file015_part_3of3_Muons.root
-DY4JetsToLL_M-50_2016preVFP:
+DY4JetsToLLM-50_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY4JetsToLL_M-50_preVFP/all_DY4JetsToLL_M-50_preVFP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY4JetsToLL_M-50_preVFP/all_DY4JetsToLL_M-50_preVFP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/DY4JetsToLL_M-50_preVFP/all_DY4JetsToLL_M-50_preVFP_file001_part_2of3_Electrons.root
