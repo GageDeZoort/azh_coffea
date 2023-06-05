@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import os
+import sys
 
 combine_cards = True
 per_category = False
 
-years = ["2018"]
+years = sys.argv[1:]  # ["2017", "2018"]
+print(years)
 step1 = ["225", "250", "275", "300"]
 step2 = ["325", "350", "375"]
 step3 = ["400", "450"]
@@ -65,6 +67,7 @@ if combine_cards:
                 os.system(merge_cards)
                 os.system("mv azh_*.txt .datacards/")
 
+name = "all" if len(years) > 1 else years[0]
 steps = [step1, step2, step3, step4, step5, step6]
 rmax = [30, 25, 20, 15, 10, 20]
 if not per_category:
@@ -75,7 +78,7 @@ if not per_category:
                     "combine -M AsymptoticLimits --noFitAsimov --rMin=0 "
                     + f"--run blind --rMax={rmax[i]} --X-rtd MINIMIZER_analytic "
                     + "--cminDefaultMinimizerStrategy=0 --cminDefaultMinimizerTolerance=0.01 "
-                    + f".datacards/azh_run2_{channel}_{istep}.txt -t -1 -m {istep} -n .{channel}"
+                    + f".datacards/azh_run2_{channel}_{istep}.txt -t -1 -m {istep} -n .{name}_{channel}"
                 )
                 print(combine_cmd)
                 os.system(combine_cmd)
@@ -155,12 +158,10 @@ else:
             for step in steps:
                 for i, istep in enumerate(step):
                     combine_cmd = (
-                        "combine -M AsymptoticLimits --noFitAsimov "
-                        + f"--rMin=0 --run blind --rMax={rmax[i]}"
-                        + " --X-rtd MINIMIZER_analytic --cminDefaultMinimizerStrategy=0"
-                        + " --cminDefaultMinimizerTolerance=0.01 "
-                        + f".datacards/azh_run2_{channel}_{cat}_{istep}.txt"
-                        f" -t -1 -m {istep} -n .{channel}_{cat}"
+                        f"combine -M AsymptoticLimits --noFitAsimov --rMin=0 --run blind --rMax={rmax[i]}"
+                        + f" --X-rtd MINIMIZER_analytic --cminDefaultMinimizerStrategy=0"
+                        + f" --cminDefaultMinimizerTolerance=0.01 .datacards/azh_run2_{channel}_{cat}_{istep}.txt"
+                        f" -t -1 -m {istep} -n .{year}_{channel}_{cat}"
                     )
                     os.system(combine_cmd)
                     print(f"finished running on mA={istep} GeV, {cat}.")

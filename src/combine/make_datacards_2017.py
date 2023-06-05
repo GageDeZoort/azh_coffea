@@ -7,11 +7,11 @@ import CombineHarvester.CombineTools.ch as ch
 parser = argparse.ArgumentParser(description="Description of your program")
 parser.add_argument("-m", "--mass", required=True)
 parser.add_argument("-s", "--sig", required=True)
-parser.add_argument("-y", "--year", required=True)
+# parser.add_argument('-y', '--year', required=True)
 parser.add_argument("--per-category", action="store_true")
 args = vars(parser.parse_args())
 
-year, mass, sig = args["year"], args["mass"], args["sig"]
+year, mass, sig = "2017", args["mass"], args["sig"]
 per_category = args["per_category"]
 
 mc_bkgd = [
@@ -54,32 +54,32 @@ cb.AddProcesses([mass], ["azh"], [year], [btag_label], [sig], cats, True)
 cb.AddProcesses(["*"], ["azh"], [year], [btag_label], reducible, cats, False)
 cb.AddProcesses(["*"], ["azh"], [year], [btag_label], mc_bkgd, cats, False)
 
+
+# luminosity
+cb.cp().signals().AddSyst(cb, "CMS_lumi_13TeV_2017", "lnN", ch.SystMap()(1.02))
+cb.cp().process(mc_bkgd).AddSyst(cb, "CMS_lumi_13TeV_2017", "lnN", ch.SystMap()(1.02))
+cb.cp().signals().AddSyst(cb, "CMS_lumi_13TeV_1718", "lnN", ch.SystMap()(1.006))
+cb.cp().process(mc_bkgd).AddSyst(cb, "CMS_lumi_13TeV_1718", "lnN", ch.SystMap()(1.006))
+cb.cp().signals().AddSyst(cb, "CMS_lumi_13TeV_correlated", "lnN", ch.SystMap()(1.02))
+cb.cp().process(mc_bkgd).AddSyst(
+    cb, "CMS_lumi_13TeV_correlated", "lnN", ch.SystMap()(1.009)
+)
+
 # Higgs tau tau PU alphas
 cb.cp().signals().AddSyst(cb, "BR_htt_PU_alphas", "lnN", ch.SystMap()(1.062))
-cb.cp().process(["ggHtt", "VBFHtt", "WHtt", "ZHtt", "TTHtt", "ggHWW"]).AddSyst(
+cb.cp().process(["ggHtt", "VBFHtt", "WHtt", "ZHtt", "TTHtt"]).AddSyst(
     cb, "BR_htt_PU_alphas", "lnN", ch.SystMap()(1.062)
 )
 cb.cp().signals().AddSyst(cb, "BR_htt_PU_mq", "lnN", ch.SystMap()(1.099))
-cb.cp().process(["ggHtt", "VBFHtt", "WHtt", "ZHtt", "TTHtt", "ggHWW"]).AddSyst(
+cb.cp().process(["ggHtt", "VBFHtt", "WHtt", "ZHtt", "TTHtt"]).AddSyst(
     cb, "BR_htt_PU_mq", "lnN", ch.SystMap()(1.099)
 )
 cb.cp().signals().AddSyst(cb, "BR_htt_THU", "lnN", ch.SystMap()(1.017))
-cb.cp().process(["ggHtt", "VBFHtt", "WHtt", "ZHtt", "TTHtt", "ggHWW"]).AddSyst(
+cb.cp().process(["ggHtt", "VBFHtt", "WHtt", "ZHtt", "TTHtt"]).AddSyst(
     cb, "BR_htt_THU", "lnN", ch.SystMap()(1.017)
 )
 
 # Higgs WW PU alphas
-cb.cp().process(["ggHWW", "VBFHWW", "WHWW", "ZHWW", "ggZHWW"]).AddSyst(
-    cb, "BR_hww_PU_alphas", "lnN", ch.SystMap()(1.062)
-)
-cb.cp().process(["ggHtt", "VBFHtt", "WHtt", "ZHtt", "TTHtt", "ggHWW"]).AddSyst(
-    cb, "BR_hww_PU_mq", "lnN", ch.SystMap()(1.099)
-)
-cb.cp().process(["ggHtt", "VBFHtt", "WHtt", "ZHtt", "TTHtt", "ggHWW"]).AddSyst(
-    cb, "BR_hww_THU", "lnN", ch.SystMap()(1.099)
-)
-
-# HWW
 cb.cp().process(["ggHWW", "VBFHWW", "WHWW", "ZHWW", "ggZHWW"]).AddSyst(
     cb, "BR_hww_PU_alphas", "lnN", ch.SystMap()(1.066)
 )
@@ -98,7 +98,7 @@ syst_map = ch.SystMap("bin_id")([1, 2], 1.06)([3, 4], 1.04)([5, 6], 1.02)([7, 8]
 cb.cp().process(mc_bkgd).AddSyst(cb, "CMS_eff_e", "lnN", syst_map)
 cb.cp().signals().AddSyst(cb, "CMS_eff_e", "lnN", syst_map)
 
-# CMS electron efficiencies
+# CMS muon efficiencies
 syst_map = ch.SystMap("bin_id")([5, 7], 1.06)([6, 8], 1.04)([1, 3], 1.02)([2, 4], 1.0)
 cb.cp().process(mc_bkgd).AddSyst(cb, "CMS_eff_m", "lnN", syst_map)
 cb.cp().signals().AddSyst(cb, "CMS_eff_m", "lnN", syst_map)
