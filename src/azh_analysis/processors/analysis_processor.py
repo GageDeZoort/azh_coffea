@@ -193,7 +193,12 @@ class AnalysisProcessor(processor.ProcessorABC):
         dataset = events.metadata["dataset"]
         year = dataset.split("_")[-1]
         name = dataset.replace(f"_{year}", "")
-        names = np.array([n.replace("TuneCP5", "") for n in self.info["name"]])
+        names = np.array(
+            [
+                n.replace("TuneCP5", "").replace("_postVFP", "").replace("_preVFP", "")
+                for n in self.info["name"]
+            ]
+        )
         properties = self.info[names == name]
         group = properties["group"][0]
         is_data = "data" in group
@@ -346,7 +351,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         continue
 
                     # determine which legs passed tight selections
-                    lltt = append_tight_masks(lltt, cat)
+                    lltt = append_tight_masks(lltt, cat, relaxed=self.same_sign)
                     lltt["cat"] = self.cat_to_num[cat]
                     lltt["MET"] = MET
 
@@ -682,31 +687,34 @@ class AnalysisProcessor(processor.ProcessorABC):
                 mass=mtt[blind_mask],
                 weight=weight[blind_mask],
             )
-            output["m4l"][name].fill(
-                group=group,
-                category=cats[blind_mask],
-                # sign=signs[blind_mask],
-                mass_type="raw",
-                btags=btags[blind_mask],
-                syst_shift=syst_shift,
-                mass=m4l[blind_mask],
-                weight=weight[blind_mask],
-            )
+            for m4l_label in ["m4l", "m4l_reg", "m4l_fine"]:
+                output[m4l_label][name].fill(
+                    group=group,
+                    category=cats[blind_mask],
+                    # sign=signs[blind_mask],
+                    mass_type="raw",
+                    btags=btags[blind_mask],
+                    syst_shift=syst_shift,
+                    mass=m4l[blind_mask],
+                    weight=weight[blind_mask],
+                )
 
             # fill the Zh->lltt candidate mass spectrums (corrected, constrained)
             for mass_label, mass_data in fastmtt_out.items():
                 key = mass_label.split("_")[0]  # mtt or m4l
                 mass_type = mass_label.split("_")[1]  # corr or cons
-                output[key][name].fill(
-                    group=group,
-                    category=cats[blind_mask],
-                    # sign=signs[blind_mask],
-                    mass_type=mass_type,
-                    btags=btags[blind_mask],
-                    syst_shift=syst_shift,
-                    mass=mass_data[blind_mask],
-                    weight=weight[blind_mask],
-                )
+                keys = ["m4l", "m4l_reg", "m4l_fine"] if "m4l" in key else ["mtt"]
+                for key in keys:
+                    output[key][name].fill(
+                        group=group,
+                        category=cats[blind_mask],
+                        # sign=signs[blind_mask],
+                        mass_type=mass_type,
+                        btags=btags[blind_mask],
+                        syst_shift=syst_shift,
+                        mass=mass_data[blind_mask],
+                        weight=weight[blind_mask],
+                    )
 
     def apply_lepton_ID_SFs(self, lltt_all, cat, is_data=False):
         lltt, num = ak.flatten(lltt_all), ak.num(lltt_all)

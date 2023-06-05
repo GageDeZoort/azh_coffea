@@ -70,7 +70,28 @@ def make_analysis_hist_stack(fileset, year):
         )
         for dataset in fileset.keys()
     }
-    # if signal sample, adjust based on A mass
+    m4l_reg = {
+        dataset.split(split_str)[0]: Hist(
+            group_axis,
+            category_axis,
+            btags_axis,
+            syst_shift_axis,
+            mass_type_axis,
+            Regular(name="mass", bins=100, start=0, stop=2500),
+        )
+        for dataset in fileset.keys()
+    }
+    m4l_fine = {
+        dataset.split(split_str)[0]: Hist(
+            group_axis,
+            category_axis,
+            btags_axis,
+            syst_shift_axis,
+            mass_type_axis,
+            Regular(name="mass", bins=250, start=0, stop=2500),
+        )
+        for dataset in fileset.keys()
+    }
     m4l = {
         dataset.split(split_str)[0]: Hist(
             group_axis,
@@ -115,6 +136,8 @@ def make_analysis_hist_stack(fileset, year):
     return {
         "mtt": mtt,
         "m4l": m4l,
+        "m4l_reg": m4l_reg,
+        "m4l_fine": m4l_fine,
         "mll": mll,
         "pt": pt,
         "met": met,
