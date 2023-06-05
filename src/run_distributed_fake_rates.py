@@ -141,8 +141,8 @@ nevts_dict, dyjets_weights = None, None
 if "MC" in source:
     nevts_dict = get_nevts_dict(fileset, year)
     print("fileset keys", fileset.keys())
-    if f"DYJetsToLLM-50_{year}" in fileset.keys():
-        dyjets_weights = dyjets_stitch_weights(sample_info, nevts_dict, year)
+    # if ("DYJetsToLLM-50" in fileset.keys()):
+    dyjets_weights = dyjets_stitch_weights(sample_info, nevts_dict, year)
 
 logging.info(f"Successfully built sum_of_weights dict:\n {nevts_dict}")
 logging.info(f"Successfully built dyjets stitch weights:\n {dyjets_weights}")
@@ -179,7 +179,7 @@ cluster = LPCCondorCluster(
 if args.test_mode:
     cluster.scale(2)
 else:
-    cluster.scale(250)
+    cluster.scale(350)
     # cluster.adapt(minimum=20, maximum=150)
 
 client = Client(cluster)
@@ -211,7 +211,7 @@ proc_instance = FakeRateProcessor(
     dyjets_weights=dyjets_weights,
 )
 
-chunksize = 10000 if "data" in args.source else 25000
+chunksize = 25000 if "data" in args.source else 50000
 hists, metrics = processor.run_uproot_job(
     fileset,
     treename="Events",

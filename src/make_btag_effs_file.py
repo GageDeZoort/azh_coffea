@@ -5,6 +5,7 @@ import logging
 import time
 from os.path import join
 
+import dask
 import numpy as np
 from coffea import processor, util
 from coffea.nanoevents import NanoAODSchema
@@ -48,9 +49,9 @@ source, year = args.source, args.year
 fileset = get_fileset(join(yaml_indir, f"{source}_{year}.yaml"))
 sample_info = get_sample_info(join(csv_indir, f"{source}_{year}.csv"))
 if args.add_signal:
-    signal_yaml = f"signal_UL_{year[:4]}.yaml"
+    signal_yaml = f"signal_UL_{year}.yaml"
     fileset.update(get_fileset(join(yaml_indir, signal_yaml)))
-    signal_csv = join(csv_indir, f"signal_UL_{year[:4]}.csv")
+    signal_csv = join(csv_indir, f"signal_UL_{year}.csv")
     sample_info = np.append(sample_info, get_sample_info(signal_csv))
 
 fileset = {k: v for k, v in fileset.items()}
@@ -62,6 +63,21 @@ if args.test_mode:
 # start timer, initiate cluster, ship over files
 tic = time.time()
 infiles = ["azh_analysis"]
+
+# configure dask
+dask.config.set(
+    {
+        "jobqueue.lpccondor.memory": "2GB",
+        "distributed.worker.memory.target": 0.8,
+        "distributed.worker.memory.spill": 0.9,
+        "distributed.worker.memory.pause": False,
+        "distributed.worker.memory.terminate": 0,
+        "distributed.worker.profile.interval": "1d",
+        "distributed.worker.profile.cycle": "2d",
+        "distributed.worker.profile.low-level": False,
+        "distributed.nanny.environ.MALLOC_TRIM_THRESHOLD_": "65536",
+    }
+)
 
 cluster = LPCCondorCluster(
     ship_env=False,

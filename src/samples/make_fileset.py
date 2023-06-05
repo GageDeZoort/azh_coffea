@@ -49,6 +49,7 @@ def make_yaml(source, year, all_samples, sample_info, target_group=None):
         name_str = (
             name.replace("TuneCP5", "").replace("_postVFP", "").replace("_preVFP", "")
         )
+        name_str = name_str.replace("LL_M-50", "LLM-50").replace("LLM50", "LLM-50")
         print(f"...processing {group}: {name_str}")
         samples = [s for s in all_samples if name == s]
         if len(samples) != 1:
