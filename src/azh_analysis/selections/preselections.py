@@ -60,7 +60,9 @@ def get_baseline_electrons(electrons):
 
 
 # in use
-def tight_electrons(electrons):
+def tight_electrons(electrons, relaxed=False):
+    if relaxed:
+        return electrons.pfRelIso03_all < 10**6
     return (electrons.mvaFall17V2noIso_WP90 > 0) & (electrons.pfRelIso03_all < 0.15)
 
 
@@ -75,7 +77,9 @@ def get_baseline_muons(muons):
 
 
 # in use
-def tight_muons(muons):
+def tight_muons(muons, relaxed=False):
+    if relaxed:
+        return muons.pfRelIso04_all < 10**6
     return (muons.looseId | muons.mediumId | muons.tightId) & (
         muons.pfRelIso04_all < 0.15
     )
@@ -87,42 +91,44 @@ def get_baseline_taus(taus, loose=False):
     baseline_t = baseline_t[(np.abs(baseline_t.eta) < 2.3)]
     baseline_t = baseline_t[(np.abs(baseline_t.dz) < 0.2)]
     baseline_t = baseline_t[((baseline_t.decayMode != 5) & (baseline_t.decayMode != 6))]
-    baseline_t = baseline_t[((baseline_t.idDeepTau2017v2p1VSjet & 1) > 0)]
+    baseline_t = baseline_t[((baseline_t.idDeepTau2017v2p1VSjet & 1) > 0)]  # VVVLoose
     if loose:
         return baseline_t
 
-    baseline_t = baseline_t[((baseline_t.idDeepTau2017v2p1VSmu & 1) > 0)]
-    baseline_t = baseline_t[((baseline_t.idDeepTau2017v2p1VSe & 4) > 0)]
+    baseline_t = baseline_t[((baseline_t.idDeepTau2017v2p1VSmu & 1) > 0)]  # VLoose
+    baseline_t = baseline_t[((baseline_t.idDeepTau2017v2p1VSe & 4) > 0)]  # VLoose
     return baseline_t
 
 
 # in use
-def tight_hadronic_taus(taus, cat):
-    vsJet_medium = (taus.idDeepTau2017v2p1VSjet & 16) > 0
+def tight_hadronic_taus(taus, cat, relaxed=False):
+    if relaxed:
+        return (taus.idDeepTau2017v2p1VSjet & 1) > 0
+    vsJet_medium = (taus.idDeepTau2017v2p1VSjet & 16) > 0  # Medium
     if cat[2:] == "et":
-        return vsJet_medium & ((taus.idDeepTau2017v2p1VSe & 32) > 0)
+        return vsJet_medium & ((taus.idDeepTau2017v2p1VSe & 32) > 0)  # Tight
     elif cat[2:] == "mt":
-        return vsJet_medium & ((taus.idDeepTau2017v2p1VSmu & 8) > 0)
+        return vsJet_medium & ((taus.idDeepTau2017v2p1VSmu & 8) > 0)  # Tight
     elif cat[2:] == "tt":
         return vsJet_medium
 
 
 # in use
-def append_tight_masks(lltt, cat):
+def append_tight_masks(lltt, cat, relaxed=False):
     t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
     t1_mask, t2_mask = None, None
     if cat[2:] == "em":
-        t1_mask = tight_electrons(t1)
-        t2_mask = tight_muons(t2)
+        t1_mask = tight_electrons(t1, relaxed=relaxed)
+        t2_mask = tight_muons(t2, relaxed=relaxed)
     if cat[2:] == "et":
-        t1_mask = tight_electrons(t1)
-        t2_mask = tight_hadronic_taus(t2, cat)
+        t1_mask = tight_electrons(t1, relaxed=relaxed)
+        t2_mask = tight_hadronic_taus(t2, cat, relaxed=relaxed)
     if cat[2:] == "mt":
-        t1_mask = tight_muons(t1)
-        t2_mask = tight_hadronic_taus(t2, cat)
+        t1_mask = tight_muons(t1, relaxed=relaxed)
+        t2_mask = tight_hadronic_taus(t2, cat, relaxed=relaxed)
     if cat[2:] == "tt":
-        t1_mask = tight_hadronic_taus(t1, cat)
-        t2_mask = tight_hadronic_taus(t2, cat)
+        t1_mask = tight_hadronic_taus(t1, cat, relaxed=relaxed)
+        t2_mask = tight_hadronic_taus(t2, cat, relaxed=relaxed)
     lltt["t1_tight"] = t1_mask
     lltt["t2_tight"] = t2_mask
     return lltt

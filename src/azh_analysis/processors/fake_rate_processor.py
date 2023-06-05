@@ -106,7 +106,16 @@ class FakeRateProcessor(processor.ProcessorABC):
         dataset = events.metadata["dataset"]
         year = dataset.split("_")[-1]
         name = dataset.replace(f"_{year}", "")
-        names = np.array([n.replace("TuneCP5", "") for n in self.info["name"]])
+        names = np.array(
+            [
+                n.replace("TuneCP5", "")
+                .replace("_postVFP", "")
+                .replace("_preVFP", "")
+                .replace("LL_M-50", "LLM-50")
+                .replace("LLM50", "LLM-50")
+                for n in self.info["name"]
+            ]
+        )
         properties = self.info[names == name]
         print(name, properties)
         group = properties["group"][0]
