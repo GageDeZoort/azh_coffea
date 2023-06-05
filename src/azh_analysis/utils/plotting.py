@@ -83,20 +83,23 @@ def plot_data_vs_mc(
     year="1",
     lumi="1",
     blind=False,
+    ggA=None,
+    bbA=None,
+    ylim=None,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = {
-        "Reducible": "#005F73",
         "DY": "#0A9396",
+        "ZZ": "#005F73",
         "SM-H(125)": "#E9D8A6",
-        "ZZ": "#94D2BD",
         "WZ": "#9b2226",
         "tt": "#EE9B00",
         "VVV": "#bb3e03",
+        "Reducible": "#94D2BD",
     }
 
     # grab the correct MC histogram
-    group_hists = {"Reducible": data["reducible", :]}
+    group_hists = {}
     for group in colors.keys():
         if group == "Reducible":
             continue
@@ -107,6 +110,7 @@ def plot_data_vs_mc(
             group_hists[group] = Hist(dummy_axis)
             # print(f"{group} not in file")
             continue
+    group_hists["Reducible"] = data["reducible", :]
 
     stack = hist.Stack.from_dict(group_hists)
 
@@ -123,6 +127,10 @@ def plot_data_vs_mc(
     stack.plot(ax=ax, stack=True, histtype="fill", edgecolor=(0, 0, 0, 0.3))
     if not blind:
         data["data", :].plot1d(ax=ax, histtype="errorbar", color="k", label="Data")
+    if ggA is not None:
+        ggA.plot1d(ax=ax, histtype="step", color="red", linewidth=2, label=r"ggA(225)")
+    if bbA is not None:
+        bbA.plot1d(ax=ax, histtype="step", color="cyan", linewidth=2, label=r"bbA(225)")
 
     mc_vals = sum(list(group_hists.values())).values()
     data_vals = data["data", :].values()
@@ -143,6 +151,7 @@ def plot_data_vs_mc(
         marker="o",
         elinewidth=1,
     )
+    rax.set_ylabel("obs/exp")
 
     if logscale:
         ax.set_yscale("log")
@@ -155,6 +164,8 @@ def plot_data_vs_mc(
     ax.legend(loc="best", prop={"size": 16}, frameon=True)
     ax.get_legend().set_title(f"{cat_label}")
     hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax)
+    if ylim is not None:
+        ax.set_ylim(ylim)
     if outfile is not None:
         plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()
@@ -248,7 +259,7 @@ def get_ratios(denom, num, combine_bins=True):
     return edges, centers, ratios, uncerts, x_err
 
 
-def fit_polynomial(ax, centers, ratios, yerr):
+def fit_polynomial(ax, centers, ratios, yerr, plot_fit=True):
     mask = ratios > 0
     # std = yerr[1][mask]
     c, cov = np.polyfit(
@@ -260,9 +271,14 @@ def fit_polynomial(ax, centers, ratios, yerr):
         # w=1/std,
     )
     x = np.linspace(0, 120, 1000)
-    ax.plot(
-        x, c[2] + c[1] * x + c[0] * x**2, color="red", ls="--", label="Quadratic Fit"
-    )
+    if plot_fit:
+        ax.plot(
+            x,
+            c[2] + c[1] * x + c[0] * x**2,
+            color="red",
+            ls="--",
+            label="Quadratic Fit",
+        )
     return c[2] + c[1] * centers + c[0] * centers**2
 
 
@@ -276,9 +292,10 @@ def plot_fake_rate_measurements(
     outfile=None,
     lumi=59.7,
     year=2018,
+    plot_fit=True,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), dpi=200)
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 8), dpi=200)
     edges, centers, ratio, uncerts, bin_errs = get_ratios(denom, num, combine_bins)
     ax.errorbar(
         x=centers,
@@ -292,14 +309,14 @@ def plot_fake_rate_measurements(
         capsize=2,
         label="Data - Prompt MC",
     )
-    ratio = fit_polynomial(ax, centers, ratio, uncerts)
+    ratio = fit_polynomial(ax, centers, ratio, uncerts, plot_fit=plot_fit)
     ax.set_xlim(xlim)
     ax.set_xlabel(r"$p_T$ [GeV]")
     ax.set_ylabel("Fake Rate")
     ax.legend(loc="best", prop={"size": 16}, frameon=True)
     ax.set_ylim(ylim)
     ax.get_legend().set_title(f"{label}", prop={"size": 16})
-    hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax)
+    hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax, fontsize=20)
     if outfile is not None:
         plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()
@@ -323,7 +340,7 @@ def plot_fake_rates_data(
     fig, (ax, rax) = plt.subplots(
         nrows=2,
         ncols=1,
-        figsize=(10, 12),
+        figsize=(8, 10),
         dpi=200,
         gridspec_kw={"height_ratios": (4, 1)},
         sharex=True,
@@ -361,11 +378,12 @@ def plot_fake_rates_data(
     ax.set_xlabel(r"$p_T$")
     ax.set_ylabel("Counts")
     rax.set_xlabel(ax.get_xlabel() + " [GeV]")
+    rax.set_ylabel("Fake Rate")
     ax.set_xlabel("")
     ax.legend(loc="best", prop={"size": 16}, frameon=True)
     rax.set_ylim(ylim)
     ax.get_legend().set_title(f"{label}", prop={"size": 16})
-    hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax)
+    hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax, fontsize=20)
     if outfile is not None:
         plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()
