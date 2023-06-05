@@ -25,6 +25,7 @@ class bTagEffProcessor(processor.ProcessorABC):
     def process(self, events):
         self.output = self.accumulator.identity()
         dataset = events.metadata["dataset"]
+        print(dataset)
         year = dataset.split("_")[-1]
         jet = events.Jet
         bjet = ak.flatten(jet[(abs(jet.partonFlavour) == 5)])

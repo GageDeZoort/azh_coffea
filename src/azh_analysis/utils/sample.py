@@ -102,83 +102,79 @@ def get_nevts_dict(fileset, year, high_stats=False):
                 sum_of_weights += tree["hWeights;1"].values()[0]
         nevts_dict[sample] = sum_of_weights
 
-    if year == "2018":
-        if "DYJetsToLLM-50_2018" in fileset.keys():
-            nevts = (
-                nevts_dict["DYJetsToLLM-50_2018"]
-                + nevts_dict["DYJetsToLLM-50_ext1_2018"]
-            )
-            nevts_dict["DYJetsToLLM-50_2018"] = nevts
-            nevts_dict["DYJetsToLLM-50_ext1_2018"] = nevts
-        if "WZZTuneCP5_ext1_2018" in fileset.keys():
-            nevts = nevts_dict["WZZTuneCP5_ext1_2018"] + nevts_dict["WZZ_2018"]
-            nevts_dict["WZZ_2018"] = nevts
-            nevts_dict["WZZTuneCP5_ext1_2018"] = nevts
-        if "ZZZTuneCP5_ext1_2018" in fileset.keys():
-            nevts = nevts_dict["ZZZTuneCP5_ext1_2018"] + nevts_dict["ZZZ_2018"]
-            nevts_dict["ZZZ_2018"] = nevts
-            nevts_dict["ZZZTuneCP5_ext1_2018"] = nevts
-        if "WWW4F_ext1_2018" in fileset.keys():
-            nevts = nevts_dict["WWW4F_2018"] + nevts_dict["WWW4F_ext1_2018"]
-            nevts_dict["WWW4F_2018"] = nevts
-            nevts_dict["WWW4F_ext1_2018"] = nevts
+    if "18" in year:
+        print("fixing DYJets")
+        nevts = (
+            nevts_dict["DYJetsToLLM-50_2018"] + nevts_dict["DYJetsToLLM-50_ext1_2018"]
+        )
+        nevts_dict["DYJetsToLLM-50_2018"] = nevts
+        nevts_dict["DYJetsToLLM-50_ext1_2018"] = nevts
+        print("fixing WZZ")
+        nevts = nevts_dict["WZZ_ext1_2018"] + nevts_dict["WZZ_2018"]
+        nevts_dict["WZZ_2018"] = nevts
+        nevts_dict["WZZ_ext1_2018"] = nevts
+        print("fixing ZZZ")
+        nevts = nevts_dict["ZZZ_ext1_2018"] + nevts_dict["ZZZ_2018"]
+        nevts_dict["ZZZ_2018"] = nevts
+        nevts_dict["ZZZ_ext1_2018"] = nevts
+        print("fixing WWW4F")
+        nevts = nevts_dict["WWW4F_2018"] + nevts_dict["WWW4F_ext1_2018"]
+        nevts_dict["WWW4F_2018"] = nevts
+        nevts_dict["WWW4F_ext1_2018"] = nevts
 
-    if year == "2017":
-        if "DYJetsToLLM-50_2017" in fileset.keys():
-            print("fixing DYjets")
-            nevts = (
-                nevts_dict["DYJetsToLLM-50_2017"]
-                + nevts_dict["DYJetsToLLM-50_ext1_2017"]
-            )
-            nevts_dict["DYJetsToLLM-50_2017"] = nevts
-            nevts_dict["DYJetsToLLM-50_ext1_2017"] = nevts
-        if "WWW4F_ext1_2017" in fileset.keys():
-            print("fixing WWW4F")
-            nevts = nevts_dict["WWW4F_2017"] + nevts_dict["WWW4F_ext1_2017"]
-            nevts_dict["WWW4F_2017"] = nevts
-            nevts_dict["WWW4F_ext1_2017"] = nevts
-        if "ZHToTauTauM125_2017" in fileset.keys():
-            print("fixing ZHToTauTau")
-            nevts = (
-                nevts_dict["ZHToTauTauM125_2017"]
-                + nevts_dict["ZHToTauTauM125_ext1_2017"]
-            )
-            nevts_dict["ZHToTauTauM125_2017"] = nevts
-            nevts_dict["ZHToTauTauM125_ext1_2017"] = nevts
+    if "17" in year:
+        print("fixing DYjets")
+        nevts = (
+            nevts_dict["DYJetsToLLM-50_2017"] + nevts_dict["DYJetsToLLM-50_ext1_2017"]
+        )
+        nevts_dict["DYJetsToLLM-50_2017"] = nevts
+        nevts_dict["DYJetsToLLM-50_ext1_2017"] = nevts
+        print("fixing WWW4F")
+        nevts = nevts_dict["WWW4F_2017"] + nevts_dict["WWW4F_ext1_2017"]
+        nevts_dict["WWW4F_2017"] = nevts
+        nevts_dict["WWW4F_ext1_2017"] = nevts
+        print("fixing ZHToTauTau")
+        nevts = (
+            nevts_dict["ZHToTauTauM125_2017"] + nevts_dict["ZHToTauTauM125_ext1_2017"]
+        )
+        nevts_dict["ZHToTauTauM125_2017"] = nevts
+        nevts_dict["ZHToTauTauM125_ext1_2017"] = nevts
 
-    if year == "2016postVFP":
-        if "WWW4F_ext1_postVFP_2016postVFP" in fileset.keys():
-            print("fixing WWW4F")
-            nevts = (
-                nevts_dict["WWW4F_postVFP_2016postVFP"]
-                + nevts_dict["WWW4F_ext1_postVFP_2016postVFP"]
-            )
-            nevts_dict["WWW4F_postVFP_2016postVFP"] = nevts
-            nevts_dict["WWW4F_ext1_postVFP_2016postVFP"] = nevts
-        if "ZZZTuneCP5_postVFP_2016postVFP" in fileset.keys():
-            print("fixing ZZZTuneCP5")
-            nevts = (
-                nevts_dict["ZZZTuneCP5_postVFP_2016postVFP"]
-                + nevts_dict["ZZZTuneCP5_ext1_postVFP_2016postVFP"]
-            )
-            nevts_dict["ZZZTuneCP5_ext1_postVFP_2016postVFP"] = nevts
-            nevts_dict["ZZZTuneCP5_postVFP_2016postVFP"] = nevts
-        if "WWZ4F_ext1_postVFP_2016postVFP" in fileset.keys():
-            print("fixing WWZ4F")
-            nevts = (
-                nevts_dict["WWZ4F_ext1_postVFP_2016postVFP"]
-                + nevts_dict["WWZ4F_postVFP_2016postVFP"]
-            )
-            nevts_dict["WWZ4F_postVFP_2016postVFP"] = nevts
-            nevts_dict["WWZ4F_ext1_postVFP_2016postVFP"] = nevts
-        if "WZZTuneCP5_postVFP_2016postVFP" in fileset.keys():
-            print("fixing WZZ")
-            nevts = (
-                nevts_dict["WZZTuneCP5_postVFP_2016postVFP"]
-                + nevts_dict["WZZTuneCP5_ext1_postVFP_2016postVFP"]
-            )
-            nevts_dict["WZZTuneCP5_postVFP_2016postVFP"] = nevts
-            nevts_dict["WZZTuneCP5_ext1_postVFP_2016postVFP"] = nevts
+    if "16post" in year:
+        print("fixing WWW4F")
+        nevts = nevts_dict["WWW4F_2016postVFP"] + nevts_dict["WWW4F_ext1_2016postVFP"]
+        nevts_dict["WWW4F_2016postVFP"] = nevts
+        nevts_dict["WWW4F_ext1_2016postVFP"] = nevts
+        print("fixing ZZZ")
+        nevts = nevts_dict["ZZZ_2016postVFP"] + nevts_dict["ZZZ_ext1_2016postVFP"]
+        nevts_dict["ZZZ_ext1_2016postVFP"] = nevts
+        nevts_dict["ZZZ_2016postVFP"] = nevts
+        print("fixing WWZ4F")
+        nevts = nevts_dict["WWZ4F_ext1_2016postVFP"] + nevts_dict["WWZ4F_2016postVFP"]
+        nevts_dict["WWZ4F_2016postVFP"] = nevts
+        nevts_dict["WWZ4F_ext1_2016postVFP"] = nevts
+        print("fixing WZZ")
+        nevts = nevts_dict["WZZ_2016postVFP"] + nevts_dict["WZZ_ext1_2016postVFP"]
+        nevts_dict["WZZ_2016postVFP"] = nevts
+        nevts_dict["WZZ_ext1_2016postVFP"] = nevts
+
+    if "16pre" in year:
+        print("fixing WWW4F")
+        nevts = nevts_dict["WWW4F_2016preVFP"] + nevts_dict["WWW4F_ext1_2016preVFP"]
+        nevts_dict["WWW4F_2016preVFP"] = nevts
+        nevts_dict["WWW4F_ext1_2016preVFP"] = nevts
+        print("fixing ZZZ")
+        nevts = nevts_dict["ZZZ_2016preVFP"] + nevts_dict["ZZZ_ext1_2016preVFP"]
+        nevts_dict["ZZZ_2016preVFP"] = nevts
+        nevts_dict["ZZZ_ext1_2016preVFP"] = nevts
+        print("fixing WWZ4F")
+        nevts = nevts_dict["WWZ4F_2016preVFP"] + nevts_dict["WWZ_ext1_2016preVFP"]
+        nevts_dict["WWZ4F_2016preVFP"] = nevts
+        nevts_dict["WWZ_ext1_2016preVFP"] = nevts
+        print("fixing WZZ")
+        nevts = nevts_dict["WZZ_2016preVFP"] + nevts_dict["WZZ_ext1_2016preVFP"]
+        nevts_dict["WZZ_2016preVFP"] = nevts
+        nevts_dict["WZZ_ext1_2016preVFP"] = nevts
 
     return nevts_dict
 
