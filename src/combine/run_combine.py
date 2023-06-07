@@ -78,7 +78,8 @@ if not per_category:
                     "combine -M AsymptoticLimits --noFitAsimov --rMin=0 "
                     + f"--run blind --rMax={rmax[i]} --X-rtd MINIMIZER_analytic "
                     + "--cminDefaultMinimizerStrategy=0 --cminDefaultMinimizerTolerance=0.01 "
-                    + f".datacards/azh_run2_{channel}_{istep}.txt -t -1 -m {istep} -n .{name}_{channel}"
+                    + f".datacards/azh_run2_{channel}_{istep}.txt "
+                    + f"-t -1 -m {istep} -n .{name}_{channel}"
                 )
                 print(combine_cmd)
                 os.system(combine_cmd)
@@ -160,7 +161,8 @@ else:
                     combine_cmd = (
                         f"combine -M AsymptoticLimits --noFitAsimov --rMin=0 --run blind --rMax={rmax[i]}"
                         + f" --X-rtd MINIMIZER_analytic --cminDefaultMinimizerStrategy=0"
-                        + f" --cminDefaultMinimizerTolerance=0.01 .datacards/azh_run2_{channel}_{cat}_{istep}.txt"
+                        + " --cminDefaultMinimizerTolerance=0.01 "
+                        + f".datacards/azh_run2_{channel}_{cat}_{istep}.txt"
                         f" -t -1 -m {istep} -n .{year}_{channel}_{cat}"
                     )
                     os.system(combine_cmd)
