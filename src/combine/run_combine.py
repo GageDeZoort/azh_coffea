@@ -6,7 +6,7 @@ import sys
 combine_cards = True
 per_category = False
 
-years = sys.argv[1:]  # ["2017", "2018"]
+channel, years = sys.argv[1], sys.argv[2:]  # ["2017", "2018"]
 print(years)
 step1 = ["225", "250", "275", "300"]
 step2 = ["325", "350", "375"]
@@ -37,7 +37,7 @@ mass_points = [
     "1800",
     "2000",
 ]
-channels = ["0btag"]
+channels = [channel]
 categories = ["eeem", "eeet", "eemt", "eett", "mmem", "mmet", "mmmt", "mmtt"]
 
 if combine_cards:
@@ -159,9 +159,8 @@ else:
                 for i, istep in enumerate(step):
                     combine_cmd = (
                         f"combine -M AsymptoticLimits --noFitAsimov --rMin=0 --run blind --rMax={rmax[i]}"
-                        + " --X-rtd MINIMIZER_analytic --cminDefaultMinimizerStrategy=0"
-                        + " --cminDefaultMinimizerTolerance=0.01"
-                        + f" .datacards/azh_run2_{channel}_{cat}_{istep}.txt"
+                        + f" --X-rtd MINIMIZER_analytic --cminDefaultMinimizerStrategy=0"
+                        + f" --cminDefaultMinimizerTolerance=0.01 .datacards/azh_run2_{channel}_{cat}_{istep}.txt"
                         f" -t -1 -m {istep} -n .{year}_{channel}_{cat}"
                     )
                     os.system(combine_cmd)
