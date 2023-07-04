@@ -85,7 +85,7 @@ def plot_data_vs_mc(
     year="1",
     lumi="1",
     blind=False,
-    blind_range=[4, 7],
+    blind_range=(4, 7),
     ggA=None,
     ggA_sigma=1,
     ggA_mass=None,
