@@ -10,6 +10,8 @@ from hist import Hist
 from hist.intervals import ratio_uncertainty
 from matplotlib import pyplot as plt
 
+from azh_analysis.utils.histograms import integrate
+
 warnings.filterwarnings("ignore")
 
 
@@ -83,9 +85,15 @@ def plot_data_vs_mc(
     year="1",
     lumi="1",
     blind=False,
+    blind_range=[4, 7],
     ggA=None,
+    ggA_sigma=1,
+    ggA_mass=None,
     bbA=None,
+    bbA_sigma=1,
+    bbA_mass=None,
     ylim=None,
+    data_ss=None,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = {
@@ -98,49 +106,118 @@ def plot_data_vs_mc(
         "Reducible": "#94D2BD",
     }
 
-    # grab the correct MC histogram
+    # fill the MC background samples
     group_hists = {}
     for group in colors.keys():
-        if group == "Reducible":
-            continue
-        try:  # assuming the group has been populated
+        try:
             group_hists[group] = mc[group, :]
-        except Exception:  # use a dummy axis to display empty fields
-            dummy_axis = data["reducible", :].axes[var]
-            group_hists[group] = Hist(dummy_axis)
-            # print(f"{group} not in file")
+        except Exception:
             continue
-    group_hists["Reducible"] = data["reducible", :]
 
+    # fill the reducible background
+    if data_ss is not None:
+        os = data["reducible", :]
+        ss = data_ss["data", :]
+        os_norm, ss_norm = integrate(os), integrate(ss)
+        ss = ss * os_norm / ss_norm
+        group_hists["Reducible"] = ss
+    else:
+        group_hists["Reducible"] = data["reducible", :]
+
+    # reorder based on contributions
+    group_hists = {
+        k: v for k, v in sorted(group_hists.items(), key=lambda x: x[1].sum())
+    }
+    colors = {k: colors[k] for k in group_hists.keys()}
+
+    # define hist stack and figure
     stack = hist.Stack.from_dict(group_hists)
-
     fig, (ax, rax) = plt.subplots(
         nrows=2,
         ncols=1,
-        figsize=(12, 16),
+        figsize=(10, 10 * 4 / 3),
         dpi=120,
         gridspec_kw={"height_ratios": (4, 1)},
         sharex=True,
     )
     fig.subplots_adjust(hspace=0.07)
     ax.set_prop_cycle(cycler(color=list(colors.values())))
-    stack.plot(ax=ax, stack=True, histtype="fill", edgecolor=(0, 0, 0, 0.3))
-    if not blind:
-        data["data", :].plot1d(ax=ax, histtype="errorbar", color="k", label="Data")
-    if ggA is not None:
-        ggA.plot1d(ax=ax, histtype="step", color="red", linewidth=2, label=r"ggA(225)")
-    if bbA is not None:
-        bbA.plot1d(ax=ax, histtype="step", color="cyan", linewidth=2, label=r"bbA(225)")
 
+    # plot the stack
+    stack.plot(ax=ax, stack=True, histtype="fill", edgecolor=(0, 0, 0, 0.3))
+    stack_sum = sum(stack)
+    bins = stack_sum.axes[-1]
+    bin_edges = [b[0] for b in bins]
+    print(bin_edges)
+    sumw_total = np.array(stack_sum.values())
+    unc = np.sqrt(sumw_total)
+    hatch_style = {
+        "facecolor": "none",
+        "edgecolor": (0, 0, 0, 0.5),
+        "linewidth": 0,
+        "hatch": "///",
+    }
+    ax.fill_between(
+        x=bin_edges,
+        y1=sumw_total - unc,
+        y2=sumw_total + unc,
+        label="Stat. Unc.",
+        step="post",
+        **hatch_style,
+    )
+    rax.fill_between(
+        x=bin_edges,
+        y1=(sumw_total - unc) / sumw_total,
+        y2=(sumw_total + unc) / sumw_total,
+        step="post",
+        **hatch_style,
+    )
+
+    # plot data, depending on blinding scheme
+    if blind_range is not None and blind:
+        data["data", :][: blind_range[0]].plot1d(
+            ax=ax, histtype="errorbar", color="k", label="Data"
+        )
+        data["data", :][blind_range[1] :].plot1d(ax=ax, histtype="errorbar", color="k")
+    elif not blind:
+        data["data", :].plot1d(ax=ax, histtype="errorbar", color="k", label="Data")
+
+    # plot any provided signals
+    if ggA is not None:
+        ggA = ggA * ggA_sigma
+        ggA.plot1d(
+            ax=ax,
+            histtype="step",
+            color="red",
+            linewidth=2,
+            label=rf"ggA({ggA_mass}), $\sigma={ggA_sigma}$fb",
+        )
+    if bbA is not None:
+        bbA = bbA * bbA_sigma
+        bbA.plot1d(
+            ax=ax,
+            histtype="step",
+            color="cyan",
+            linewidth=2,
+            label=rf"bbA({bbA_mass}), $\sigma={bbA_sigma}$fb",
+        )
+
+    # plot the error on the background
     mc_vals = sum(list(group_hists.values())).values()
     data_vals = data["data", :].values()
     bins = data["data", :].axes[0].centers
+    y = data_vals / mc_vals
+    yerr = ratio_uncertainty(data_vals, mc_vals, "poisson")
+
     if blind:
-        y = np.ones_like(data_vals)
-        yerr = np.zeros_like(data_vals)
-    else:
-        y = data_vals / mc_vals
-        yerr = ratio_uncertainty(data_vals, mc_vals, "poisson")
+        x = np.arange(len(y))
+        y = np.zeros_like(y)
+        yerr = np.zeros_like(y)
+        if blind_range is not None:
+            yt = data_vals / mc_vals
+            yterr = ratio_uncertainty(data_vals, mc_vals, "poisson")
+            y = y + (x < blind_range[0]) * yt + (x >= blind_range[1]) * yt
+            yerr = yerr + (x < blind_range[0]) * yterr + (x >= blind_range[1]) * yterr
 
     rax.errorbar(
         x=bins,
@@ -152,6 +229,7 @@ def plot_data_vs_mc(
         elinewidth=1,
     )
     rax.set_ylabel("obs/exp")
+    rax.axhline(1, color="k", linestyle="--")
 
     if logscale:
         ax.set_yscale("log")
@@ -422,13 +500,25 @@ def plot_m4l_systematic(
         # dn_ratio, dn_err = np.nan_to_num(n / d), ratio_uncertainty(n, d, "poisson")
 
         shift_up.plot1d(
-            ax=axs[0, i], label=f"{syst} up", histtype="step", color=colors["up"]
+            ax=axs[0, i],
+            label=f"{syst} up",
+            histtype="step",
+            color=colors["up"],
+            linewidth=2,
         )
         shift_down.plot1d(
-            ax=axs[0, i], label=f"{syst} down", histtype="step", color=colors["down"]
+            ax=axs[0, i],
+            label=f"{syst} down",
+            histtype="step",
+            color=colors["down"],
+            linewidth=2,
         )
         nom_s.plot1d(
-            ax=axs[0, i], label=f"{syst} nom", histtype="step", color=colors["nom"]
+            ax=axs[0, i],
+            label=f"{syst} nom",
+            histtype="step",
+            color=colors["nom"],
+            linewidth=2,
         )
 
         if logscale:
@@ -449,6 +539,7 @@ def plot_m4l_systematic(
             linestyle="none",
             marker="^",
             lw=0,
+            markersize=4,
         )
         axs[1, i].axhline(y=0, color="black", alpha=0.5, linestyle="--")
         dn_rel_diffs = np.nan_to_num((n - d) / n)
@@ -459,6 +550,7 @@ def plot_m4l_systematic(
             linestyle="none",
             marker="v",
             lw=0,
+            markersize=4,
         )
         axs[2, i].axhline(y=0, color="black", alpha=0.5, linestyle="--")
 
