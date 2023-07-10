@@ -3,7 +3,7 @@
 tt,TTToSemiLeptonic,/cmsxrootd-site2.fnal.gov:1093/,/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,476408000,365.35
 tt,TTToHadronic,/cmsxrootd-site3.fnal.gov:1093/,/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,334206000,377.96
 tt,TTTo2L2Nu,/cmsxrootd-site3.fnal.gov:1093/,/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,145020000,88.29
-tt,ttZJets,/cmsxrootd-site1.fnal.gov:1093/,/ttZJets_TuneCP5_13TeV_madgraphMLM_pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,32793815,0.78
+tt,ttZJets,/cmsxrootd-site1.fnal.gov:1093/,/ttZJets_TuneCP5_13TeV_madgraphMLM_pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,32793815,0.2529
 tt,TTWJetsToLNu,/cmsxrootd-site2.fnal.gov:1093/,/TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,10450000,0.2043
 #
 DY,DYJetsToLLM-50,/cmsxrootd-site1.fnal.gov:1093/,/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,96233328,6077.22
@@ -19,7 +19,8 @@ ZZ,GluGluToContinToZZTo2mu2tau,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinTo
 ZZ,GluGluToContinToZZTo4e,/cmsxrootd-site.fnal.gov/,/GluGluToContinToZZTo4e_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,974000,0.00158549
 ZZ,GluGluToContinToZZTo4mu,/cmsxrootd-site1.fnal.gov:1093/,/GluGluToContinToZZTo4mu_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,745636,0.00158549
 ZZ,GluGluToContinToZZTo4tau,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo4tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,493998,0.00158549
-ZZ,ZZTo4L,/cmsxrootd-site1.fnal.gov:1093/,/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,98488000,1.256
+# note 1.256*1.1
+ZZ,ZZTo4L,/cmsxrootd-site1.fnal.gov:1093/,/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,98488000,1.3816
 ZZ,ZZTo2Q2Lmllmin4p0,/cmsxrootd-site3.fnal.gov:1093/,/ZZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,29357938,3.22
 #
 WZ,WZTo2Q2Lmllmin4p0,/cmsxrootd-site3.fnal.gov:1093/,/WZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,28576996,5.595
