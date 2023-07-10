@@ -47,7 +47,10 @@ def make_yaml(source, year, all_samples, sample_info, target_group=None):
         if (target_group is not None) and (target_group != group):
             continue
         name_str = (
-            name.replace("TuneCP5", "").replace("_postVFP", "").replace("_preVFP", "")
+            name.replace("TuneCP5", "")
+            .replace("_postVFP", "")
+            .replace("_preVFP", "")
+            .replace("_preFVP", "")
         )
         name_str = name_str.replace("LL_M-50", "LLM-50").replace("LLM50", "LLM-50")
         print(f"...processing {group}: {name_str}")
