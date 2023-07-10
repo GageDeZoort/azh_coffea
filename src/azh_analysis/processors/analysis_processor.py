@@ -10,6 +10,7 @@ import numba as nb
 import numpy as np
 import vector as vec
 from coffea import analysis_tools, processor
+from coffea.processor import column_accumulator as col_acc
 from numba.core import types
 from numba.typed import Dict
 
@@ -195,7 +196,12 @@ class AnalysisProcessor(processor.ProcessorABC):
         name = dataset.replace(f"_{year}", "")
         names = np.array(
             [
-                n.replace("TuneCP5", "").replace("_postVFP", "").replace("_preVFP", "")
+                n.replace("TuneCP5", "")
+                .replace("_postVFP", "")
+                .replace("_preVFP", "")
+                .replace("_preFVP", "")
+                .replace("LL_M-50", "LLM-50")
+                .replace("LLM50", "LLM-50")
                 for n in self.info["name"]
             ]
         )
@@ -204,6 +210,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         is_data = "data" in group
         nevts, xsec = properties["nevts"][0], properties["xsec"][0]
         output = make_analysis_hist_stack(self.fileset, year)
+        # for key in ["m4l", "m4l_fine", "m4l_reg"]:
+        #    output["reducible_{key}"] = []
 
         # if running on ntuples, need the pre-skim sum_of_weights
         if self.nevts_dict is not None:
@@ -715,6 +723,11 @@ class AnalysisProcessor(processor.ProcessorABC):
                         mass=mass_data[blind_mask],
                         weight=weight[blind_mask],
                     )
+                    if "reducible" in group.lower() or self.same_sign:
+                        output[f"reducible_{key}"] = col_acc(mass_data)
+            if "reducible" in group.lower() or self.same_sign:
+                output["reducible_btag"] = col_acc(btags)
+                output["reducible_cat"] = col_acc(cats)
 
     def apply_lepton_ID_SFs(self, lltt_all, cat, is_data=False):
         lltt, num = ak.flatten(lltt_all), ak.num(lltt_all)

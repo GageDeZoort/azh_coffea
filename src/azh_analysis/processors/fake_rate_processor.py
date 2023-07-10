@@ -111,6 +111,7 @@ class FakeRateProcessor(processor.ProcessorABC):
                 n.replace("TuneCP5", "")
                 .replace("_postVFP", "")
                 .replace("_preVFP", "")
+                .replace("_preFVP", "")
                 .replace("LL_M-50", "LLM-50")
                 .replace("LLM50", "LLM-50")
                 for n in self.info["name"]
