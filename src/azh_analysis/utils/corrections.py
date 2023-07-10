@@ -10,12 +10,13 @@ from coffea.lookup_tools import extractor, rochester_lookup, txt_converters
 from coffea.nanoevents.methods import vector
 
 from azh_analysis.utils.btag import get_btag_effs
+from azh_analysis.utils.parameters import get_lumis
 
 ak.behavior.update(vector.behavior)
 
 
 def get_sample_weight(info, name, year):
-    lumi = {"2016": 35.9, "2017": 41.5, "2018": 59.7}
+    lumi = get_lumis()
     properties = info[info["name"] == name]
     nevts, xsec = properties["nevts"][0], properties["xsec"][0]
     sample_weight = lumi[year] * xsec / nevts
@@ -270,13 +271,7 @@ def lepton_trig_weight(pt, eta, SF_tool, lep=-1):
 
 
 def dyjets_stitch_weights(info, nevts_dict, year):
-    lumis = {
-        "2016preVFP": 35.9 * 1000,
-        "2016postVFP": 35.9 * 1000,
-        "2017": 41.5 * 1000,
-        "2018": 59.7 * 1000,
-    }
-    lumi = lumis[year]
+    lumi = get_lumis(as_picobarns=True)[year]
     # sort the nevts and xsec by the number of jets
     dyjets = info[info["group"] == "DY"]
     bins = np.array([-0.5, 0.5, 1.5, 2.5, 3.5, 4.5])
@@ -508,6 +503,9 @@ def apply_unclMET_shifts(met, shift="nom"):
 def apply_btag_corrections(
     jets, btag_SFs, btag_eff_tables, btag_pt_bins, btag_eta_bins, dataset, shift
 ):
+    """
+    https://twiki.cern.ch/twiki/bin/view/CMS/BTagSFMethods
+    """
     jets = jets[abs(jets.partonFlavour) == 5]
     flat_j, num_j = ak.flatten(jets), ak.num(jets)
     pt, eta = flat_j.pt, flat_j.eta
@@ -533,7 +531,10 @@ def apply_btag_corrections(
     w_is_tagged = is_tagged * btag_effs
     w_not_tagged = (1 - btag_effs) * ~is_tagged
     w_MC = w_is_tagged + w_not_tagged
+    w_MC = ak.prod(ak.unflatten(w_MC, num_j), axis=1)
     w_is_tagged = btag_effs * is_tagged * SFs
     w_is_not_tagged = (1 - btag_effs * SFs) * ~is_tagged
-    w = (w_is_tagged + w_is_not_tagged) / w_MC
-    return ak.prod(ak.unflatten(w, num_j), axis=1)
+    w_data = w_is_tagged + w_is_not_tagged
+    w_data = ak.prod(ak.unflatten(w_data, num_j), axis=1)
+    weight = w_data / w_MC
+    return weight
