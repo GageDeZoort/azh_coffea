@@ -1,7 +1,15 @@
 from __future__ import annotations
 
+import numpy as np
 from hist import Hist
 from hist.axis import IntCategory, Regular, StrCategory, Variable
+
+
+def integrate(hist):
+    bins = np.array(hist.axes[0])
+    widths = bins[:, 1] - bins[:, 0]
+    vals = hist.values()
+    return sum(widths * vals)
 
 
 def make_analysis_hist_stack(fileset, year):
@@ -77,7 +85,7 @@ def make_analysis_hist_stack(fileset, year):
             btags_axis,
             syst_shift_axis,
             mass_type_axis,
-            Regular(name="mass", bins=100, start=0, stop=2500),
+            Regular(name="mass", bins=50, start=0, stop=2500),
         )
         for dataset in fileset.keys()
     }
