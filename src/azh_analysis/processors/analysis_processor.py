@@ -105,6 +105,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         A_mass="",
         systematic=None,
         same_sign=False,
+        relaxed=False,
     ):
 
         # initialize member variables
@@ -143,6 +144,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.fill_hists = fill_hists
         self.A_mass = A_mass
         self.same_sign = same_sign
+        self.relaxed = relaxed
 
         # systematics that affect event kinematics
         self.k_shifts = {
@@ -177,6 +179,14 @@ class AnalysisProcessor(processor.ProcessorABC):
                 "l1prefire_down",
                 "pileup_up",
                 "pileup_down",
+                "tauID_0_up",
+                "tauID_0_down",
+                "tauID_1_up",
+                "tauID_1_down",
+                "tauID_10_up",
+                "tauID_10_down",
+                "tauID_11_up",
+                "tauID_11_down",
                 # "btag_down_uncorrelated",
                 # "btag_down_correlated",
                 # "btag_up_uncorrelated",
@@ -359,7 +369,8 @@ class AnalysisProcessor(processor.ProcessorABC):
                         continue
 
                     # determine which legs passed tight selections
-                    lltt = append_tight_masks(lltt, cat, relaxed=self.same_sign)
+                    relaxed = self.same_sign and self.relaxed
+                    lltt = append_tight_masks(lltt, cat, relaxed=relaxed)
                     lltt["cat"] = self.cat_to_num[cat]
                     lltt["MET"] = MET
 
@@ -385,7 +396,20 @@ class AnalysisProcessor(processor.ProcessorABC):
                         t0 = time.time()
                         lepton_IDs = self.apply_lepton_ID_SFs(lltt, cat)
                         lltt["weight"] = lltt.weight * lepton_IDs
-                        print(f"Lepton IDs: {time.time() - t0}")
+                        lltt["tauID_nom"] = self.apply_tau_ID_SFs(lltt, cat)
+                        for dm in [0, 1, 10, 11]:
+                            lltt[f"tauID_{dm}_up"] = self.apply_tau_ID_SFs(
+                                lltt,
+                                cat,
+                                shift="up",
+                                dm_shift=dm,
+                            )
+                            lltt[f"tauID_{dm}_down"] = self.apply_tau_ID_SFs(
+                                lltt,
+                                cat,
+                                shift="down",
+                                dm_shift=dm,
+                            )
 
                     # otherwise, if data apply the fake weights
                     else:
@@ -473,7 +497,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 for e_shift in self.event_syst_shifts:
                     if ("nom" not in k_shift) and ("nom" not in e_shift):
                         continue
-                    print(k_shift, e_shift)
+
                     up_or_down = e_shift.split("_")[-1]
 
                     # shift l1prefire or pileup weights
@@ -482,6 +506,13 @@ class AnalysisProcessor(processor.ProcessorABC):
                         continue
                     pileup_shift = up_or_down if ("pileup" in e_shift) else None
                     btag_shift = e_shift[5:] if ("btag" in e_shift) else None
+                    tauID_shifts = {
+                        "0": up_or_down if ("tauID_0_" in e_shift) else None,
+                        "1": up_or_down if ("tauID_1_" in e_shift) else None,
+                        "10": up_or_down if ("tauID_10" in e_shift) else None,
+                        "11": up_or_down if ("tauID_11" in e_shift) else None,
+                    }
+                    tauID_dm = e_shift.split("_")[1] if ("tauID" in e_shift) else None
 
                     # apply shifts
                     w = ak.copy(cands["weight"])
@@ -506,8 +537,10 @@ class AnalysisProcessor(processor.ProcessorABC):
                             shift=btag_shift,
                         )
                         w = w * bw * global_weight
+                    elif tauID_dm:
+                        w = w * cands[f"tauID_{tauID_dm}_{tauID_shifts[tauID_dm]}"]
                     else:
-                        w = w * bshift_weight * global_weight
+                        w = w * bshift_weight * global_weight * cands["tauID_nom"]
 
                     # label the systematics
                     syst_shift = "nom"
@@ -631,6 +664,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         btags = np_flat(lltt.btags > 0)
         cats = np_flat(lltt.cat)
         cats = np.array([self.categories[c] for c in cats])
+        weight = np_flat(weight)
         weight = np.nan_to_num(weight, nan=0, posinf=0, neginf=0)
 
         # fill the lltt leg four-vectors
@@ -723,43 +757,59 @@ class AnalysisProcessor(processor.ProcessorABC):
                         mass=mass_data[blind_mask],
                         weight=weight[blind_mask],
                     )
-                    if "reducible" in group.lower() or self.same_sign:
+                    if "reducible" in group.lower():
                         output[f"reducible_{key}"] = col_acc(mass_data)
-            if "reducible" in group.lower() or self.same_sign:
+                    if "data" in group.lower():
+                        output[f"data_{key}"] = col_acc(mass_data)
+            if "reducible" in group.lower():
                 output["reducible_btag"] = col_acc(btags)
                 output["reducible_cat"] = col_acc(cats)
+                output["reducible_weight"] = col_acc(weight)
+            if "data" in group.lower():
+                output["data_btag"] = col_acc(btags)
+                output["data_cat"] = col_acc(cats)
+                output["data_weight"] = col_acc(weight)
 
-    def apply_lepton_ID_SFs(self, lltt_all, cat, is_data=False):
+    def apply_lepton_ID_SFs(self, lltt_all, cat):
         lltt, num = ak.flatten(lltt_all), ak.num(lltt_all)
         l1, l2 = lltt["ll"]["l1"], lltt["ll"]["l2"]
         t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
 
-        # tau_ID_weight(taus, SF_tool, cat, is_data=False, syst='nom', tight=True)
-
         # e/mu scale factors
         if cat[:2] == "ee":
-            l1_w = lepton_ID_weight(l1, "e", self.eleID_SFs, is_data)
-            l2_w = lepton_ID_weight(l2, "e", self.eleID_SFs, is_data)
+            l1_w = lepton_ID_weight(l1, "e", self.eleID_SFs)
+            l2_w = lepton_ID_weight(l2, "e", self.eleID_SFs)
         elif cat[:2] == "mm":
-            l1_w = lepton_ID_weight(l1, "m", self.muID_SFs, is_data)
-            l2_w = lepton_ID_weight(l2, "m", self.muID_SFs, is_data)
+            l1_w = lepton_ID_weight(l1, "m", self.muID_SFs)
+            l2_w = lepton_ID_weight(l2, "m", self.muID_SFs)
 
         # also consider hadronic taus
+        t1_w, t2_w = np.ones_like(l1_w), np.ones_like(l1_w)
         if cat[2:] == "em":
-            t1_w = lepton_ID_weight(t1, "e", self.eleID_SFs, is_data)
-            t2_w = lepton_ID_weight(t2, "m", self.muID_SFs, is_data)
+            t1_w = lepton_ID_weight(t1, "e", self.eleID_SFs)
+            t2_w = lepton_ID_weight(t2, "m", self.muID_SFs)
         elif cat[2:] == "et":
-            t1_w = lepton_ID_weight(t1, "e", self.eleID_SFs, is_data)
-            t2_w = tau_ID_weight(t2, self.tauID_SFs, cat)
+            t1_w = lepton_ID_weight(t1, "e", self.eleID_SFs)
         elif cat[2:] == "mt":
-            t1_w = lepton_ID_weight(t1, "m", self.muID_SFs, is_data)
-            t2_w = tau_ID_weight(t2, self.tauID_SFs, cat)
-        elif cat[2:] == "tt":
-            t1_w = tau_ID_weight(t1, self.tauID_SFs, cat)
-            t2_w = tau_ID_weight(t2, self.tauID_SFs, cat)
+            t1_w = lepton_ID_weight(t1, "m", self.muID_SFs)
 
         # apply ID scale factors
         w = l1_w * l2_w * t1_w * t2_w
+        return ak.unflatten(w, num)
+
+    def apply_tau_ID_SFs(self, lltt_all, cat, shift="nom", dm_shift=None):
+        lltt, num = ak.flatten(lltt_all), ak.num(lltt_all)
+        t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
+        if cat[2:] == "et":
+            w = tau_ID_weight(t2, self.tauID_SFs, cat, syst=shift, dm_shift=dm_shift)
+        elif cat[2:] == "mt":
+            w = tau_ID_weight(t2, self.tauID_SFs, cat, syst=shift, dm_shift=dm_shift)
+        elif cat[2:] == "tt":
+            w = tau_ID_weight(
+                t1, self.tauID_SFs, cat, syst=shift, dm_shift=dm_shift
+            ) * tau_ID_weight(t2, self.tauID_SFs, cat, syst=shift, dm_shift=dm_shift)
+        else:
+            w = np.ones_like(t1.pt)
         return ak.unflatten(w, num)
 
     def run_fastmtt(self, final_states):

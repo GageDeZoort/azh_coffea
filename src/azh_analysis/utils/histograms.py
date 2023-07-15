@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hist
 import numpy as np
 from hist import Hist
 from hist.axis import IntCategory, Regular, StrCategory, Variable
@@ -54,6 +55,7 @@ def make_analysis_hist_stack(fileset, year):
             syst_shift_axis,
             leg_axis,
             Regular(name="pt", bins=10, start=0, stop=200),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -64,6 +66,7 @@ def make_analysis_hist_stack(fileset, year):
             btags_axis,
             syst_shift_axis,
             Regular(name="met", bins=10, start=0, stop=200),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -75,6 +78,7 @@ def make_analysis_hist_stack(fileset, year):
             syst_shift_axis,
             mass_type_axis,
             Regular(name="mass", bins=20, start=0, stop=300),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -86,6 +90,7 @@ def make_analysis_hist_stack(fileset, year):
             syst_shift_axis,
             mass_type_axis,
             Regular(name="mass", bins=50, start=0, stop=2500),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -97,6 +102,7 @@ def make_analysis_hist_stack(fileset, year):
             syst_shift_axis,
             mass_type_axis,
             Regular(name="mass", bins=250, start=0, stop=2500),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -128,6 +134,7 @@ def make_analysis_hist_stack(fileset, year):
                 ],
                 name="mass",
             ),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -138,6 +145,7 @@ def make_analysis_hist_stack(fileset, year):
             btags_axis,
             syst_shift_axis,
             Regular(name="mll", bins=10, start=60, stop=120),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -192,6 +200,7 @@ def make_fr_hist_stack(fileset, year):
             decay_mode_axis,
             eta_axis,
             Regular(name="pt", bins=30, start=0, stop=300),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -204,6 +213,7 @@ def make_fr_hist_stack(fileset, year):
             decay_mode_axis,
             eta_axis,
             Regular(name="met", bins=30, start=0, stop=300),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -217,6 +227,7 @@ def make_fr_hist_stack(fileset, year):
             decay_mode_axis,
             eta_axis,
             Regular(name="mll", bins=20, start=60, stop=120),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }
@@ -230,6 +241,7 @@ def make_fr_hist_stack(fileset, year):
             decay_mode_axis,
             eta_axis,
             Regular(name="mT", bins=30, start=0, stop=300),
+            storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
     }

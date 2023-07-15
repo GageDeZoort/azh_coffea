@@ -1,8 +1,8 @@
 #group,name,redirector,dataset,nevts,xsec
 #
 # dyjets (all UL)
-DY,DYJetsToLLM-50,/cmsxrootd-site1.fnal.gov:1093/,/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,102863931,6077.22
-DY,DYJetsToLLM-50_ext1,/cmsxrootd-site.fnal.gov/,/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9_ext1-v1/NANOAODSIM,100865609,6077.22
+DY,DYJetsToLLM-50,/cmsxrootd-site1.fnal.gov:1093/,/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,102863931,6529
+DY,DYJetsToLLM-50_ext1,/cmsxrootd-site.fnal.gov/,/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9_ext1-v1/NANOAODSIM,100865609,6529
 DY,DY1JetsToLLM-50,/cmsxrootd-site.fnal.gov/,/DY1JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,65903452,877.8
 DY,DY2JetsToLLM-50,/cmsxrootd-site2.fnal.gov:1093/,/DY2JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,27099640,304.4
 DY,DY3JetsToLLM-50,/cmsxrootd-site1.fnal.gov:1093/,/DY3JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,20165687,111.5
@@ -15,8 +15,8 @@ tt,TTToSemiLeptonicTuneCP5,/cmsxrootd-site1.fnal.gov:1093/,/TTToSemiLeptonic_Tun
 #
 # diboson (all UL)
 ZZ,ZZTo2Q2Lmllmin4p0,/cmsxrootd-site.fnal.gov/,/ZZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,29521496,3.22
-WZ,WZTo3LNuTuneCP5,/cmsxrootd-site2.fnal.gov:1093/,/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,10339582,4.807
-ZZ,ZZTo4LTuneCP5,/cmsxrootd-site1.fnal.gov:1093/,/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,99388000,1.256
+WZ,WZTo3LNuTuneCP5,/cmsxrootd-site2.fnal.gov:1093/,/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,10339582,4.708
+ZZ,ZZTo4LTuneCP5,/cmsxrootd-site1.fnal.gov:1093/,/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,99388000,1.3816
 WZ,WZTo2Q2Lmllmin4p0,/cmsxrootd-site.fnal.gov/,/WZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,29091996,5.595
 #
 # triboson (all UL)
@@ -28,7 +28,7 @@ VVV,WWZ4F,/cmsxrootd-site.fnal.gov/,/WWZ_4F_TuneCP5_13TeV-amcatnlo-pythia8/RunII
 VVV,WZZTuneCP5_ext1,/cmsxrootd-site1.fnal.gov:1093/,/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9_ext1-v2/NANOAODSIM,9898000,0.05565
 #
 # ttVjets (all UL)
-tt,ttZJetsTuneCP5,/cmsxrootd-site3.fnal.gov:1093/,/ttZJets_TuneCP5_13TeV_madgraphMLM_pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,31791131,0.78
+tt,ttZJetsTuneCP5,/cmsxrootd-site3.fnal.gov:1093/,/ttZJets_TuneCP5_13TeV_madgraphMLM_pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,31791131,0.2529
 tt,TTWJetsToLNuTuneCP5,/cmsxrootd-site1.fnal.gov:1093/,/TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,7140411,0.2043
 #
 # ggz (all UL)

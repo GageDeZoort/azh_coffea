@@ -464,25 +464,27 @@ class FakeRateProcessor(processor.ProcessorABC):
         lll, num = ak.flatten(lll), ak.num(lll)
         l1, l2, l = lll.ll.l1, lll.ll.l2, lll.l
 
-        # e/mu scale factors
+        # Z-> ll lepton ID scale factors
         if z_pair == "ee":
-            l1_w = lepton_ID_weight(l1, "e", self.eleID_SFs, is_data)
-            l2_w = lepton_ID_weight(l2, "e", self.eleID_SFs, is_data)
+            l1_w = lepton_ID_weight(l1, "e", self.eleID_SFs)
+            l2_w = lepton_ID_weight(l2, "e", self.eleID_SFs)
         elif z_pair == "mm":
-            l1_w = lepton_ID_weight(l1, "m", self.muID_SFs, is_data)
-            l2_w = lepton_ID_weight(l2, "m", self.muID_SFs, is_data)
+            l1_w = lepton_ID_weight(l1, "m", self.muID_SFs)
+            l2_w = lepton_ID_weight(l2, "m", self.muID_SFs)
         w = l1_w * l2_w
 
-        if numerator:  # weight the fake lepton
+        # extra lepton ID scale factors
+        l_w = np.ones_like(w)
+        if numerator:
             if mode == "e":
-                l_w = lepton_ID_weight(l, "e", self.eleID_SFs, is_data)
+                l_w = lepton_ID_weight(l, "e", self.eleID_SFs)
             elif mode == "m":
-                l_w = lepton_ID_weight(l, "m", self.muID_SFs, is_data)
-            else:  # the taus have different working points
-                l_w = tau_ID_weight_3l(l, self.tauID_SFs, mode)
-            w = w * l_w
+                l_w = lepton_ID_weight(l, "m", self.muID_SFs)
 
-        return ak.unflatten(w, num)
+        if (mode == "et") or (mode == "mt") or (mode == "tt"):
+            l_w = tau_ID_weight_3l(l, mode, self.tauID_SFs, numerator=numerator)
+
+        return ak.unflatten(w * l_w, num)
 
     def postprocess(self, accumulator):
         pass

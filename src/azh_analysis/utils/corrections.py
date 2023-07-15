@@ -175,7 +175,7 @@ def get_muon_ES_weights(base, year):
     return rochester_lookup.rochester_lookup(rochester_data)
 
 
-def lepton_ID_weight(l, lep, SF_tool, is_data=False):
+def lepton_ID_weight(l, lep, SF_tool):
     eta_map = {
         "e": {
             "Lt1p0": [0, 1],
@@ -203,7 +203,9 @@ def lepton_ID_weight(l, lep, SF_tool, is_data=False):
     return weight
 
 
-def tau_ID_weight(taus, SF_tool, cat, is_data=False, syst="nom", tight=True):
+def tau_ID_weight(
+    taus, SF_tool, cat, is_data=False, dm_shift=None, syst="nom", tight=True
+):
     corr_VSe = SF_tool["DeepTau2017v2p1VSe"]
     corr_VSmu = SF_tool["DeepTau2017v2p1VSmu"]
     corr_VSjet = SF_tool["DeepTau2017v2p1VSjet"]
@@ -214,17 +216,22 @@ def tau_ID_weight(taus, SF_tool, cat, is_data=False, syst="nom", tight=True):
     wp_vsJet = "VVVLoose" if not tight else "Medium"
     wp_vsEle = "Tight" if (tight and (cat[2:] == "et")) else "VLoose"
     wp_vsMu = "Tight" if (tight and (cat[2:] == "mt")) else "VLoose"
-    tau_h_weight = corr_VSjet.evaluate(pt, dm, gen, wp_vsJet, syst, "pt")
-    tau_ele_weight = corr_VSe.evaluate(eta, gen, wp_vsEle, syst)
-    if not tight:
-        tau_ele_weight = np.ones(len(pt), dtype=float)
-    tau_mu_weight = corr_VSmu.evaluate(eta, gen, wp_vsMu, syst)
-    if not tight:
-        tau_mu_weight = np.ones(len(pt), dtype=float)
+
+    # systematics for genuine hadronic taus
+    tau_h_weight = corr_VSjet.evaluate(pt, dm, gen, wp_vsJet, "nom", "pt")
+    if "nom" not in syst:  # apply a systematic shift
+        assert dm_shift is not None
+        tau_h_weight_shift = corr_VSjet.evaluate(pt, dm, gen, wp_vsJet, syst, "pt")
+        tau_h_weight = tau_h_weight_shift * (dm == dm_shift) + tau_h_weight * (
+            dm != dm_shift
+        )
+    tau_ele_weight = corr_VSe.evaluate(eta, gen, wp_vsEle, "nom")
+    tau_mu_weight = corr_VSmu.evaluate(eta, gen, wp_vsMu, "nom")
+
     return tau_h_weight * tau_ele_weight * tau_mu_weight
 
 
-def tau_ID_weight_3l(taus, SF_tool, mode, syst="nom"):
+def tau_ID_weight_3l(taus, mode, SF_tool, numerator=True):
     corr_VSe = SF_tool["DeepTau2017v2p1VSe"]
     corr_VSmu = SF_tool["DeepTau2017v2p1VSmu"]
     corr_VSjet = SF_tool["DeepTau2017v2p1VSjet"]
@@ -232,13 +239,18 @@ def tau_ID_weight_3l(taus, SF_tool, mode, syst="nom"):
     eta = ak.to_numpy(taus.eta)
     gen = ak.to_numpy(taus.genPartFlav)
     dm = ak.to_numpy(taus.decayMode)
+
+    # denominator only checks VSjet VLoose
+    if not numerator:
+        return corr_VSjet.evaluate(pt, dm, gen, "VLoose", "nom", "pt")
+
+    # numerator selections depend on di-tau decay
     wp_vsJet = "Medium"
     wp_vsEle = "Tight" if mode == "et" else "VLoose"
     wp_vsMu = "Tight" if mode == "mt" else "VLoose"
-    tau_h_weight = corr_VSjet.evaluate(pt, dm, gen, wp_vsJet, syst, "pt")
-    tau_ele_weight = corr_VSe.evaluate(eta, gen, wp_vsEle, syst)
-    tau_mu_weight = corr_VSmu.evaluate(eta, gen, wp_vsMu, syst)
-    tau_mu_weight = np.ones(len(pt), dtype=float)
+    tau_h_weight = corr_VSjet.evaluate(pt, dm, gen, wp_vsJet, "nom", "pt")
+    tau_ele_weight = corr_VSe.evaluate(eta, gen, wp_vsEle, "nom")
+    tau_mu_weight = corr_VSmu.evaluate(eta, gen, wp_vsMu, "nom")
     return tau_h_weight * tau_ele_weight * tau_mu_weight
 
 

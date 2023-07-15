@@ -2,6 +2,7 @@
 signal,GluGluToAToZhToLLTauTauM1000,/cmsxrootd-site.fnal.gov/,/GluGluToAToZhToLLTauTau_M1000_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,498520,0.001
 signal,GluGluToAToZhToLLTauTauM1200,/cmsxrootd-site.fnal.gov/,/GluGluToAToZhToLLTauTau_M1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,485394,0.001
 signal,GluGluToAToZhToLLTauTauM1400,/cmsxrootd-site.fnal.gov/,/GluGluToAToZhToLLTauTau_M1400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,446940,0.001
+signal,GluGluToAToZhToLLTauTauM1600,/cmsxrootd-site.fnal.gov/,/GluGluToAToZhToLLTauTau_M1400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,446940,0.001
 signal,GluGluToAToZhToLLTauTauM1800,/cmsxrootd-site.fnal.gov/,/GluGluToAToZhToLLTauTau_M1800_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,467275,0.001
 signal,GluGluToAToZhToLLTauTauM2000,/cmsxrootd-site.fnal.gov/,/GluGluToAToZhToLLTauTau_M2000_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,442213,0.001
 signal,GluGluToAToZhToLLTauTauM225,/cmsxrootd-site.fnal.gov/,/GluGluToAToZhToLLTauTau_M225_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,521597,0.001
