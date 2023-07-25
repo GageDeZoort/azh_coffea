@@ -7,10 +7,10 @@ import mplhep as hep
 import numpy as np
 from cycler import cycler
 from hist import Hist
-from hist.intervals import ratio_uncertainty
+from hist.intervals import poisson_interval, ratio_uncertainty
 from matplotlib import pyplot as plt
 
-from azh_analysis.utils.histograms import integrate
+from azh_analysis.utils.histograms import norm_to
 
 warnings.filterwarnings("ignore")
 
@@ -48,8 +48,11 @@ def plot_mc(
     group_hists = {}
     for group in colors.keys():
         try:
-            group_hists[group] = mc[group, :]
+            g = "SM-H(125)" if "SM" in group else group
+            print(g)
+            group_hists[g] = mc[group, :]
         except Exception:
+            print("ADDING DUMMY AXIS FOR", group)
             dummy_axis = mc["ZZ", :].axes[var]
             group_hists[group] = Hist(dummy_axis)
             continue
@@ -80,6 +83,7 @@ def plot_data_vs_mc(
     var,
     cat_label,
     var_label,
+    btag_label=None,
     logscale=False,
     outfile=None,
     year="1",
@@ -100,6 +104,7 @@ def plot_data_vs_mc(
         "DY": "#0A9396",
         "ZZ": "#005F73",
         "SM-H(125)": "#E9D8A6",
+        "SM-H-M125": "#E9D8A6",
         "WZ": "#9b2226",
         "tt": "#EE9B00",
         "VVV": "#bb3e03",
@@ -112,22 +117,25 @@ def plot_data_vs_mc(
         try:
             group_hists[group] = mc[group, :]
         except Exception:
+            print("skipping", group)
             continue
 
     # fill the reducible background
     if data_ss is not None:
+        print("Using SS relaxed reducible.")
         os = data["reducible", :]
         ss = data_ss["data", :]
-        os_norm, ss_norm = integrate(os), integrate(ss)
-        ss = ss * os_norm / ss_norm
+        ss = norm_to(os, ss)
         group_hists["Reducible"] = ss
     else:
+        print("Using OS application reducible.")
         group_hists["Reducible"] = data["reducible", :]
 
     # reorder based on contributions
     group_hists = {
-        k: v for k, v in sorted(group_hists.items(), key=lambda x: x[1].sum())
+        k: v for k, v in sorted(group_hists.items(), key=lambda x: -x[1].sum().value)
     }
+
     colors = {k: colors[k] for k in group_hists.keys()}
 
     # define hist stack and figure
@@ -148,9 +156,10 @@ def plot_data_vs_mc(
     stack_sum = sum(stack)
     bins = stack_sum.axes[-1]
     bin_edges = [b[0] for b in bins]
-    print(bin_edges)
     sumw_total = np.array(stack_sum.values())
-    unc = np.sqrt(sumw_total)
+    # unc = np.sqrt(np.stack([s.variances()**2 for s in stack]).sum(0))
+    unc = poisson_interval(stack_sum.values(), stack_sum.variances())
+
     hatch_style = {
         "facecolor": "none",
         "edgecolor": (0, 0, 0, 0.5),
@@ -159,16 +168,16 @@ def plot_data_vs_mc(
     }
     ax.fill_between(
         x=bin_edges,
-        y1=sumw_total - unc,
-        y2=sumw_total + unc,
+        y1=unc[0],
+        y2=unc[1],
         label="Stat. Unc.",
         step="post",
         **hatch_style,
     )
     rax.fill_between(
         x=bin_edges,
-        y1=(sumw_total - unc) / sumw_total,
-        y2=(sumw_total + unc) / sumw_total,
+        y1=(unc[0]) / sumw_total,
+        y2=(unc[1]) / sumw_total,
         step="post",
         **hatch_style,
     )
@@ -238,9 +247,9 @@ def plot_data_vs_mc(
     rax.set_xlabel(var_label)
     ax.set_xlabel("")
     ax.legend()
-    rax.set_ylim([0, 2])
+    rax.set_ylim([0.0, 2])
     ax.legend(loc="best", prop={"size": 16}, frameon=True)
-    ax.get_legend().set_title(f"{cat_label}")
+    ax.get_legend().set_title(f"{cat_label}, {btag_label}")
     hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax)
     if ylim is not None:
         ax.set_ylim(ylim)
@@ -627,4 +636,104 @@ def plot_systematic(
     if outfile is not None:
         plt.savefig(outfile, format="pdf", dpi=800)
 
+    plt.show()
+
+
+def plot_closure(
+    h1,
+    h1_label,
+    h2,
+    h2_label,
+    var,
+    cat_label,
+    var_label,
+    btag_label,
+    stats=None,
+    logscale=False,
+    outfile=None,
+    year="1",
+    lumi="1",
+    blind=False,
+    xerr=None,
+):
+    hep.style.use(["CMS", "fira", "firamath"])
+    colors = {
+        "h1": "#005F73",
+        "h2": "#0A9396",
+    }
+
+    fig, (ax, rax) = plt.subplots(
+        nrows=2,
+        ncols=1,
+        figsize=(9, 12),
+        dpi=120,
+        gridspec_kw={"height_ratios": (4, 1)},
+        sharex=True,
+    )
+    fig.subplots_adjust(hspace=0.07)
+    ax.set_prop_cycle(cycler(color=list(colors.values())))
+
+    h1.plot1d(
+        ax=ax,
+        histtype="errorbar",
+        xerr=None,
+        yerr=np.sqrt(h1.variances()),
+        color="#0A9396",
+        marker="s",
+        markersize=5,
+        mfc="#0A9396",
+        mec="#0A9396",
+        capsize=2,
+        label=h1_label,
+        alpha=0.5,
+    )
+    h2.plot1d(
+        ax=ax,
+        histtype="errorbar",
+        xerr=None,
+        yerr=np.sqrt(h2.variances()),
+        color="#EE9B00",
+        marker="o",
+        markersize=5,
+        mfc="#EE9B00",
+        mec="#EE9B00",
+        capsize=2,
+        label=h2_label,
+        alpha=0.5,
+    )
+    h1_vals = h1.values()
+    h2_vals = h2.values()
+
+    bins = h1.axes[0].centers
+    y = h1_vals / h2_vals
+    yerr = ratio_uncertainty(h1_vals, h2_vals, "poisson")
+
+    rax.errorbar(
+        x=bins,
+        y=y,
+        yerr=yerr,
+        color="k",
+        linestyle="none",
+        marker="o",
+        elinewidth=1,
+    )
+
+    if logscale:
+        ax.set_yscale("log")
+        ax.set_xscale("log")
+    ax.set_ylabel("Counts")
+    rax.set_xlabel(var_label)
+    ax.set_xlabel("")
+    ax.legend()
+    rax.set_ylim([0, 2])
+    if not logscale:
+        ax.set_xlim([50, 800])
+        rax.set_xlim([50, 800])
+    ax.legend(loc="best", prop={"size": 16}, frameon=True, title_fontsize="small")
+    ax.get_legend().set_title(
+        f"{cat_label}, {btag_label}"
+    )  # \nKS={(stats.statistic):.2f}, p={stats.pvalue:.3f}")
+    hep.cms.label("Preliminary", data=True, lumi=lumi, year=year, ax=ax)
+    if outfile is not None:
+        plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()

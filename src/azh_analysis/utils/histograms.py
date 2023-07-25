@@ -4,6 +4,7 @@ import hist
 import numpy as np
 from hist import Hist
 from hist.axis import IntCategory, Regular, StrCategory, Variable
+from scipy.optimize import minimize
 
 
 def integrate(hist):
@@ -11,6 +12,21 @@ def integrate(hist):
     widths = bins[:, 1] - bins[:, 0]
     vals = hist.values()
     return sum(widths * vals)
+
+
+def norm_to(a, b, simple=False):
+    """norm b to a"""
+    a_norm, b_norm = integrate(a), integrate(b)
+    if simple:
+        return b * a_norm / b_norm
+    # widths = np.array([h[1] - h[0] for h in a.axes[0]])
+
+    def f(x):
+        diff = (a + -1 * b * x / b_norm).values() ** 2  # * widths
+        return abs(diff.sum())
+
+    res = minimize(f, a_norm, method="Nelder-Mead", tol=1e-6)
+    return b * res.x[0] / b_norm
 
 
 def make_analysis_hist_stack(fileset, year):

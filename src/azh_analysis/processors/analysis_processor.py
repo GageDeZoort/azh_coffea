@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 import math
-import time
+
+# import time
 import warnings
 
 import awkward as ak
@@ -252,7 +253,10 @@ class AnalysisProcessor(processor.ProcessorABC):
             njets = ak.to_numpy(events.LHE.Njets)
             global_weights.add("dyjets_sample_weights", self.dyjets_weights(njets))
         else:  # otherwise weight by luminosity ratio
+            logging.info(f"nevts: {nevts}")
+            logging.info(f"xsec: {xsec}")
             sample_weight = 1 if is_data else self.lumi[year] * xsec / nevts
+            logging.info(f"sample_weight: {sample_weight}")
             global_weights.add("sample_weight", ones * sample_weight)
 
         # pileup weights and gen weights
@@ -393,7 +397,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         ]
                         if len(ak.flatten(lltt)) == 0:
                             continue
-                        t0 = time.time()
+                        # t0 = time.time()
                         lepton_IDs = self.apply_lepton_ID_SFs(lltt, cat)
                         lltt["weight"] = lltt.weight * lepton_IDs
                         lltt["tauID_nom"] = self.apply_tau_ID_SFs(lltt, cat)
@@ -431,7 +435,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 continue
 
             # get lepton count veto masks
-            t0 = time.time()
+            # t0 = time.time()
             lepton_count_veto_masks = get_lepton_count_veto_masks(
                 baseline_e[mask], baseline_m[mask], baseline_t[mask]
             )
@@ -442,7 +446,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 )
             cands = cands[veto_mask]
             jets = jets[veto_mask]
-            print(f"Lepton count veto: {time.time() - t0}")
+            # print(f"Lepton count veto: {time.time() - t0}")
 
             # for data, fill in categories of reducible/fake and tight/loose
             if is_data:
@@ -451,9 +455,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                     cands_group = cands[mask]
                     if len(cands_group) == 0:
                         continue
-                    t0 = time.time()
+                    # t0 = time.time()
                     fastmtt_out = self.run_fastmtt(cands_group) if self.fastmtt else {}
-                    print(f"fastmtt time: {time.time() - t0}")
+                    # print(f"fastmtt time: {time.time() - t0}")
                     self.fill_histos(
                         output,
                         cands_group,
@@ -473,7 +477,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 # calculate baseline global event weights
                 global_weight = global_weights.weight()[mask][veto_mask]
 
-                t0 = time.time()
+                # t0 = time.time()
                 # calculate the nominal btag event weights
                 bshift_weight = apply_btag_corrections(
                     jets,
@@ -484,14 +488,13 @@ class AnalysisProcessor(processor.ProcessorABC):
                     dataset,
                     shift="central",
                 )
-                print(f"Bshift weights {time.time() - t0}")
 
                 # run fastmtt
                 fastmtt_out = {}
                 if self.fastmtt:
-                    t0 = time.time()
+                    # t0 = time.time()
                     fastmtt_out = self.run_fastmtt(cands)
-                    print(f"FastMTT {time.time() - t0}")
+                    # print(f"FastMTT {time.time() - t0}")
 
                 # loop over systematic shifts for the event weights
                 for e_shift in self.event_syst_shifts:
@@ -520,12 +523,12 @@ class AnalysisProcessor(processor.ProcessorABC):
                         gw = global_weights.weight(
                             modifier=f"l1prefire{l1prefire_shift.capitalize()}",
                         )[mask][veto_mask]
-                        w = w * bshift_weight * gw
+                        w = w * bshift_weight * gw * cands["tauID_nom"]
                     elif pileup_shift is not None:
                         gw = global_weights.weight(
                             modifier=f"pileup{pileup_shift.capitalize()}",
                         )[mask][veto_mask]
-                        w = w * bshift_weight * gw
+                        w = w * bshift_weight * gw * cands["tauID_nom"]
                     elif btag_shift is not None:
                         bw = apply_btag_corrections(
                             jets,
@@ -536,9 +539,14 @@ class AnalysisProcessor(processor.ProcessorABC):
                             dataset,
                             shift=btag_shift,
                         )
-                        w = w * bw * global_weight
-                    elif tauID_dm:
-                        w = w * cands[f"tauID_{tauID_dm}_{tauID_shifts[tauID_dm]}"]
+                        w = w * bw * global_weight * cands["tauID_nom"]
+                    elif tauID_dm is not None:
+                        w = (
+                            w
+                            * bshift_weight
+                            * global_weight
+                            * cands[f"tauID_{tauID_dm}_{tauID_shifts[tauID_dm]}"]
+                        )
                     else:
                         w = w * bshift_weight * global_weight * cands["tauID_nom"]
 
@@ -549,7 +557,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                     if k_shift != "nom":
                         syst_shift = k_shift
 
-                    t0 = time.time()
+                    # t0 = time.time()
                     self.fill_histos(
                         output,
                         cands,
@@ -561,7 +569,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         syst_shift=syst_shift,
                         blind=(is_data and self.blind),
                     )
-                    print(f"Fill histograms: {time.time() - t0}")
+                    # print(f"Fill histograms: {time.time() - t0}")
 
         return output
 

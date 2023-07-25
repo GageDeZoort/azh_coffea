@@ -139,6 +139,10 @@ def get_nevts_dict(fileset, year, high_stats=False):
         )
         nevts_dict["ZHToTauTauM125_2017"] = nevts
         nevts_dict["ZHToTauTauM125_ext1_2017"] = nevts
+        print("fixing ZHWW")
+        nevts = nevts_dict["HZJHToWW_2017"] + nevts_dict["HZJHToWW_ext1_2017"]
+        nevts_dict["HZJHToWW_2017"] = nevts
+        nevts_dict["HZJHToWW_ext1_2017"] = nevts
 
     if "16post" in year:
         print("fixing WWW4F")

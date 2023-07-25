@@ -50,6 +50,7 @@ def parse_args():
     add_arg("--use-coffea-frs", action="store_true")
     add_arg("--systematic", default=None)
     add_arg("--same-sign", action="store_true")
+    add_arg("--relaxed", action="store_true")
     return parser.parse_args()
 
 
@@ -159,7 +160,7 @@ logging.info(f"running on\n {fileset.keys()}")
 
 # extract the sum_of_weights from the ntuples
 nevts_dict, dyjets_weights = None, None
-if "MC" in source:
+if "MC" in source and not args.test_mode:
     nevts_dict = get_nevts_dict(fileset, year)
     print("fileset keys", fileset.keys())
     if f"DYJetsToLLM-50_{year}" in fileset.keys():
@@ -240,6 +241,7 @@ proc_instance = AnalysisProcessor(
     systematic=args.systematic,
     same_sign=args.same_sign,
     blind=False,
+    relaxed=args.relaxed,
 )
 
 chunksize = 50000 if "data" in args.source else 50000
