@@ -54,7 +54,9 @@ def make_yaml(source, year, all_samples, sample_info, target_group=None):
         )
         name_str = name_str.replace("LL_M-50", "LLM-50").replace("LLM50", "LLM-50")
         print(f"...processing {group}: {name_str}")
-        samples = [s for s in all_samples if name == s]
+        samples = [
+            s for s in all_samples if (name == s) or (name.replace("VFP", "FVP") == s)
+        ]
         if len(samples) != 1:
             print(f"only found {samples}")
             break

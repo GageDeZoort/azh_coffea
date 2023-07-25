@@ -2280,7 +2280,7 @@ TTToSemiLeptonic_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToSemiLeptonic_preVFP/all_TTToSemiLeptonic_preVFP_file117_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToSemiLeptonic_preVFP/all_TTToSemiLeptonic_preVFP_file117_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTToSemiLeptonic_preVFP/all_TTToSemiLeptonic_preVFP_file117_part_3of3_Muons.root
-ttZJets_preFVP_2016preVFP:
+ttZJets_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJets_preFVP_preVFP/all_ttZJets_preFVP_preVFP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJets_preFVP_preVFP/all_ttZJets_preFVP_preVFP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJets_preFVP_preVFP/all_ttZJets_preFVP_preVFP_file001_part_2of3_Electrons.root
@@ -2509,7 +2509,7 @@ ttZJets_preFVP_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJets_preFVP_preVFP/all_ttZJets_preFVP_preVFP_file038_part_2of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJets_preFVP_preVFP/all_ttZJets_preFVP_preVFP_file038_part_3of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/ttZJets_preFVP_preVFP/all_ttZJets_preFVP_preVFP_file038_part_3of3_Muons.root
-TTWJetsToLNu_preFVP_2016preVFP:
+TTWJetsToLNu_2016preVFP:
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTWJetsToLNu_preFVP_preVFP/all_TTWJetsToLNu_preFVP_preVFP_file001_part_1of3_Electrons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTWJetsToLNu_preFVP_preVFP/all_TTWJetsToLNu_preFVP_preVFP_file001_part_1of3_Muons.root
  - root://cmseos.fnal.gov//eos/uscms/store/group/lpcsusyhiggs/ntuples/AZh/nAODv9/2016/TTWJetsToLNu_preFVP_preVFP/all_TTWJetsToLNu_preFVP_preVFP_file001_part_2of3_Electrons.root

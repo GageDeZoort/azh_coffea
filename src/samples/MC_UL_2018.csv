@@ -47,3 +47,4 @@ SM-H(125),GluGluHToZZTo4LM125,/cmsxrootd-site.fnal.gov/,/GluGluHToZZTo4L_M125_Tu
 SM-H(125),HWminusJHToWW,/cmsxrootd-site.fnal.gov/,/HWminusJ_HToWW_M-125_TuneCP5_13TeV-powheg-jhugen727-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,9994022,0.114
 SM-H(125),HWplusJHToWWTo2L2Nu,/cmsxrootd-site.fnal.gov/,/HWplusJ_HToWWTo2L2Nu_WTo2L_M-125_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,9963865,0.180
 SM-H(125),HZJHToWW,/cmsxrootd-site.fnal.gov/,/HZJ_HToWW_M-125_TuneCP5_13TeV-powheg-jhugen727-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,9899256,0.163
+SM-H(125),HZJHToWW_ext1,/cmsxrootd-site.fnal.gov/,/HZJ_HToWW_M-125_TuneCP5_13TeV-powheg-jhugen727-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1_ext1-v1/NANOAODSIM,4913178,0.163
