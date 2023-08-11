@@ -1,0 +1,48 @@
+imax    1 number of bins
+jmax    12 number of processes minus 1
+kmax    * number of nuisance parameters
+--------------------------------------------------------------------------------
+shapes * eeet common/azh_2017_btag_eeet_700.root eeet/$PROCESS eeet/$PROCESS_$SYSTEMATIC
+shapes ggA eeet common/azh_2017_btag_eeet_700.root eeet/ggA$MASS eeet/ggA$MASS_$SYSTEMATIC
+--------------------------------------------------------------------------------
+bin                               eeet            eeet            eeet            eeet            eeet            eeet            eeet            eeet            eeet            eeet            eeet            eeet            eeet
+process                           ggA             reducible       ggZZ            ZZ              TTZ             VVV             WZ              ZHtt            TTHtt           WHWW            ZHWW            ggZHWW          ggHZZ
+process                           0               1               2               3               4               5               6               7               8               9               10              11              12
+rate                              0.0847005       3.12537         0.240644        2.14606         0.198501        0.0123971       0               0.0992849       0.0624056       0               0.0162467       0.0544042       0.00122064
+--------------------------------------------------------------------------------
+BR_htt_PU_alphas          lnN     1.062           -               -               -               -               -               -               1.062           1.062           -               -               -               -
+BR_htt_PU_mq              lnN     1.099           -               -               -               -               -               -               1.099           1.099           -               -               -               -
+BR_htt_THU                lnN     1.017           -               -               -               -               -               -               1.017           1.017           -               -               -               -
+BR_hww_PU_alphas          lnN     -               -               -               -               -               -               -               -               -               1.066           1.066           1.066           -
+BR_hww_PU_mq              lnN     -               -               -               -               -               -               -               -               -               1.099           1.099           1.099           -
+BR_hww_THU                lnN     -               -               -               -               -               -               -               -               -               1.099           1.099           1.099           -
+CMS_NNLO_ggZZ             lnN     -               -               1.1             -               -               -               -               -               -               -               -               -               -
+CMS_eff_e                 lnN     1.06            -               1.06            1.06            1.06            1.06            1.06            1.06            1.06            1.06            1.06            1.06            1.06
+CMS_eff_m                 lnN     1               -               1               1               1               1               1               1               1               1               1               1               1
+CMS_lumi_13TeV_1718       lnN     1.006           -               1.006           1.006           1.006           1.006           1.006           1.006           1.006           1.006           1.006           1.006           1.006
+CMS_lumi_13TeV_2017       lnN     1.02            -               1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02
+CMS_lumi_13TeV_correlated lnN     1.02            -               1.009           1.009           1.009           1.009           1.009           1.009           1.009           1.009           1.009           1.009           1.009
+CMS_xsec_ggZZ             lnN     -               -               1.1             -               -               -               -               -               -               -               -               -               -
+CMS_xsec_ttZ              lnN     -               -               -               -               1.25            -               -               -               -               -               -               -               -
+CMS_xsec_vv               lnN     -               -               -               1.048           -               -               1.048           -               -               -               -               -               -
+CMS_xsec_vvv              lnN     -               -               -               -               -               1.25            -               -               -               -               -               -               -
+QCDscale_VH               lnN     -               -               -               -               -               -               -               1.009           -               1.008           1.009           1.009           -
+QCDscale_ggh              lnN     -               -               -               -               -               -               -               -               -               -               -               -               1.039
+QCDscale_qqh              lnN     -               -               -               -               -               -               -               -               1.08            -               -               -               -
+closure                   shape   -               1               -               -               -               -               -               -               -               -               -               -               -
+efake                     shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+eleES                     shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+eleSmear                  shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+l1prefire                 shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+mfake                     shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+muES                      shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+pdf_Higgs_VH              lnN     -               -               -               -               -               -               -               1.013           -               1.018           1.013           1.013           -
+pdf_Higgs_gg              lnN     -               -               -               -               -               -               -               -               -               -               -               -               1.032
+pdf_Higgs_ttH             lnN     -               -               -               -               -               -               -               -               1.036           -               -               -               -
+pileup                    shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+tauES                     shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+tauID0                    shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+tauID1                    shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+tauID10                   shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+tauID11                   shape   1               -               1               1               1               1               1               1               1               1               1               1               1
+unclMET                   shape   1               -               1               1               1               1               1               1               1               1               1               1               1
