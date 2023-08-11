@@ -11,7 +11,7 @@ parser.add_argument("-p", "--process", required=True)
 parser.add_argument("--per-category", action="store_true")
 args = vars(parser.parse_args())
 
-year, mass, btag_label = "2018", args["mass"], args["btag"]
+year, mass, btag_label = "2016preVFP", args["mass"], args["btag"]
 per_category = args["per_category"]
 
 mc_bkgd = [  # TTW, TT, ggHtt, VFBHtt, WHtt, ggHWW, VBFHWW
@@ -45,18 +45,17 @@ cats = [
 ]
 
 cb.AddObservations(["*"], ["azh"], [], [btag_label], cats)
-cb.AddProcesses([mass], ["azh"], [year], [btag_label], sig, cats, True)
+cb.AddProcesses([mass], ["azh"], [year], [btag_label], [sig], cats, True)
 cb.AddProcesses(["*"], ["azh"], [year], [btag_label], reducible, cats, False)
 cb.AddProcesses(["*"], ["azh"], [year], [btag_label], mc_bkgd, cats, False)
 
+
 # luminosity
-cb.cp().signals().AddSyst(cb, "CMS_lumi_13TeV_2018", "lnN", ch.SystMap()(1.015))
-cb.cp().process(mc_bkgd).AddSyst(cb, "CMS_lumi_13TeV_2018", "lnN", ch.SystMap()(1.015))
-cb.cp().signals().AddSyst(cb, "CMS_lumi_13TeV_1718", "lnN", ch.SystMap()(1.002))
-cb.cp().process(mc_bkgd).AddSyst(cb, "CMS_lumi_13TeV_1718", "lnN", ch.SystMap()(1.002))
-cb.cp().signals().AddSyst(cb, "CMS_lumi_13TeV_correlated", "lnN", ch.SystMap()(1.02))
+cb.cp().signals().AddSyst(cb, "CMS_lumi_13TeV_2016", "lnN", ch.SystMap()(1.01))
+cb.cp().process(mc_bkgd).AddSyst(cb, "CMS_lumi_13TeV_2016", "lnN", ch.SystMap()(1.01))
+cb.cp().signals().AddSyst(cb, "CMS_lumi_13TeV_correlated", "lnN", ch.SystMap()(1.006))
 cb.cp().process(mc_bkgd).AddSyst(
-    cb, "CMS_lumi_13TeV_correlated", "lnN", ch.SystMap()(1.02)
+    cb, "CMS_lumi_13TeV_correlated", "lnN", ch.SystMap()(1.006)
 )
 
 # Higgs tau tau PU alphas
@@ -145,17 +144,21 @@ cb.cp().process(["TTHtt"]).AddSyst(cb, "pdf_Higgs_ttH", "lnN", ch.SystMap()(1.03
 # add shape systematics
 bkgd = mc_bkgd + sig
 bkgd_mod = [b for b in bkgd if "ggHWW" not in b]
-bkgd_tauID = [b for b in bkgd if "WZ" not in b]
+bkgd_tauID = [b for b in bkgd]
 cb.cp().process(reducible).AddSyst(cb, "closure", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd_tauID).AddSyst(cb, "tauID0", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd_tauID).AddSyst(cb, "tauID1", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd_tauID).AddSyst(cb, "tauID10", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd_tauID).AddSyst(cb, "tauID11", "shape", ch.SystMap()(1.00))
-cb.cp().process(bkgd_mod).AddSyst(cb, "tauES", "shape", ch.SystMap()(1.00))
-cb.cp().process(bkgd).AddSyst(cb, "unclMET", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd).AddSyst(cb, "tauES", "shape", ch.SystMap()(1.00))
+cb.cp().process([b for b in bkgd if "ggHZZ" not in b]).AddSyst(
+    cb, "unclMET", "shape", ch.SystMap()(1.00)
+)
 cb.cp().process(bkgd).AddSyst(cb, "pileup", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd).AddSyst(cb, "l1prefire", "shape", ch.SystMap()(1.00))
-cb.cp().process(bkgd).AddSyst(cb, "eleES", "shape", ch.SystMap()(1.00))
+cb.cp().process([b for b in bkgd if "ZHWW" not in b]).AddSyst(
+    cb, "eleES", "shape", ch.SystMap()(1.00)
+)
 cb.cp().process(bkgd).AddSyst(cb, "eleSmear", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd).AddSyst(cb, "muES", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd).AddSyst(cb, "efake", "shape", ch.SystMap()(1.00))

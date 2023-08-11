@@ -6,35 +6,31 @@ import CombineHarvester.CombineTools.ch as ch
 
 parser = argparse.ArgumentParser(description="Description of your program")
 parser.add_argument("-m", "--mass", required=True)
-parser.add_argument("-s", "--sig", required=True)
-# parser.add_argument('-y', '--year', required=True)
+parser.add_argument("-b", "--btag", required=True)
+parser.add_argument("-p", "--process", required=True)
 parser.add_argument("--per-category", action="store_true")
 args = vars(parser.parse_args())
 
-year, mass, sig = "2017", args["mass"], args["sig"]
+year, mass, btag_label = "2017", args["mass"], args["btag"]
 per_category = args["per_category"]
 
-mc_bkgd = [
+mc_bkgd = [  # TTW, TT, ggHtt, VFBHtt, WHtt, ggHWW, VBFHWW
     "ggZZ",
     "ZZ",
     "TTZ",
-    "TTW",
-    "TT",
     "VVV",
     "WZ",
-    "ggHtt",
-    "VBFHtt",
-    "WHtt",
     "ZHtt",
     "TTHtt",
-    "ggHWW",
-    "VBFHWW",
     "WHWW",
     "ZHWW",
     "ggZHWW",
     "ggHZZ",
 ]
 reducible = ["reducible"]
+
+process = args["process"]
+sig = [process]
 
 cb = ch.CombineHarvester()
 cats = [
@@ -47,7 +43,6 @@ cats = [
     (7, "mmmt"),
     (8, "mmtt"),
 ]
-btag_label = "0btag" if "gg" in sig else "btag"
 
 cb.AddObservations(["*"], ["azh"], [], [btag_label], cats)
 cb.AddProcesses([mass], ["azh"], [year], [btag_label], [sig], cats, True)
@@ -149,8 +144,14 @@ cb.cp().process(["VBFHtt", "VBFHWW"]).AddSyst(
 cb.cp().process(["TTHtt"]).AddSyst(cb, "pdf_Higgs_ttH", "lnN", ch.SystMap()(1.036))
 
 # add shape systematics
-bkgd = mc_bkgd + [sig]
+bkgd = mc_bkgd + sig
 bkgd_mod = [b for b in bkgd if "ggHWW" not in b]
+bkgd_tauID = [b for b in bkgd]
+cb.cp().process(reducible).AddSyst(cb, "closure", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd_tauID).AddSyst(cb, "tauID0", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd_tauID).AddSyst(cb, "tauID1", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd_tauID).AddSyst(cb, "tauID10", "shape", ch.SystMap()(1.00))
+cb.cp().process(bkgd_tauID).AddSyst(cb, "tauID11", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd_mod).AddSyst(cb, "tauES", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd).AddSyst(cb, "unclMET", "shape", ch.SystMap()(1.00))
 cb.cp().process(bkgd).AddSyst(cb, "pileup", "shape", ch.SystMap()(1.00))
@@ -174,10 +175,10 @@ cb.cp().backgrounds().ExtractShapes(
 cb.cp().signals().ExtractShapes(
     (
         "/uscms_data/d3/jdezoort/AZh_columnar/CMSSW_10_2_9/src/"
-        + f"azh_coffea/src/notebooks/root_for_combine/{sig}_{mass}_{year}.root"
+        + f"azh_coffea/src/notebooks/root_for_combine/signal_{mass}_{btag_label}_{year}.root"
     ),
-    "$BIN/$PROCESS_$MASS",
-    "$BIN/$PROCESS_$MASS_$SYSTEMATIC",
+    "$BIN/$PROCESS",
+    "$BIN/$PROCESS_$SYSTEMATIC",
 )
 
 if per_category:
@@ -185,12 +186,12 @@ if per_category:
         "$TAG/$ANALYSIS_$ERA_$CHANNEL_$BIN_$MASS.txt",
         "$TAG/common/$ANALYSIS_$ERA_$CHANNEL_$BIN_$MASS.root",
     )
-    writer.WriteCards(f"UL_{year}/", cb)
+    writer.WriteCards(f"UL_{year}_{process}/", cb)
     print(f"wrote {mass}, {sig}")
 else:
     writer = ch.CardWriter(
         "$TAG/$ANALYSIS_$ERA_$CHANNEL_$MASS.txt",
         "$TAG/common/$ANALYSIS_$ERA_$CHANNEL_$MASS.root",
     )
-    writer.WriteCards(f"UL_{year}/", cb)
+    writer.WriteCards(f"UL_{year}_{process}/", cb)
     print(f"wrote {mass}, {sig}")
