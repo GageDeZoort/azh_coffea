@@ -408,12 +408,14 @@ class AnalysisProcessor(processor.ProcessorABC):
                                 shift="up",
                                 dm_shift=dm,
                             )
+                            print("up", ak.flatten(lltt[f"tauID_{dm}_up"]))
                             lltt[f"tauID_{dm}_down"] = self.apply_tau_ID_SFs(
                                 lltt,
                                 cat,
                                 shift="down",
                                 dm_shift=dm,
                             )
+                            print("down", (lltt[f"tauID_{dm}_down"]))
 
                     # otherwise, if data apply the fake weights
                     else:
@@ -668,11 +670,15 @@ class AnalysisProcessor(processor.ProcessorABC):
             ("tt", "t1"): "3",
             ("tt", "t2"): "4",
         }
-        signs = np_flat(lltt["tt"]["t1"].charge * lltt["tt"]["t2"].charge)
-        btags = np_flat(lltt.btags > 0)
-        cats = np_flat(lltt.cat)
+
+        # force fastmtt output to be between 90 and 180 GeV
+        mask = np_flat((fastmtt_out["mtt_corr"] > 90) & (fastmtt_out["mtt_corr"] < 180))
+
+        signs = np_flat(lltt["tt"]["t1"].charge * lltt["tt"]["t2"].charge)[mask]
+        btags = np_flat(lltt.btags > 0)[mask]
+        cats = np_flat(lltt.cat)[mask]
         cats = np.array([self.categories[c] for c in cats])
-        weight = np_flat(weight)
+        weight = np_flat(weight)[mask]
         weight = np.nan_to_num(weight, nan=0, posinf=0, neginf=0)
 
         # fill the lltt leg four-vectors
@@ -685,7 +691,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 leg=label,
                 btags=btags,
                 syst_shift=syst_shift,
-                pt=np_flat(p4.pt),
+                pt=np_flat(p4.pt)[mask],
                 weight=weight,
             )
 
@@ -697,7 +703,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             # sign=signs,
             btags=btags,
             syst_shift=syst_shift,
-            mll=mll,
+            mll=mll[mask],
             weight=weight,
         )
         # fill the met with various systematics considered
@@ -708,12 +714,12 @@ class AnalysisProcessor(processor.ProcessorABC):
             # sign=signs,
             btags=btags,
             syst_shift=syst_shift,
-            met=met,
+            met=met[mask],
             weight=weight,
         )
 
         # fill the Zh->lltt candidate mass spectrum (raw, uncorrected)
-        mtt = np_flat((lltt["tt"]["t1"] + lltt["tt"]["t2"]).mass)
+        mtt = np_flat((lltt["tt"]["t1"] + lltt["tt"]["t2"]).mass)[mask]
         m4l = np_flat(
             (
                 lltt["ll"]["l1"]
@@ -721,7 +727,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 + lltt["tt"]["t1"]
                 + lltt["tt"]["t2"]
             ).mass
-        )
+        )[mask]
 
         blind_mask = np.ones(len(m4l), dtype=bool)
         if blind:
@@ -762,7 +768,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         mass_type=mass_type,
                         btags=btags[blind_mask],
                         syst_shift=syst_shift,
-                        mass=mass_data[blind_mask],
+                        mass=mass_data[mask][blind_mask],
                         weight=weight[blind_mask],
                     )
                     if "reducible" in group.lower():
