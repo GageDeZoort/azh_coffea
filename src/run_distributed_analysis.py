@@ -204,7 +204,7 @@ else:
     cluster.scale(350)
 
 client = Client(cluster)
-n_wait = 1 if args.test_mode else 5
+n_wait = 1 if args.test_mode else 2
 logging.info(f"Waiting for at least {n_wait} workers...")
 client.wait_for_workers(n_wait)
 
