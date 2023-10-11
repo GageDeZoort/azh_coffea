@@ -7,7 +7,7 @@ import mplhep as hep
 import numpy as np
 from cycler import cycler
 from hist import Hist
-from hist.intervals import poisson_interval, ratio_uncertainty
+from hist.intervals import ratio_uncertainty  # , poisson_interval
 from matplotlib import pyplot as plt
 
 from azh_analysis.utils.histograms import norm_to
@@ -25,6 +25,14 @@ def get_category_labels():
         "et": r"$ll e\tau_h$",
         "mt": r"$ll\mu\tau_h$",
         "em": r"$ll e\mu$",
+        "eeet": r"$eee\tau$",
+        "eemt": r"$ee\mu\tau$",
+        "eett": r"$ee\tau\tau$",
+        "eeem": r"$eee\mu$",
+        "mmet": r"$\mu\mu e\tau$",
+        "mmmt": r"$\mu\mu\mu\tau$",
+        "mmtt": r"$\mu\mu\tau\tau$",
+        "mmem": r"$\mu\mu e \mu$",
     }
 
 
@@ -104,7 +112,7 @@ def plot_data_vs_mc(
         "DY": "#0A9396",
         "ZZ": "#005F73",
         "SM-H(125)": "#E9D8A6",
-        "SM-H-M125": "#E9D8A6",
+        # "SM-H-M125": "#E9D8A6",
         "WZ": "#9b2226",
         "tt": "#EE9B00",
         "VVV": "#bb3e03",
@@ -115,7 +123,10 @@ def plot_data_vs_mc(
     group_hists = {}
     for group in colors.keys():
         try:
-            group_hists[group] = mc[group, :]
+            if "SM" in group:
+                group_hists[group] = mc[group, :] + mc["SM-H-M125", :]
+            else:
+                group_hists[group] = mc[group, :]
         except Exception:
             print("skipping", group)
             continue
@@ -157,8 +168,9 @@ def plot_data_vs_mc(
     bins = stack_sum.axes[-1]
     bin_edges = [b[0] for b in bins]
     sumw_total = np.array(stack_sum.values())
-    # unc = np.sqrt(np.stack([s.variances()**2 for s in stack]).sum(0))
-    unc = poisson_interval(stack_sum.values(), stack_sum.variances())
+    # print([(s.variances(), s.values()) for s in stack])
+    unc = np.sqrt(np.stack([s.variances() for s in stack]).sum(0))
+    # unc = poisson_interval(stack_sum.values(), stack_sum.variances())
 
     hatch_style = {
         "facecolor": "none",
@@ -168,16 +180,16 @@ def plot_data_vs_mc(
     }
     ax.fill_between(
         x=bin_edges,
-        y1=unc[0],
-        y2=unc[1],
+        y1=sumw_total + unc,
+        y2=sumw_total - unc,
         label="Stat. Unc.",
         step="post",
         **hatch_style,
     )
     rax.fill_between(
         x=bin_edges,
-        y1=(unc[0]) / sumw_total,
-        y2=(unc[1]) / sumw_total,
+        y1=1 + unc / sumw_total,
+        y2=1 - unc / sumw_total,
         step="post",
         **hatch_style,
     )
@@ -199,7 +211,7 @@ def plot_data_vs_mc(
             histtype="step",
             color="red",
             linewidth=2,
-            label=rf"ggA({ggA_mass}), $\sigma={ggA_sigma}$fb",
+            label=rf"ggA({ggA_mass}), $\sigma={ggA_sigma}$ fb",
         )
     if bbA is not None:
         bbA = bbA * bbA_sigma
@@ -208,7 +220,7 @@ def plot_data_vs_mc(
             histtype="step",
             color="cyan",
             linewidth=2,
-            label=rf"bbA({bbA_mass}), $\sigma={bbA_sigma}$fb",
+            label=rf"bbA({bbA_mass}), $\sigma={bbA_sigma}$ fb",
         )
 
     # plot the error on the background
@@ -335,38 +347,37 @@ def get_ratios(denom, num, combine_bins=True):
 
     ratios = np.nan_to_num(num_sum / denom_sum)
     mask = (num_sum > 0) & (denom_sum > 0) & (num_sum / denom_sum <= 1)
-    centers, ratios, num_sum, denom_sum = (
-        centers[mask],
-        ratios[mask],
-        num_sum[mask],
-        denom_sum[mask],
-    )
-    uncerts = ratio_uncertainty(num_sum, denom_sum, "efficiency")
-    x_err = ((edges[1:] - edges[:-1]) / 2)[mask]
-    return edges, centers, ratios, uncerts, x_err
+    uncerts = [0] * len(ratios)
+    for i in range(len(num_sum)):
+        if mask[i]:
+            uncerts[i] = ratio_uncertainty(
+                np.array([num_sum[i]]), np.array([denom_sum[i]]), "efficiency"
+            )[0][0]
+    x_err = (edges[1:] - edges[:-1]) / 2
+    return edges, centers, ratios, np.array(uncerts), x_err
 
 
 def fit_polynomial(ax, centers, ratios, yerr, plot_fit=True):
     mask = ratios > 0
-    # std = yerr[1][mask]
     c, cov = np.polyfit(
         centers[mask],
         ratios[mask],
-        2,
+        3,
         cov=True,
         rcond=None,
-        # w=1/std,
+        # w=np.nan_to_num(1/yerr[mask]),
     )
     x = np.linspace(0, 120, 1000)
     if plot_fit:
+        print("plotting fit")
         ax.plot(
             x,
-            c[2] + c[1] * x + c[0] * x**2,
+            c[3] + c[2] * x + c[1] * x**2 + c[0] * x**3,
             color="red",
             ls="--",
             label="Quadratic Fit",
         )
-    return c[2] + c[1] * centers + c[0] * centers**2
+    return c[3] + c[2] * centers + c[1] * centers**2 + c[0] * centers**3
 
 
 def plot_fake_rate_measurements(
@@ -382,8 +393,16 @@ def plot_fake_rate_measurements(
     plot_fit=True,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 8), dpi=200)
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(7, 7), dpi=200)
     edges, centers, ratio, uncerts, bin_errs = get_ratios(denom, num, combine_bins)
+
+    # adjust the fake rates
+    adjusted = [False] * len(ratio)
+    for i in range(1, len(ratio)):
+        if ratio[i] <= 0:
+            ratio[i] = ratio[i - 1]
+            adjusted[i] = True
+
     ax.errorbar(
         x=centers,
         y=ratio,
@@ -396,7 +415,22 @@ def plot_fake_rate_measurements(
         capsize=2,
         label="Data - Prompt MC",
     )
-    ratio = fit_polynomial(ax, centers, ratio, uncerts, plot_fit=plot_fit)
+
+    if sum(adjusted):
+        ax.errorbar(
+            x=centers[adjusted],
+            y=ratio[adjusted],
+            yerr=uncerts[adjusted],
+            xerr=bin_errs[adjusted],
+            color="blue",
+            linestyle="none",
+            marker="o",
+            elinewidth=1.25,
+            capsize=2,
+            label="Interpolated FR",
+        )
+
+    # ratio_p = fit_polynomial(ax, centers, ratio, uncerts, plot_fit=plot_fit)
     ax.set_xlim(xlim)
     ax.set_xlabel(r"$p_T$ [GeV]")
     ax.set_ylabel("Fake Rate")
@@ -474,6 +508,7 @@ def plot_fake_rates_data(
     if outfile is not None:
         plt.savefig(outfile, format="pdf", dpi=800)
     plt.show()
+    return edges, centers, ratio, uncerts, bin_errs
 
 
 def plot_m4l_systematic(
@@ -538,7 +573,7 @@ def plot_m4l_systematic(
         axs[0, i].set_ylabel("")
         axs[0, i].legend(loc="best", prop={"size": 16}, frameon=True)
         axs[0, i].get_legend().set_title(f"{cat_label}")
-        hep.cms.label("Preliminary", data=False, lumi=lumi, year=year, ax=axs[0, i])
+        hep.cms.label("", data=False, lumi=lumi, year=year, ax=axs[0, i])
 
         un_rel_diffs = np.nan_to_num((n - u) / n)
         axs[1, i].plot(
