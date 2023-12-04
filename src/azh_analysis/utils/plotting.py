@@ -5,6 +5,7 @@ import warnings
 import hist
 import mplhep as hep
 import numpy as np
+import uproot
 from cycler import cycler
 from hist import Hist
 from hist.intervals import ratio_uncertainty  # , poisson_interval
@@ -106,6 +107,7 @@ def plot_data_vs_mc(
     bbA_mass=None,
     ylim=None,
     data_ss=None,
+    rootfile=None,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = {
@@ -119,6 +121,11 @@ def plot_data_vs_mc(
         "Reducible": "#94D2BD",
     }
 
+    # start a rootfile
+    output_root = rootfile is not None
+    if output_root:
+        f_root = uproot.recreate(f"{rootfile}")
+
     # fill the MC background samples
     group_hists = {}
     for group in colors.keys():
@@ -131,6 +138,11 @@ def plot_data_vs_mc(
             print("skipping", group)
             continue
 
+    # save the irreducible estimate in the rootfile
+    if output_root:
+        irreducible = sum([v for v in group_hists.values()])
+        f_root["irreducible"] = irreducible
+
     # fill the reducible background
     if data_ss is not None:
         print("Using SS relaxed reducible.")
@@ -139,8 +151,14 @@ def plot_data_vs_mc(
         ss = norm_to(os, ss)
         group_hists["Reducible"] = ss
     else:
-        print("Using OS application reducible.")
-        group_hists["Reducible"] = data["reducible", :]
+        print("Using OS/SS application reducible.")
+        try:
+            group_hists["Reducible"] = data["reducible", :]
+        except Exception:
+            print("Not adding reducible.")
+
+    if output_root:
+        f_root["reducible"] = group_hists["Reducible"]
 
     # reorder based on contributions
     group_hists = {
@@ -168,9 +186,7 @@ def plot_data_vs_mc(
     bins = stack_sum.axes[-1]
     bin_edges = [b[0] for b in bins]
     sumw_total = np.array(stack_sum.values())
-    # print([(s.variances(), s.values()) for s in stack])
     unc = np.sqrt(np.stack([s.variances() for s in stack]).sum(0))
-    # unc = poisson_interval(stack_sum.values(), stack_sum.variances())
 
     hatch_style = {
         "facecolor": "none",
@@ -200,8 +216,12 @@ def plot_data_vs_mc(
             ax=ax, histtype="errorbar", color="k", label="Data"
         )
         data["data", :][blind_range[1] :].plot1d(ax=ax, histtype="errorbar", color="k")
+        if output_root:
+            f_root["data"] = data["data", :][blind_range[1] :]
     elif not blind:
         data["data", :].plot1d(ax=ax, histtype="errorbar", color="k", label="Data")
+        if output_root:
+            f_root["data"] = data["data", :]
 
     # plot any provided signals
     if ggA is not None:
