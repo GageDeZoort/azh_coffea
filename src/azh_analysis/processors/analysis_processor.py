@@ -335,8 +335,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             # grab the jets, count the number of b jets
             baseline_j = get_baseline_jets(events.Jet)
             baseline_b = get_baseline_bjets(baseline_j)
-            b_counts = ak.num(baseline_b)
-            b_truth = ak.sum(np.abs(baseline_b.hadronFlavour) == 5, axis=1)
+            # b_counts = ak.num(baseline_b)
+            # b_truth = ak.sum(np.abs(baseline_b.hadronFlavour) == 5, axis=1)
 
             # build ll pairs
             candidates = {}
@@ -432,7 +432,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 return output
             cands = ak.concatenate(list(candidates.values()), axis=1)
             # cands["btags"] = b_counts
-            cands["btruth"] = b_truth
+            # cands["btruth"] = b_truth
             mask = ak.num(cands) == 1
             cands, jets, bjets = cands[mask], baseline_j[mask], baseline_b[mask]
             cands = ak.flatten(cands)
@@ -687,7 +687,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         signs = np_flat(lltt["tt"]["t1"].charge * lltt["tt"]["t2"].charge)[mask]
         btags = np_flat(lltt.btags > 0)[mask]
         # print(np.histogram(btags, bins=[0,1,2,3,4,5,6,7,8,9]))
-        btruth = np_flat(lltt.btruth)[mask]
+        # btruth = np_flat(lltt.btruth)[mask]
         # print("Fraction of b's", sum(btags>0)/len(btags))
         # print("Fraction of true b's:", sum(btruth)/len(btruth))
         cats = np_flat(lltt.cat)[mask]
