@@ -38,19 +38,6 @@ def get_categories():
     }
 
 
-# def get_category_labels():
-#    return {
-#        "eeet": r"$eee\tau$",
-#        "eemt": r"$ee\mu\tau$",
-#        "eett": r"$ee\tau\tau$",
-#        "eeem": r"$eee\mu$",
-#        "mmet": r"$\mu\mu e\tau$",
-#        "mmmt": r"$\mu\mu\mu\tau$",
-#        "mmtt": r"$\mu\mu\tau\tau$",
-#        "mmem": r"$\mu\mu e \mu$",
-#    }
-
-
 def get_eras():
     return {
         "2016preVFP": "Summer16",

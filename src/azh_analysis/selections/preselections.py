@@ -207,6 +207,7 @@ def get_baseline_bjets(baseline_j, year="2018"):
         "2018": 0.2783,
     }
     baseline_b = baseline_j[(baseline_j.btagDeepFlavB > delta[year])]
+    # baseline_b = baseline_j[(baseline_j.btagDeepB > 0.4168)]
     return baseline_b
 
 
@@ -788,3 +789,30 @@ def iso_ID(lltt, cat):
         iso_ID_mask = ak.Array(np.ones(len(lltt), dtype=bool))
 
     return iso_ID_mask
+
+
+def calc_dphi(phi1, phi2):
+    dphi = phi2 - phi1
+    num, flat = ak.num(dphi), ak.to_numpy(ak.flatten(dphi))
+    flat[flat > np.pi] -= 2 * np.pi
+    flat[flat < -np.pi] += 2 * np.pi
+    return ak.unflatten(flat, num)
+
+
+def delta_r(a, b):
+    return np.sqrt(calc_dphi(a.phi, b.phi) ** 2 + (a.eta - b.eta) ** 2)
+
+
+def count_btags(lltt, bjets):
+    bcounts = np.zeros(len(lltt))
+    for i in range(4):
+        lltt["bjet"] = bjets[:, i : i + 1]
+        is_iso = (
+            (delta_r(lltt.ll.l1, lltt.bjet) > 0.4)
+            & (delta_r(lltt.ll.l2, lltt.bjet) > 0.4)
+            & (delta_r(lltt.tt.t1, lltt.bjet) > 0.4)
+            & (delta_r(lltt.tt.t2, lltt.bjet) > 0.4)
+        )
+        bcounts += ak.to_numpy(ak.sum(is_iso & True, 1))
+    lltt["btags"] = bcounts
+    return lltt

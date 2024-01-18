@@ -108,6 +108,7 @@ def plot_data_vs_mc(
     ylim=None,
     data_ss=None,
     rootfile=None,
+    sign="OS",
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = {
@@ -150,6 +151,9 @@ def plot_data_vs_mc(
         ss = data_ss["data", :]
         ss = norm_to(os, ss)
         group_hists["Reducible"] = ss
+        if output_root:
+            f_root[f"{sign.lower()}_application"] = os
+            f_root["ss_relaxed"] = ss
     else:
         print("Using OS/SS application reducible.")
         try:
@@ -542,6 +546,7 @@ def plot_m4l_systematic(
     outfile=None,
     year=2018,
     lumi=59.7,
+    xlim=None,
 ):
     fig, axs = plt.subplots(
         nrows=3,
@@ -627,6 +632,8 @@ def plot_m4l_systematic(
 
     for i in range(2):
         axs[0, i].set_ylim(axs[0, 2].get_ylim())
+        if xlim is not None:
+            axs[0, i].set_xlim(xlim)
     plt.tight_layout()
     if outfile is not None:
         plt.savefig(outfile, format="pdf", dpi=800)

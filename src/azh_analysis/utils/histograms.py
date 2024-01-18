@@ -7,10 +7,10 @@ from hist.axis import IntCategory, Regular, StrCategory, Variable
 from scipy.optimize import minimize
 
 
-def integrate(hist):
-    bins = np.array(hist.axes[0])
+def integrate(h):
+    bins = np.array(h.axes[0])
     widths = bins[:, 1] - bins[:, 0]
-    vals = hist.values()
+    vals = h.values()
     return sum(widths * vals)
 
 
@@ -268,3 +268,15 @@ def make_fr_hist_stack(fileset, year):
         "met": met,
         "mT": mT,
     }
+
+
+def get_m4l_var(hist_dict, datasets, cat, btag, syst):
+    variances = np.zeros(15)
+    for name, h in hist_dict["m4l"].items():
+        if name not in datasets:
+            continue
+        if (cat not in list(h.axes[1])) or (syst not in list(h.axes[3])):
+            continue
+        h = h[::sum, cat, btag, syst, "cons", :]
+        variances += np.array(h.variances())
+    return variances
