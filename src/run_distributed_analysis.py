@@ -51,6 +51,7 @@ def parse_args():
     add_arg("--systematic", default=None)
     add_arg("--same-sign", action="store_true")
     add_arg("--relaxed", action="store_true")
+    add_arg("--tighten-mtt", action="store_true")
     return parser.parse_args()
 
 
@@ -242,6 +243,7 @@ proc_instance = AnalysisProcessor(
     same_sign=args.same_sign,
     blind=False,
     relaxed=args.relaxed,
+    tighten_mtt=args.tighten_mtt,
 )
 
 chunksize = 50000 if "data" in args.source else 50000

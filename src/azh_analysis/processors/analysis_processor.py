@@ -20,6 +20,7 @@ from azh_analysis.selections.preselections import (
     build_Z_cand,
     check_trigger_path,
     closest_to_Z_mass,
+    count_btags,
     dR_ll,
     dR_lltt,
     filter_MET,
@@ -107,6 +108,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         systematic=None,
         same_sign=False,
         relaxed=False,
+        tighten_mtt=False,
     ):
 
         # initialize member variables
@@ -146,6 +148,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.A_mass = A_mass
         self.same_sign = same_sign
         self.relaxed = relaxed
+        self.tighten_mtt = tighten_mtt
 
         # systematics that affect event kinematics
         self.k_shifts = {
@@ -333,6 +336,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             baseline_j = get_baseline_jets(events.Jet)
             baseline_b = get_baseline_bjets(baseline_j)
             b_counts = ak.num(baseline_b)
+            b_truth = ak.sum(np.abs(baseline_b.hadronFlavour) == 5, axis=1)
 
             # build ll pairs
             candidates = {}
@@ -408,14 +412,12 @@ class AnalysisProcessor(processor.ProcessorABC):
                                 shift="up",
                                 dm_shift=dm,
                             )
-                            print("up", ak.flatten(lltt[f"tauID_{dm}_up"]))
                             lltt[f"tauID_{dm}_down"] = self.apply_tau_ID_SFs(
                                 lltt,
                                 cat,
                                 shift="down",
                                 dm_shift=dm,
                             )
-                            print("down", (lltt[f"tauID_{dm}_down"]))
 
                     # otherwise, if data apply the fake weights
                     else:
@@ -429,9 +431,10 @@ class AnalysisProcessor(processor.ProcessorABC):
             if len(candidates) == 0:
                 return output
             cands = ak.concatenate(list(candidates.values()), axis=1)
-            cands["btags"] = b_counts
+            # cands["btags"] = b_counts
+            cands["btruth"] = b_truth
             mask = ak.num(cands) == 1
-            cands, jets = cands[mask], baseline_j[mask]
+            cands, jets, bjets = cands[mask], baseline_j[mask], baseline_b[mask]
             cands = ak.flatten(cands)
             if len(cands) == 0:
                 continue
@@ -448,7 +451,11 @@ class AnalysisProcessor(processor.ProcessorABC):
                 )
             cands = cands[veto_mask]
             jets = jets[veto_mask]
-            # print(f"Lepton count veto: {time.time() - t0}")
+            bjets = bjets[veto_mask]
+
+            # count btags
+            cands = count_btags(cands, bjets)
+            print(sum(cands.btags > 0) / len(cands))
 
             # for data, fill in categories of reducible/fake and tight/loose
             if is_data:
@@ -672,10 +679,17 @@ class AnalysisProcessor(processor.ProcessorABC):
         }
 
         # force fastmtt output to be between 90 and 180 GeV
-        mask = np_flat((fastmtt_out["mtt_corr"] > 90) & (fastmtt_out["mtt_corr"] < 180))
+        upper_bound = 160 if self.tighten_mtt else 180
+        mask = np_flat(
+            (fastmtt_out["mtt_corr"] > 90) & (fastmtt_out["mtt_corr"] < upper_bound)
+        )
 
         signs = np_flat(lltt["tt"]["t1"].charge * lltt["tt"]["t2"].charge)[mask]
         btags = np_flat(lltt.btags > 0)[mask]
+        # print(np.histogram(btags, bins=[0,1,2,3,4,5,6,7,8,9]))
+        btruth = np_flat(lltt.btruth)[mask]
+        # print("Fraction of b's", sum(btags>0)/len(btags))
+        # print("Fraction of true b's:", sum(btruth)/len(btruth))
         cats = np_flat(lltt.cat)[mask]
         cats = np.array([self.categories[c] for c in cats])
         weight = np_flat(weight)[mask]
