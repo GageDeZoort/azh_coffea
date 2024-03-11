@@ -41,6 +41,8 @@ from azh_analysis.selections.preselections import (
 from azh_analysis.utils.corrections import (
     apply_btag_corrections,
     apply_eleES,
+    apply_JER_shifts,
+    apply_JES_shifts,
     apply_muES,
     apply_tauES,
     apply_unclMET_shifts,
@@ -108,7 +110,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         systematic=None,
         same_sign=False,
         relaxed=False,
-        tighten_mtt=False,
+        tighten_mtt=True,
+        LT_cut=False,
     ):
 
         # initialize member variables
@@ -149,6 +152,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.same_sign = same_sign
         self.relaxed = relaxed
         self.tighten_mtt = tighten_mtt
+        self.LT_cut = LT_cut
 
         # systematics that affect event kinematics
         self.k_shifts = {
@@ -159,6 +163,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             "eleSmear": ["down", "up"],
             "muES": ["down", "up"],
             "unclMET": ["down", "up"],
+            "JES": ["down", "up"],
+            "JER": ["down", "up"],
         }
 
         # systematics separated by kinematics vs. event weight
@@ -224,8 +230,6 @@ class AnalysisProcessor(processor.ProcessorABC):
         is_data = "data" in group
         nevts, xsec = properties["nevts"][0], properties["xsec"][0]
         output = make_analysis_hist_stack(self.fileset, year)
-        # for key in ["m4l", "m4l_fine", "m4l_reg"]:
-        #    output["reducible_{key}"] = []
 
         # if running on ntuples, need the pre-skim sum_of_weights
         if self.nevts_dict is not None:
@@ -286,6 +290,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                 logging.info(f"No prefiring weights in {dataset}.")
                 self.has_L1PreFiringWeight = False
 
+        # set up the event identifiers
+        evtID, lumi_block = events.event, events.luminosityBlock
+
         # run the analysis over various systematic shifts
         for k_shift in self.kin_syst_shifts:
             up_or_down = k_shift.split("_")[-1]
@@ -296,6 +303,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             muES_shift = up_or_down if ("muES" in k_shift) else "nom"
             eleSmear_shift = up_or_down if ("eleSmear" in k_shift) else "nom"
             unclMET_shift = up_or_down if ("unclMET" in k_shift) else "nom"
+            JES_shift = up_or_down if ("JES" in k_shift) else "nom"
+            JER_shift = up_or_down if ("JER" in k_shift) else "nom"
 
             # grab baseline leptons, apply energy scale shifts
             baseline_e, e_shifts = apply_eleES(
@@ -322,9 +331,12 @@ class AnalysisProcessor(processor.ProcessorABC):
             )
 
             # grab the MET, shift it according to the energy scale shifts
-            MET = events.MET
+            jets, MET = events.Jet, events.MET
             MET["pt"] = MET.T1_pt
             MET["phi"] = MET.T1_phi
+            jets, MET = apply_JES_shifts(jets, MET, JES_shift)
+            jets, MET = apply_JER_shifts(jets, MET, JER_shift)
+            print(JES_shift, JER_shift)
             MET = apply_unclMET_shifts(MET, shift=unclMET_shift)
             MET = shift_MET(MET, [e_shifts, m_shifts, t_shifts], is_data=is_data)
 
@@ -333,10 +345,8 @@ class AnalysisProcessor(processor.ProcessorABC):
             tight_m = baseline_m[tight_muons(baseline_m)]
 
             # grab the jets, count the number of b jets
-            baseline_j = get_baseline_jets(events.Jet)
+            baseline_j = get_baseline_jets(jets)
             baseline_b = get_baseline_bjets(baseline_j)
-            # b_counts = ak.num(baseline_b)
-            # b_truth = ak.sum(np.abs(baseline_b.hadronFlavour) == 5, axis=1)
 
             # build ll pairs
             candidates = {}
@@ -370,7 +380,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                     lltt = dR_lltt(lltt, cat)
                     charge = lltt.tt.t1.charge * lltt.tt.t2.charge
                     lltt = lltt[charge > 0] if self.same_sign else lltt[charge < 0]
-                    lltt = highest_LT(lltt)
+                    lltt = highest_LT(lltt, cat, apply_LT_cut=self.LT_cut)
                     mask = np.ones(len(lltt), dtype=bool)
                     lltt = ak.fill_none(lltt.mask[mask], [], axis=0)
                     if len(ak.flatten(lltt)) == 0:
@@ -431,11 +441,14 @@ class AnalysisProcessor(processor.ProcessorABC):
             if len(candidates) == 0:
                 return output
             cands = ak.concatenate(list(candidates.values()), axis=1)
+            cands["evtID"] = evtID
+            cands["lumi_block"] = lumi_block
             # cands["btags"] = b_counts
             # cands["btruth"] = b_truth
             mask = ak.num(cands) == 1
             cands, jets, bjets = cands[mask], baseline_j[mask], baseline_b[mask]
             cands = ak.flatten(cands)
+
             if len(cands) == 0:
                 continue
 
@@ -455,7 +468,6 @@ class AnalysisProcessor(processor.ProcessorABC):
 
             # count btags
             cands = count_btags(cands, bjets)
-            print(sum(cands.btags > 0) / len(cands))
 
             # for data, fill in categories of reducible/fake and tight/loose
             if is_data:
@@ -477,6 +489,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                         name=name,
                         syst_shift="none",
                         blind=self.blind,
+                        is_data=is_data,
                     )
                 return output
 
@@ -668,6 +681,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         group,
         blind=False,
         syst_shift=None,
+        is_data=False,
     ):
 
         # fill the four-vectors
@@ -684,16 +698,21 @@ class AnalysisProcessor(processor.ProcessorABC):
             (fastmtt_out["mtt_corr"] > 90) & (fastmtt_out["mtt_corr"] < upper_bound)
         )
 
+        # only plot outputs for m4l in the acceptible range
+        m4l = fastmtt_out["m4l_cons"]
+        mask = mask & (m4l >= 200) & (m4l <= 2000)
+
+        # sort out histogram categories
         signs = np_flat(lltt["tt"]["t1"].charge * lltt["tt"]["t2"].charge)[mask]
         btags = np_flat(lltt.btags > 0)[mask]
-        # print(np.histogram(btags, bins=[0,1,2,3,4,5,6,7,8,9]))
-        # btruth = np_flat(lltt.btruth)[mask]
-        # print("Fraction of b's", sum(btags>0)/len(btags))
-        # print("Fraction of true b's:", sum(btruth)/len(btruth))
         cats = np_flat(lltt.cat)[mask]
         cats = np.array([self.categories[c] for c in cats])
         weight = np_flat(weight)[mask]
         weight = np.nan_to_num(weight, nan=0, posinf=0, neginf=0)
+        evtID, lumi_block = lltt.evtID[mask], lltt.lumi_block[mask]
+        if is_data:
+            output["evtID"] = col_acc(np_flat(evtID))
+            output["lumi_block"] = col_acc(np_flat(lumi_block))
 
         # fill the lltt leg four-vectors
         for leg, label in label_dict.items():
@@ -708,6 +727,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                 pt=np_flat(p4.pt)[mask],
                 weight=weight,
             )
+            # hmask = (cats == "eeem") | (cats == "mmem")
+            # print(cats[hmask])
+            # print(f"leg {leg}", np_flat(p4.pt)[mask][hmask])
 
         # fill the mass of the dilepton system w/ various systematic shifts
         mll = np_flat((lltt["ll"]["l1"] + lltt["ll"]["l2"]).mass)
@@ -720,6 +742,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             mll=mll[mask],
             weight=weight,
         )
+
         # fill the met with various systematics considered
         met = np_flat(lltt.MET.pt)
         output["met"][name].fill(
@@ -729,6 +752,16 @@ class AnalysisProcessor(processor.ProcessorABC):
             btags=btags,
             syst_shift=syst_shift,
             met=met[mask],
+            weight=weight,
+        )
+
+        met_phi = np_flat(lltt.MET.phi)
+        output["met_phi"][name].fill(
+            group=group,
+            category=cats,
+            btags=btags,
+            syst_shift=syst_shift,
+            met_phi=met_phi[mask],
             weight=weight,
         )
 
@@ -757,7 +790,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 mass=mtt[blind_mask],
                 weight=weight[blind_mask],
             )
-            for m4l_label in ["m4l", "m4l_reg", "m4l_fine"]:
+            for m4l_label in ["m4l", "m4l_reg", "m4l_fine", "m4l_binopt"]:
                 output[m4l_label][name].fill(
                     group=group,
                     category=cats[blind_mask],
@@ -773,7 +806,11 @@ class AnalysisProcessor(processor.ProcessorABC):
             for mass_label, mass_data in fastmtt_out.items():
                 key = mass_label.split("_")[0]  # mtt or m4l
                 mass_type = mass_label.split("_")[1]  # corr or cons
-                keys = ["m4l", "m4l_reg", "m4l_fine"] if "m4l" in key else ["mtt"]
+                keys = (
+                    ["m4l", "m4l_reg", "m4l_fine", "m4l_binopt"]
+                    if "m4l" in key
+                    else ["mtt"]
+                )
                 for key in keys:
                     output[key][name].fill(
                         group=group,
