@@ -70,7 +70,7 @@ def make_analysis_hist_stack(fileset, year):
             btags_axis,
             syst_shift_axis,
             leg_axis,
-            Regular(name="pt", bins=10, start=0, stop=200),
+            Regular(name="pt", bins=20, start=0, stop=200),
             storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
@@ -81,7 +81,18 @@ def make_analysis_hist_stack(fileset, year):
             category_axis,
             btags_axis,
             syst_shift_axis,
-            Regular(name="met", bins=10, start=0, stop=200),
+            Regular(name="met", bins=20, start=0, stop=200),
+            storage=hist.storage.Weight(),
+        )
+        for dataset in fileset.keys()
+    }
+    met_phi = {
+        dataset.split(split_str)[0]: Hist(
+            group_axis,
+            category_axis,
+            btags_axis,
+            syst_shift_axis,
+            Regular(name="met_phi", bins=30, start=-np.pi, stop=np.pi),
             storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
@@ -93,7 +104,7 @@ def make_analysis_hist_stack(fileset, year):
             btags_axis,
             syst_shift_axis,
             mass_type_axis,
-            Regular(name="mass", bins=20, start=0, stop=300),
+            Regular(name="mass", bins=30, start=0, stop=300),
             storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
@@ -118,6 +129,18 @@ def make_analysis_hist_stack(fileset, year):
             syst_shift_axis,
             mass_type_axis,
             Regular(name="mass", bins=250, start=0, stop=2500),
+            storage=hist.storage.Weight(),
+        )
+        for dataset in fileset.keys()
+    }
+    m4l_binopt = {
+        dataset.split(split_str)[0]: Hist(
+            group_axis,
+            category_axis,
+            btags_axis,
+            syst_shift_axis,
+            mass_type_axis,
+            Regular(name="mass", bins=500, start=0, stop=2500),
             storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
@@ -160,7 +183,7 @@ def make_analysis_hist_stack(fileset, year):
             category_axis,
             btags_axis,
             syst_shift_axis,
-            Regular(name="mll", bins=10, start=60, stop=120),
+            Regular(name="mll", bins=12, start=60, stop=120),
             storage=hist.storage.Weight(),
         )
         for dataset in fileset.keys()
@@ -170,9 +193,11 @@ def make_analysis_hist_stack(fileset, year):
         "m4l": m4l,
         "m4l_reg": m4l_reg,
         "m4l_fine": m4l_fine,
+        "m4l_binopt": m4l_binopt,
         "mll": mll,
         "pt": pt,
         "met": met,
+        "met_phi": met_phi,
     }
 
 

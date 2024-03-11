@@ -186,6 +186,17 @@ def tight_events_denom(lltt, cat, mode=-1):
 
 def get_baseline_jets(jet, year="2018"):
     baseline_j = jet[(jet.pt > 20)]
+
+    # HEM recommendation
+    if "2018" in year:
+        baseline_j = baseline_j[
+            ~(
+                (baseline_j.eta > -3.2)
+                & (baseline_j.eta < -1.3)
+                & (baseline_j.phi > -1.57)
+                & (baseline_j.phi < 0.87)
+            )
+        ]
     eta_per_year = {
         "2018": 2.5,
         "2017": 2.5,
@@ -663,10 +674,13 @@ def tighten_ditau_legs(lltt, cat):
     return lltt[~ak.is_none(lltt, axis=1)]
 
 
-def highest_LT(lltt):
+def highest_LT(lltt, cat, apply_LT_cut=False):
     t1, t2 = lltt["tt"]["t1"], lltt["tt"]["t2"]
     LT = t1.pt + t2.pt
     lltt = lltt[ak.argmax(LT, axis=1, keepdims=True)]
+    if apply_LT_cut and "tt" in cat:
+        print(cat, "applying LT cut")
+        lltt = lltt[(lltt.tt.t1.pt + lltt.tt.t2.pt) > 60]
     return lltt[~ak.is_none(lltt, axis=1)]
 
 
