@@ -14,7 +14,7 @@ tt,TTToHadronicTuneCP5,/cmsxrootd-site.fnal.gov/,/TTToHadronic_TuneCP5_13TeV-pow
 tt,TTToSemiLeptonicTuneCP5,/cmsxrootd-site1.fnal.gov:1093/,/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,346052000,365.35
 #
 # diboson (all UL)
-ZZ,ZZTo2Q2Lmllmin4p0,/cmsxrootd-site.fnal.gov/,/ZZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,29521496,3.22
+ZZ,ZZTo2Q2Lmllmin4p0,/cmsxrootd-site.fnal.gov/,/ZZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,29521496,3.68
 WZ,WZTo3LNuTuneCP5,/cmsxrootd-site2.fnal.gov:1093/,/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,10339582,4.708
 ZZ,ZZTo4LTuneCP5,/cmsxrootd-site1.fnal.gov:1093/,/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,99388000,1.3816
 WZ,WZTo2Q2Lmllmin4p0,/cmsxrootd-site.fnal.gov/,/WZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,29091996,5.595
@@ -32,12 +32,12 @@ tt,ttZJetsTuneCP5,/cmsxrootd-site3.fnal.gov:1093/,/ttZJets_TuneCP5_13TeV_madgrap
 tt,TTWJetsToLNuTuneCP5,/cmsxrootd-site1.fnal.gov:1093/,/TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,7140411,0.2043
 #
 # ggz (all UL)
-ZZ,GluGluToContinToZZTo2e2muTuneCP5,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo2e2mu_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,500000,0.00319
-ZZ,GluGluToContinToZZTo2e2tauTuneCP5,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo2e2tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,498000,0.00319
-ZZ,GluGluToContinToZZTo2mu2tauTuneCP5,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo2mu2tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,500000,0.00319
-ZZ,GluGluToContinToZZTo4eTuneCP5,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo4e_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,997000,0.00159
-ZZ,GluGluToContinToZZTo4muTuneCP5,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo4mu_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,975090,0.00159
-ZZ,GluGluToContinToZZTo4tauTuneCP5,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo4tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,499000,0.00159
+ZZ,GluGluToContinToZZTo2e2muTuneCP5,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo2e2mu_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,500000,0.0054
+ZZ,GluGluToContinToZZTo2e2tauTuneCP5,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo2e2tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,498000,0.0054
+ZZ,GluGluToContinToZZTo2mu2tauTuneCP5,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo2mu2tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,500000,0.0054
+ZZ,GluGluToContinToZZTo4eTuneCP5,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo4e_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,997000,0.0027
+ZZ,GluGluToContinToZZTo4muTuneCP5,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo4mu_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,975090,0.0027
+ZZ,GluGluToContinToZZTo4tauTuneCP5,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo4tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v2/NANOAODSIM,499000,0.0027
 #
 # smhiggs (all UL)
 SM-H(125),GluGluHToTauTauM125,/cmsxrootd-site1.fnal.gov:1093/,/GluGluHToTauTau_M125_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM,12974000,3.046

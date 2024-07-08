@@ -13,15 +13,15 @@ DY,DY2JetsToLLM-50,/cmsxrootd-site1.fnal.gov:1093/,/DY2JetsToLL_M-50_MatchEWPDG2
 DY,DY3JetsToLLM-50,/cmsxrootd-site3.fnal.gov:1093/,/DY3JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,20409795,111.5
 DY,DY4JetsToLLM-50,/cmsxrootd-site3.fnal.gov:1093/,/DY4JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,8522042,44.05
 #
-ZZ,GluGluToContinToZZTo2e2mu,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo2e2mu_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,500000,0.0031942
-ZZ,GluGluToContinToZZTo2e2tau,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo2e2tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,500000,0.0031942
-ZZ,GluGluToContinToZZTo2mu2tau,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo2mu2tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,496000,0.0031942
-ZZ,GluGluToContinToZZTo4e,/cmsxrootd-site.fnal.gov/,/GluGluToContinToZZTo4e_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,974000,0.00158549
-ZZ,GluGluToContinToZZTo4mu,/cmsxrootd-site1.fnal.gov:1093/,/GluGluToContinToZZTo4mu_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,745636,0.00158549
-ZZ,GluGluToContinToZZTo4tau,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo4tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,493998,0.00158549
+ZZ,GluGluToContinToZZTo2e2mu,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo2e2mu_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,500000,0.0054
+ZZ,GluGluToContinToZZTo2e2tau,/cmsxrootd-site2.fnal.gov:1093/,/GluGluToContinToZZTo2e2tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,500000,0.0054
+ZZ,GluGluToContinToZZTo2mu2tau,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo2mu2tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,496000,0.0054
+ZZ,GluGluToContinToZZTo4e,/cmsxrootd-site.fnal.gov/,/GluGluToContinToZZTo4e_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,974000,0.0027
+ZZ,GluGluToContinToZZTo4mu,/cmsxrootd-site1.fnal.gov:1093/,/GluGluToContinToZZTo4mu_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,745636,0.0027
+ZZ,GluGluToContinToZZTo4tau,/cmsxrootd-site3.fnal.gov:1093/,/GluGluToContinToZZTo4tau_TuneCP5_13TeV-mcfm701-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,493998,0.0027
 # note 1.256*1.1
 ZZ,ZZTo4L,/cmsxrootd-site1.fnal.gov:1093/,/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,98488000,1.3816
-ZZ,ZZTo2Q2Lmllmin4p0,/cmsxrootd-site3.fnal.gov:1093/,/ZZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,29357938,3.22
+ZZ,ZZTo2Q2Lmllmin4p0,/cmsxrootd-site3.fnal.gov:1093/,/ZZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,29357938,3.688
 #
 WZ,WZTo2Q2Lmllmin4p0,/cmsxrootd-site3.fnal.gov:1093/,/WZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM,28576996,5.595
 WZ,WZTo3LNu,/cmsxrootd-site3.fnal.gov:1093/,/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM,9821283,4.708
