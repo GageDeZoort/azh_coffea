@@ -109,6 +109,7 @@ def plot_data_vs_mc(
     data_ss=None,
     rootfile=None,
     sign="OS",
+    is_SR=False,
 ):
     hep.style.use(["CMS", "fira", "firamath"])
     colors = {
@@ -222,7 +223,7 @@ def plot_data_vs_mc(
         data["data", :][blind_range[1] :].plot1d(ax=ax, histtype="errorbar", color="k")
         if output_root:
             f_root["data"] = data["data", :][blind_range[1] :]
-    elif not blind:
+    elif blind is False:
         data["data", :].plot1d(ax=ax, histtype="errorbar", color="k", label="Data")
         if output_root:
             f_root["data"] = data["data", :]
@@ -249,20 +250,37 @@ def plot_data_vs_mc(
 
     # plot the error on the background
     mc_vals = sum(list(group_hists.values())).values()
-    data_vals = data["data", :].values()
+    data_vals, data_vars = data["data", :].values(), data["data", :].variances()
     bins = data["data", :].axes[0].centers
     y = data_vals / mc_vals
     yerr = ratio_uncertainty(data_vals, mc_vals, "poisson")
 
-    if blind:
-        x = np.arange(len(y))
+    if blind and blind_range is None and is_SR == False:
+        print("BLINDING")
+        # idx = np.where((y > 1.4) | (y < 0.6))[0]
+        idx = data_vals > 10
+        data_vals[idx], data_vars[idx] = 0, 0
+        ax.errorbar(bins, data_vals, yerr=np.sqrt(data_vars), fmt="ko", elinewidth=1.5)
+        if output_root:
+            f_root["data"] = data["data", :]
+        y[idx] = 0
+        yerr[0][idx] = 0
+        yerr[1][idx] = 0
+
+    if is_SR:
         y = np.zeros_like(y)
-        yerr = np.zeros_like(y)
-        if blind_range is not None:
-            yt = data_vals / mc_vals
-            yterr = ratio_uncertainty(data_vals, mc_vals, "poisson")
-            y = y + (x < blind_range[0]) * yt + (x >= blind_range[1]) * yt
-            yerr = yerr + (x < blind_range[0]) * yterr + (x >= blind_range[1]) * yterr
+        yerr[0] = np.zeros_like(yerr[0])
+        yerr[1] = np.zeros_like(yerr[1])
+
+    # if blind:
+    #    x = np.arange(len(y))
+    #    y = np.zeros_like(y)
+    #    yerr = np.zeros_like(y)
+    #    if blind_range is not None:
+    #        yt = data_vals / mc_vals
+    #        yterr = ratio_uncertainty(data_vals, mc_vals, "poisson")
+    #        y = y + (x < blind_range[0]) * yt + (x >= blind_range[1]) * yt
+    #        yerr = yerr + (x < blind_range[0]) * yterr + (x >= blind_range[1]) * yterr
 
     rax.errorbar(
         x=bins,
@@ -788,7 +806,7 @@ def plot_closure(
     ax.set_xlabel("")
     ax.legend()
     rax.set_ylim([0, 2])
-    if not logscale:
+    if logscale is False:
         ax.set_xlim([50, 800])
         rax.set_xlim([50, 800])
     ax.legend(loc="best", prop={"size": 16}, frameon=True, title_fontsize="small")

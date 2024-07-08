@@ -97,6 +97,17 @@ def make_analysis_hist_stack(fileset, year):
         )
         for dataset in fileset.keys()
     }
+    dR = {
+        dataset.split(split_str)[0]: Hist(
+            group_axis,
+            category_axis,
+            btags_axis,
+            syst_shift_axis,
+            Regular(name="dR", bins=25, start=0.1, stop=5.1),
+            storage=hist.storage.Weight(),
+        )
+        for dataset in fileset.keys()
+    }
     mtt = {
         dataset.split(split_str)[0]: Hist(
             group_axis,
@@ -198,6 +209,7 @@ def make_analysis_hist_stack(fileset, year):
         "pt": pt,
         "met": met,
         "met_phi": met_phi,
+        "dR": dR,
     }
 
 

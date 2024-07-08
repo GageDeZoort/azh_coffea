@@ -109,6 +109,10 @@ class CustomWeights:
         return out
 
 
+def get_met_phi_weights(infile):
+    return correctionlib.CorrectionSet.from_file(infile)
+
+
 def get_electron_ID_weights(infile):
     f = uproot.open(infile)
     eta_map = {"Lt1p0": 0, "1p0to1p48": 0, "1p48to1p65": 0, "1p65to2p1": 0, "Gt2p1": 0}
@@ -316,6 +320,15 @@ def get_electron_ES_weights(root, year):
     )["UL-EGM_ScaleUnc"]
 
 
+def apply_met_phi_SFs(ceval, met, npvs, run, is_data=False):
+    tag = "data" if is_data else "mc"
+    met["pt"] = ceval[f"pt_metphicorr_pfmet_{tag}"].evaluate(met.pt, met.phi, npvs, run)
+    met["phi"] = ceval[f"phi_metphicorr_pfmet_{tag}"].evaluate(
+        met.pt, met.phi, npvs, run
+    )
+    return met
+
+
 def apply_eleES(
     ele, eleES_shifts, year, eleES_shift="nom", eleSmear_shift="nom", is_data=False
 ):
@@ -499,17 +512,69 @@ def shift_MET(met, diffs_list, is_data=False):
 
 
 def apply_unclMET_shifts(met, shift="nom"):
-    if shift == "nom":
+    if "nom" in shift:
         return met
-    met_x = met.pt * np.cos(met.phi)
-    met_y = met.py * np.sin(met.phi)
-    f = 1 if shift == "up" else -1
-    met_x = met_x + f * met.MetUnclustEnUpDeltaX
-    met_y = met_y + f * met.MetUnclustEnUpDeltaY
-    met_p4 = ak.zip({"x": met_x, "y": met_y, "z": 0, "t": 0}, with_name="LorentzVector")
-    met["pt"] = met_p4.pt
-    met["phi"] = met_p4.phi
-    return met
+    elif "up" in shift:
+        met["pt"] = met.T1_pt_unclustEnUp
+        met["phi"] = met.T1_phi_unclustEnUp
+        return met
+    elif "down" in shift:
+        met["pt"] = met.T1_pt_unclustEnDown
+        met["phi"] = met.T1_phi_unclustEnDown
+        return met
+    else:
+        return None
+    # met_x = met.pt * np.cos(met.phi)
+    # met_y = met.py * np.sin(met.phi)
+    # f = 1 if shift == "up" else -1
+    # met_x = met_x + f * met.MetUnclustEnUpDeltaX
+    # met_y = met_y + f * met.MetUnclustEnUpDeltaY
+    # met_p4 = ak.zip({"x": met_x, "y": met_y, "z": 0, "t": 0}, with_name="LorentzVector")
+    # met["pt"] = met_p4.pt
+    # met["phi"] = met_p4.phi
+    # return met
+
+
+def apply_JES_shifts(jets, met, shift="nom"):
+    if "nom" in shift:
+        return jets, met
+    elif "up" in shift:
+        # print("Shifting JES up")
+        met["pt"] = met.T1_pt_jesTotalUp
+        met["phi"] = met.T1_phi_jesTotalUp
+        jets["pt"] = jets.pt_jesTotalUp
+        jets["mass"] = jets.mass_jesTotalUp
+        return jets, met
+    elif "down" in shift:
+        # print("Shifting JES down")
+        met["pt"] = met.T1_pt_jesTotalDown
+        met["phi"] = met.T1_phi_jesTotalDown
+        jets["pt"] = jets.pt_jesTotalDown
+        jets["mass"] = jets.mass_jesTotalDown
+        return jets, met
+    else:
+        return None
+
+
+def apply_JER_shifts(jets, met, shift="nom"):
+    if "nom" in shift:
+        return jets, met
+    elif "up" in shift:
+        # print("Shifting JER up")
+        met["pt"] = met.T1_pt_jerUp
+        met["phi"] = met.T1_phi_jerUp
+        jets["pt"] = jets.pt_jerUp
+        jets["mass"] = jets.mass_jerUp
+        return jets, met
+    elif "down" in shift:
+        # print("Shifting JER down")
+        met["pt"] = met.T1_pt_jerDown
+        met["phi"] = met.T1_phi_jerDown
+        jets["pt"] = jets.pt_jerDown
+        jets["mass"] = jets.mass_jerDown
+        return jets, met
+    else:
+        return None
 
 
 def apply_btag_corrections(

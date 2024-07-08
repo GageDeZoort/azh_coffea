@@ -20,6 +20,7 @@ from azh_analysis.utils.corrections import (
     get_electron_ID_weights,
     get_electron_trigger_SFs,
     get_fake_rates,
+    get_met_phi_weights,
     get_muon_ES_weights,
     get_muon_ID_weights,
     get_muon_trigger_SFs,
@@ -51,7 +52,11 @@ def parse_args():
     add_arg("--systematic", default=None)
     add_arg("--same-sign", action="store_true")
     add_arg("--relaxed", action="store_true")
-    add_arg("--tighten-mtt", action="store_true")
+    add_arg("--mtt-corr-up", type=float, default=160.0)
+    add_arg("--mtt-corr-down", type=float, default=90.0)
+    add_arg("--m4l-cons-up", type=float, default=2000)
+    add_arg("--m4l-cons-down", type=float, default=0)
+    add_arg("--LT-cut", action="store_true")
     return parser.parse_args()
 
 
@@ -81,6 +86,12 @@ lumi_masks = {year: LumiMask(golden_json) for year, golden_json in golden_jsons.
 fr_base = f"corrections/fake_rates/UL_{year}"
 fake_rates = get_fake_rates(fr_base, year, origin="_coffea")
 logging.info(f"Using fake rates\n{fr_base}")
+
+# get the met phi weights
+met_phi_base = f"corrections/met/{year}"
+met_phi_file = join(met_phi_base, "met.json.gz")
+met_phi_SFs = get_met_phi_weights(met_phi_file)
+logging.info(f"Using met_phi_weights:\n{met_phi_file}")
 
 # load up electron / muon / tau IDs
 eID_base = f"corrections/electron_ID/UL_{year}"
@@ -205,7 +216,7 @@ else:
     cluster.scale(350)
 
 client = Client(cluster)
-n_wait = 1 if args.test_mode else 2
+n_wait = 1 if args.test_mode else 1
 logging.info(f"Waiting for at least {n_wait} workers...")
 client.wait_for_workers(n_wait)
 
@@ -225,6 +236,7 @@ proc_instance = AnalysisProcessor(
     pileup_weights=pileup_weights,
     lumi_masks=lumi_masks,
     nevts_dict=nevts_dict,
+    met_phi_SFs=met_phi_SFs,
     eleID_SFs=eIDs,
     eleES_SFs=eES_SFs,
     muID_SFs=mIDs,
@@ -243,7 +255,11 @@ proc_instance = AnalysisProcessor(
     same_sign=args.same_sign,
     blind=False,
     relaxed=args.relaxed,
-    tighten_mtt=args.tighten_mtt,
+    mtt_corr_up=args.mtt_corr_up,
+    mtt_corr_down=args.mtt_corr_down,
+    m4l_cons_up=args.m4l_cons_up,
+    m4l_cons_down=args.m4l_cons_down,
+    LT_cut=args.LT_cut,
 )
 
 chunksize = 50000 if "data" in args.source else 50000

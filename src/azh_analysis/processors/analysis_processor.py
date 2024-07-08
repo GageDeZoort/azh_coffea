@@ -43,6 +43,7 @@ from azh_analysis.utils.corrections import (
     apply_eleES,
     apply_JER_shifts,
     apply_JES_shifts,
+    apply_met_phi_SFs,
     apply_muES,
     apply_tauES,
     apply_unclMET_shifts,
@@ -90,6 +91,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         lumi_masks=None,
         blind=True,
         nevts_dict=None,
+        met_phi_SFs=None,
         fake_rates=None,
         eleID_SFs=None,
         muID_SFs=None,
@@ -110,7 +112,10 @@ class AnalysisProcessor(processor.ProcessorABC):
         systematic=None,
         same_sign=False,
         relaxed=False,
-        tighten_mtt=True,
+        mtt_corr_up=160,
+        mtt_corr_down=90,
+        m4l_cons_up=2000,
+        m4l_cons_down=200,
         LT_cut=False,
     ):
 
@@ -134,6 +139,7 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.lumi_masks = lumi_masks
         self.nevts_dict = nevts_dict
         self.fake_rates = fake_rates
+        self.met_phi_SFs = met_phi_SFs
         self.eleID_SFs = eleID_SFs
         self.muID_SFs = muID_SFs
         self.tauID_SFs = tauID_SFs
@@ -151,7 +157,10 @@ class AnalysisProcessor(processor.ProcessorABC):
         self.A_mass = A_mass
         self.same_sign = same_sign
         self.relaxed = relaxed
-        self.tighten_mtt = tighten_mtt
+        self.mtt_corr_up = mtt_corr_up
+        self.mtt_corr_down = mtt_corr_down
+        self.m4l_cons_up = m4l_cons_up
+        self.m4l_cons_down = m4l_cons_down
         self.LT_cut = LT_cut
 
         # systematics that affect event kinematics
@@ -248,6 +257,9 @@ class AnalysisProcessor(processor.ProcessorABC):
             )
         global_mask = global_selections.all(*global_selections.names)
         events = events[global_mask]
+
+        # necessary to apply met_phpi corrections
+        events = events[events.MET.T1_pt < 6500]
         if len(events) == 0:
             return output
 
@@ -334,9 +346,20 @@ class AnalysisProcessor(processor.ProcessorABC):
             jets, MET = events.Jet, events.MET
             MET["pt"] = MET.T1_pt
             MET["phi"] = MET.T1_phi
+            if is_data:
+                MET = apply_met_phi_SFs(
+                    self.met_phi_SFs,
+                    MET,
+                    events.PV.npvsGood,
+                    events.run,
+                    is_data,
+                )
+            else:
+                MET = apply_met_phi_SFs(
+                    self.met_phi_SFs, MET, events.PV.npvsGood, events.run
+                )
             jets, MET = apply_JES_shifts(jets, MET, JES_shift)
             jets, MET = apply_JER_shifts(jets, MET, JER_shift)
-            print(JES_shift, JER_shift)
             MET = apply_unclMET_shifts(MET, shift=unclMET_shift)
             MET = shift_MET(MET, [e_shifts, m_shifts, t_shifts], is_data=is_data)
 
@@ -434,6 +457,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                         lltt["weight"] = lltt["weight"] * self.get_fake_weights(
                             lltt, cat
                         )
+
+                    lltt["dR"] = lltt.tt.t1.delta_r(lltt.tt.t2)
+                    print(lltt.dR)
 
                     # append the candidates
                     candidates[cat] = lltt
@@ -692,15 +718,15 @@ class AnalysisProcessor(processor.ProcessorABC):
             ("tt", "t2"): "4",
         }
 
-        # force fastmtt output to be between 90 and 180 GeV
-        upper_bound = 160 if self.tighten_mtt else 180
+        # force fastmtt output to be between mtt_down and mtt_up GeV
         mask = np_flat(
-            (fastmtt_out["mtt_corr"] > 90) & (fastmtt_out["mtt_corr"] < upper_bound)
+            (fastmtt_out["mtt_corr"] > self.mtt_corr_down)
+            & (fastmtt_out["mtt_corr"] < self.mtt_corr_up)
         )
 
         # only plot outputs for m4l in the acceptible range
         m4l = fastmtt_out["m4l_cons"]
-        mask = mask & (m4l >= 200) & (m4l <= 2000)
+        mask = mask & (m4l >= self.m4l_cons_down) & (m4l <= self.m4l_cons_up)
 
         # sort out histogram categories
         signs = np_flat(lltt["tt"]["t1"].charge * lltt["tt"]["t2"].charge)[mask]
@@ -710,7 +736,8 @@ class AnalysisProcessor(processor.ProcessorABC):
         weight = np_flat(weight)[mask]
         weight = np.nan_to_num(weight, nan=0, posinf=0, neginf=0)
         evtID, lumi_block = lltt.evtID[mask], lltt.lumi_block[mask]
-        if is_data:
+
+        if is_data and "reducible" not in group:
             output["evtID"] = col_acc(np_flat(evtID))
             output["lumi_block"] = col_acc(np_flat(lumi_block))
 
@@ -762,6 +789,16 @@ class AnalysisProcessor(processor.ProcessorABC):
             btags=btags,
             syst_shift=syst_shift,
             met_phi=met_phi[mask],
+            weight=weight,
+        )
+
+        dR = np_flat(lltt.dR)
+        output["dR"][name].fill(
+            group=group,
+            category=cats,
+            btags=btags,
+            syst_shift=syst_shift,
+            dR=dR[mask],
             weight=weight,
         )
 
