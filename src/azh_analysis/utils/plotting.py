@@ -255,7 +255,7 @@ def plot_data_vs_mc(
     y = data_vals / mc_vals
     yerr = ratio_uncertainty(data_vals, mc_vals, "poisson")
 
-    if blind and blind_range is None and is_SR == False:
+    if blind and blind_range is None and is_SR is False:
         print("BLINDING")
         # idx = np.where((y > 1.4) | (y < 0.6))[0]
         idx = data_vals > 10
