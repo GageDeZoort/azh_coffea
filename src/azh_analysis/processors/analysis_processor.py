@@ -303,7 +303,7 @@ class AnalysisProcessor(processor.ProcessorABC):
                 self.has_L1PreFiringWeight = False
 
         # set up the event identifiers
-        evtID, lumi_block = events.event, events.luminosityBlock
+        evtID, lumi_block, run = events.event, events.luminosityBlock, events.run
 
         # run the analysis over various systematic shifts
         for k_shift in self.kin_syst_shifts:
@@ -469,6 +469,7 @@ class AnalysisProcessor(processor.ProcessorABC):
             cands = ak.concatenate(list(candidates.values()), axis=1)
             cands["evtID"] = evtID
             cands["lumi_block"] = lumi_block
+            cands["run"] = run
             # cands["btags"] = b_counts
             # cands["btruth"] = b_truth
             mask = ak.num(cands) == 1
@@ -735,11 +736,12 @@ class AnalysisProcessor(processor.ProcessorABC):
         cats = np.array([self.categories[c] for c in cats])
         weight = np_flat(weight)[mask]
         weight = np.nan_to_num(weight, nan=0, posinf=0, neginf=0)
-        evtID, lumi_block = lltt.evtID[mask], lltt.lumi_block[mask]
+        evtID, lumi_block, run = lltt.evtID[mask], lltt.lumi_block[mask], lltt.run[mask]
 
         if is_data and "reducible" not in group:
             output["evtID"] = col_acc(np_flat(evtID))
             output["lumi_block"] = col_acc(np_flat(lumi_block))
+            output["run"] = col_acc(np_flat(run))
 
         # fill the lltt leg four-vectors
         for leg, label in label_dict.items():
@@ -860,9 +862,9 @@ class AnalysisProcessor(processor.ProcessorABC):
                         weight=weight[blind_mask],
                     )
                     if "reducible" in group.lower():
-                        output[f"reducible_{key}"] = col_acc(mass_data)
+                        output[f"reducible_{key}_{mass_type}"] = col_acc(mass_data)
                     if "data" in group.lower():
-                        output[f"data_{key}"] = col_acc(mass_data)
+                        output[f"data_{key}_{mass_type}"] = col_acc(mass_data)
             if "reducible" in group.lower():
                 output["reducible_btag"] = col_acc(btags)
                 output["reducible_cat"] = col_acc(cats)
